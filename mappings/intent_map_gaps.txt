@@ -1,0 +1,201 @@
+ΥΠΗΡΕΣΙΕΣ ΧΩΡΙΣ INTENT — υποψήφιες προς ΠΡΟΣΘΗΚΗ στο dataset
+==================================================================
+[—] Έκδοση αδειών για οικοδομικές υπηρεσίες - μηνιαίες
+    https://eservices.heraklion.gr/e-services/build-permits.html
+[—] Βεβαίωση για χαρακτηρισμό κτιρίου (Προτεινόμενου ως διατηρητέου ή μη)
+    https://eservices.heraklion.gr/e-services/building-value.html
+[—] Διαχείριση Καλλιτεχνικής Δραστηριοτητας εντός της Παλιάς Πόλης
+    https://eservices.heraklion.gr/e-services/street-musicians.html
+[Adeia Gia Moysika Idrymata] Αδειοδότηση Ωδείων, Μουσικών Σχολών και Χορωδιών κ.α.
+    https://eservices.heraklion.gr/e-services/adeia-gia-moysika-idrymata/music.html
+[Civil Marriages] Άδεια Πολιτικού Γάμου για Έλληνες Πολίτες
+    https://eservices.heraklion.gr/e-services/civil-marriages/gamoi.html
+[Civil Marriages] Άδεια Πολιτικού Γάμου για Αλλοδαπούς
+    https://eservices.heraklion.gr/e-services/civil-marriages/marriage-foreigners.html
+[Civil Marriages] Αίτηση Τέλεσης Πολιτικού Γάμου μετά την έκδοση των αδειών
+    https://eservices.heraklion.gr/e-services/civil-marriages/marriage.html
+[Cleanness] Αίτημα για καθαριότητα κοινόχρηστου χώρου
+    https://eservices.heraklion.gr/e-services/cleanness/aitima-kathariotita-koinoxristou-xwrou.html
+[Cleanness] Απομάκρυνση εγκαταλελειμμένων ογκωδών αντικειμένων από κοινόχρηστους χώρους
+    https://eservices.heraklion.gr/e-services/cleanness/apomakr-egkatal-ogkodwn-antikimenwn.html
+[Cleanness] Κατάθεση ένστασης για πρόστιμο καθαριότητας
+    https://eservices.heraklion.gr/e-services/cleanness/katathesi-enstasis-prostimo-kathariotitas.html
+[Culture] Παραχώρηση χώρων του Δήμου για εκδηλώσεις
+    https://eservices.heraklion.gr/e-services/culture/culture1.html
+[E Pay] Ηλεκτρονικές Πληρωμές Οφειλών
+    https://eservices.heraklion.gr/e-services/e-pay/e-pay.html
+[Economic Services] Έκδοση ετήσιων αδειών κοινόχρηστων χώρων
+    https://eservices.heraklion.gr/e-services/economic-services/annual-public-places-permit-usage.html
+[Economic Services] Ασφαλιστική ενημερότητα του Δήμου
+    https://eservices.heraklion.gr/e-services/economic-services/asfalistiki-enimerotita-dimou.html
+[Economic Services] Βεβαίωση παρακράτησης φόρου (για προμηθευτές)
+    https://eservices.heraklion.gr/e-services/economic-services/bebeosi-parakratisis-forou.html
+[Economic Services] Βεβαίωση πληρωμών (προσκύρωσης, εισφοράς σχεδίου πόλης, προστίμου αυθαίρετης κατασκευής)
+    https://eservices.heraklion.gr/e-services/economic-services/bebeosi-plhromon.html
+[Economic Services] Διακανονισμός οφειλής (Για φυσικό πρόσωπο)
+    https://eservices.heraklion.gr/e-services/economic-services/diakanonismos-ofilis.html
+[Economic Services] Έκδοση Δημοτικής Ενημερότητας Βεβαιωμένων Χρεών
+    https://eservices.heraklion.gr/e-services/economic-services/ekdosi-dimotikis-enimerotitas-bebeomenon-xreon.html
+[Economic Services] Παραβάσεις ΚΟΚ και πρόστιμα
+    https://eservices.heraklion.gr/e-services/economic-services/kok-violations.html
+[Epidomatikh Politikh] Αίτηση για Εργοθεραπεία κατ'οίκον
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-ergotherapia-kat-oikon.html
+[Epidomatikh Politikh] Αίτηση για Εργοθεραπεία
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-ergotherapia.html
+[Epidomatikh Politikh] Αίτηση για Φυσικοθεραπεία κατ'οίκον
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-fisikotherapia-kat-oikon.html
+[Epidomatikh Politikh] Αίτηση για Φυσικοθεραπεία
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-fysikotherapia.html
+[Epidomatikh Politikh] Αίτηση για Ιατρονοσηλευτική κατ'οίκον
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-iatronosileutiki-kat-oikon.html
+[Epidomatikh Politikh] Αίτηση για Κοινωνική Εργασία κατ'οίκον
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-koinoniki-ergasia-kat-oikon.html
+[Epidomatikh Politikh] Αίτηση για Κοινωνική Εργασία
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-koinoniki-ergasia.html
+[Epidomatikh Politikh] Αίτηση χορήγησης οικονομικής ενίσχυσης στους πληγέντες του Δήμου Ηρακλείου για τη φυσική καταστροφή της .../.../20...
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-xorigisis-oik-enisx-pligentes-dimou.html
+[Epidomatikh Politikh] Αίτηση - ΥΔ για παροχή δωρεάν φαρμακευτικής περίθαλψης σε ανασφάλιστου
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/aitisi-yd-paroxi-farmakeu-perithalpsi.html
+[Epidomatikh Politikh] Γενική Αίτηση για θέματα Επιδομάτων
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/geniki-aitisi.html
+[Epidomatikh Politikh] Κατάθεση Δικαιολογητικών Μ.Φ.Π.Α.&Δ. Για την έγκριση πρόσληψης προσωπικού
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/katathesi-dikaiologitika-mfpa.html
+[Epidomatikh Politikh] Χορήγηση ενιαίας άδειας ίδρυσης-αναθεώρησης και λειτουργίας μονάδας φροντίδας προσχολικής αγωγής και διαπαιδαγώγησης
+    https://eservices.heraklion.gr/e-services/epidomatikh-politikh/xorigisi-enieas-adias-idrisis-mfpad.html
+[Katasthmata] Έκδοση άδειας διοργάνωσης έκθεσης ζώων συντροφιάς
+    https://eservices.heraklion.gr/e-services/katasthmata/ekthesh-zwwn.html
+[Laikes Agores] Λαϊκές Αγορές: Ημέρες και οδοί λειτουργίας στον Δήμο Ηρακλείου
+    https://eservices.heraklion.gr/e-services/laikes-agores/laikes-agores-hrakleiou.html
+[Municipal Police] Αίτηση επιστροφής πινακίδων
+    https://eservices.heraklion.gr/e-services/municipal-police/aitisi-epistrofis-pinakidon.html
+[Municipal Police] Απομάκρυνση Εγκαταλελειμμένων Οχημάτων
+    https://eservices.heraklion.gr/e-services/municipal-police/egkatalelimena-oximata.html
+[Municipal Police] Καταγγελίες (Εμπόδια στο οδόστρωμα)
+    https://eservices.heraklion.gr/e-services/municipal-police/kataggelia-empodia-odostroma.html
+[Municipal Police] Καταγγελία για άλλα θέματα
+    https://eservices.heraklion.gr/e-services/municipal-police/kataggelia-gia-alla-themata.html
+[Municipal Police] Καταγγελίες (Εγκαταλελειμμένα κτίρια)
+    https://eservices.heraklion.gr/e-services/municipal-police/kataggelia-ktiria.html
+[Municipal Police] Καταγγελίες (Παραβάσεις Κ.Ο.Κ.)
+    https://eservices.heraklion.gr/e-services/municipal-police/kataggelia-paravasis-kok.html
+[Municipal Police] Κατάθεση Ένστασης - Αντίρρησης για παράνομη στάθμευση
+    https://eservices.heraklion.gr/e-services/municipal-police/katathesi-enstasis-antirisis-gia-paranomi-stathmeusi.html
+[Municipal Roll] Αλλαγή διεύθυνσης
+    https://eservices.heraklion.gr/e-services/municipal-roll/allagi-dieuthinsis.html
+[Municipal Roll] Άνοιγμα μερίδας δημότη – λόγω διαζυγίου (με διαζύγιο που έχει καταχωρηθεί στην ληξιαρχική πράξη γάμου μέχρι το έτος 2017)
+    https://eservices.heraklion.gr/e-services/municipal-roll/anigma-meridas-dimoti-logo-diazigiou.html
+[Municipal Roll] Πιστοποιητικό Ταυτοπροσωπίας για Ενήλικα
+    https://eservices.heraklion.gr/e-services/municipal-roll/certification-of-identity-ekloges.html
+[Municipal Roll] Πιστοποιητικό Ταυτοπροσωπίας Ανηλίκων
+    https://eservices.heraklion.gr/e-services/municipal-roll/certrification-of-identity.html
+[Municipal Roll] Αλλαγή στοιχείων τέκνου λόγω υιοθεσίας, αναγνώρισης, πρόσληψης επωνύμου, πατρωνύμου και εγγραφή στα δημοτολόγια (με κωδικούς taxisnet)
+    https://eservices.heraklion.gr/e-services/municipal-roll/change-personal-data-child-adoption.html
+[Municipal Roll] Διόρθωση ηλικίας
+    https://eservices.heraklion.gr/e-services/municipal-roll/diorthosi-ilikias.html
+[Municipal Roll] Διόρθωση τόπου γέννησης
+    https://eservices.heraklion.gr/e-services/municipal-roll/diorthosi-topou-gennisis.html
+[Municipal Roll] Μεταδημότευση αγάμου
+    https://eservices.heraklion.gr/e-services/municipal-roll/metadimotefsi-unmarried.html
+[Municipal Roll] Μεταδημότευση λόγω αρχικής δημοτικότητας
+    https://eservices.heraklion.gr/e-services/municipal-roll/metadimoteusi-logo-arxis-dimotikotitas.html
+[Municipal Roll] Μεταδημότευση λόγω υποψηφιότητας σε εκλογές
+    https://eservices.heraklion.gr/e-services/municipal-roll/metadimoteusi-logo-ipopsifiotitas-ekloges.html
+[Municipal Roll] Μεταδημότευση της/του συζύγου (λόγω γάμου ή συμφώνου συμβίωσης όταν ένας από τους δύο είναι ήδη δημότης)
+    https://eservices.heraklion.gr/e-services/municipal-roll/metadimoteusi-suzigou.html
+[Municipal Roll] Εγγραφή Αλλοδαπών που αποκτούν την Ελληνική Ιθαγένεια με πολιτογράφηση και τέκνων λόγω γέννησης - φοίτησης, φοίτησης
+    https://eservices.heraklion.gr/e-services/municipal-roll/record-naturalization.html
+[Municipal Roll] Χορήγηση Πιστοποιητικού Εντοπιότητας (αφορά μόνο εκπαιδευτικούς)
+    https://eservices.heraklion.gr/e-services/municipal-roll/xorogisi-pistop-entopoiotitas.html
+[Register] Δήλωση Διαζυγίου (άρθρα 1438 Α.Κ. και 1441 Α.Κ. όπως αντικαταστάθηκε με το άρθρο 4 του ν.4800/21.5.2021 και 14 του ν.344/1976)
+    https://eservices.heraklion.gr/e-services/register/dilosidiazigiou.html
+[Register] Δήλωση Γάμου (άρθρα 29 & 30 του ν. 344/1976)
+    https://eservices.heraklion.gr/e-services/register/dilosigamou.html
+[Register] Δήλωση γέννησης (άρθρα 20, 21 Α και 23 ν.344/1976)
+    https://eservices.heraklion.gr/e-services/register/dilosigennisis.html
+[Register] Δήλωση Ονοματοδοσίας (άρθρο 25 ν. 344/1976)
+    https://eservices.heraklion.gr/e-services/register/dilosionomatodosia.html
+[Register] Δήλωση Θανάτου (αρθρα 32 & 33 ν.344/1976)
+    https://eservices.heraklion.gr/e-services/register/dilosiuanatou.html
+[Register] Χορήγηση αντιγράφου Ληξιαρχικής Πράξης Γεννήσεως
+    https://eservices.heraklion.gr/e-services/register/liksiarxikis-praksis-genisis.html
+[Register] Χορήγηση αντιγράφου Ληξιαρχικής Πράξης Συμφώνου Συμβίωσης
+    https://eservices.heraklion.gr/e-services/register/praksi-symfwnou-simbiwsis.html
+[Register] Σύμφωνο Συμβίωσης (Ν.4356/2015)
+    https://eservices.heraklion.gr/e-services/register/simfonosimviosis.html
+[Register] Διόρθωση στοιχείων ληξιαρχικών πράξεων (αρθ.13 του Ν.344/76 όπως τροποποιήθηκε με το ν. 4674/2020)
+    https://www.heraklion.gr/e-services/register/diorthoseis.html
+[Technical Services] Δικαιολογητικά ανελκυστήρων για καταχώρηση
+    https://eservices.heraklion.gr/e-services/technical-services/TEXNIKHANELKISTIRAS.html
+[Technical Services] Χορήγηση άδειας διέλευσης και στάθμευσης οχήματος σε πεζόδρομους
+    https://eservices.heraklion.gr/e-services/technical-services/adia-dieleusis-stathmeusis-pezodromous.html
+[Technical Services] Χορήγηση άδειας επισκευής/παρέμβασης εντός κοινόχρηστου χώρου (πεζοδρόμιο κλπ)
+    https://eservices.heraklion.gr/e-services/technical-services/adia-episkeuhs-parembasis-koinox-xorou.html
+[Technical Services] Χορήγηση άδειας χρήσης κοινόχρηστου χώρου για τοποθέτηση κάδου απορριμμάτων σε πεζοδρόμια, πεζόδρομους και πλατείες
+    https://eservices.heraklion.gr/e-services/technical-services/adia-xrisis-koin-xorou-topothetisi-kadou.html
+[Technical Services] Αίτημα καταπολέμησης πιτυοκάμπης
+    https://eservices.heraklion.gr/e-services/technical-services/aitima-katapolemisis-pitiokampis.html
+[Technical Services] Αιτήματα για κυκλοφοριακές ρυθμίσεις
+    https://eservices.heraklion.gr/e-services/technical-services/aitima-kukloforiakes-ruthmiseis.html
+[Technical Services] Αιτήματα για παραχώρηση εξοπλισμού για εκδηλώσεις (τραπέζια ,καρέκλες )
+    https://eservices.heraklion.gr/e-services/technical-services/aitimata-paraxorisis-eksoplismou-ekdilosis.html
+[Technical Services] Αιτήματα για Συντήρηση και τοποθέτηση αστικού εξοπλισμού προαυλίων Χώρων σε Σχολεία (παγκάκια ,μπασκέτες ,παιχνίδια )
+    https://eservices.heraklion.gr/e-services/technical-services/aitimata-sintirisis-topothetisi-astikou-eksoplismou-proaulion-xoron-sxolia.html
+[Technical Services] Απεντόμωση σε κοινόχρηστους χώρους
+    https://eservices.heraklion.gr/e-services/technical-services/apentomosi-koinoxristo-xoro.html
+[Technical Services] Απολύμανση κτιρίων
+    https://eservices.heraklion.gr/e-services/technical-services/apolimansi-ktirion.html
+[Technical Services] Απομάκρυνση - κοπή δένδρων σε κοινόχρηστους χώρους
+    https://eservices.heraklion.gr/e-services/technical-services/apomakrinsi-kopi-dentron-se-koinoxristous-xorous.html
+[Technical Services] Βλάβες σε Φωτεινούς Σηματοδότες
+    https://eservices.heraklion.gr/e-services/technical-services/blabes-se-fotinous-simatodotes.html
+[Technical Services] Καλλωπισμός - Γενική συντήρηση σε κοινόχρηστους χώρους
+    https://eservices.heraklion.gr/e-services/technical-services/kalopismos-gen-syntirisi-koinoxristo-xoro.html
+[Technical Services] Καταγγελία δολιοφθορών
+    https://eservices.heraklion.gr/e-services/technical-services/kataggelia-doliofthoras.html
+[Technical Services] Καταστροφή και απομάκρυνση ζιζανίων
+    https://eservices.heraklion.gr/e-services/technical-services/katastrofi-kai-apomakrinsi-zizanion.html
+[Technical Services] Κυκλοφοριακές συνδέσεις/είσοδοι-έξοδοι
+    https://eservices.heraklion.gr/e-services/technical-services/kikloforiakes-sindesis.html
+[Technical Services] Μυοκτονία σε κοινόχρηστους χώρους
+    https://eservices.heraklion.gr/e-services/technical-services/mioktonia-koinoxristo-xoro.html
+[Technical Services] Ονομασία ανώνυμων οδών
+    https://eservices.heraklion.gr/e-services/technical-services/onomasia-anonimon-odon.html
+[Technical Services] Αίτηση για διάθεση σήματος στάθμευσης μονίμου κατοίκου
+    https://eservices.heraklion.gr/e-services/technical-services/parking-signal.html
+[Technical Services] Σπασμένα κλαδιά δέντρου
+    https://eservices.heraklion.gr/e-services/technical-services/spasmena-kladia-dentrou.html
+[Technical Services] Χορήγηση άδειας διακοπής κυκλοφορίας
+    https://eservices.heraklion.gr/e-services/technical-services/xorigisi-adias-diakopis-kukloforias.html
+[Technical Services] Χορήγηση άδειας διέλευσης βαρέων οχημάτων
+    https://eservices.heraklion.gr/e-services/technical-services/xorigisi-adias-dieleusis-bareon-oximaton.html
+[Technical Services] Χορήγηση άδειας βύθισης ή υποβιβασμού πεζοδρομίου
+    https://eservices.heraklion.gr/e-services/technical-services/xorogisi-adias-bithisis.html
+[Technical Services] Χορήγηση άδειας χρήσης κοινόχρηστου χώρου για τοποθέτηση περίφραξης σε πεζοδρόμια, πεζόδρομους και πλατείες
+    https://eservices.heraklion.gr/e-services/technical-services/xrisi-koinoxristou-xorou-perifraksi.html
+[Town Planning] Αίτημα τροποποίησης λόγω αυτοδίκαιης άρσης ρυμοτομικής απαλλοτρίωσης/δέσμευσης
+    https://eservices.heraklion.gr/e-services/town-planning/aitima-tropopoihsis-logo-aytodikaihs-arsis-rumotomikis-apallotriosis.html
+[Town Planning] Αντίγραφα στοιχείων αδειών δόμησης (μετά το έτος 2018)
+    https://eservices.heraklion.gr/e-services/town-planning/antigrafa-stoixeiwn-adeiwn-domisis-meta-2018.html
+[Town Planning] Αντίγραφα στοιχείων οικοδομικών αδειών (έως το έτος 2018)
+    https://eservices.heraklion.gr/e-services/town-planning/antigrafa-stoixeiwn-oikodom-adeiwn-ews-2018.html
+[Town Planning] Έγκριση από ΣΥ.ΠΟ.Θ.Α. ( για διαφορά ειδικού προστίμου >20% δήλωσης υπαγωγής)
+    https://eservices.heraklion.gr/e-services/town-planning/egkrish-apo-SYPOTHA.html
+[Town Planning] Έκδοση Έκθεσης Αυτοψίας για Νομιμοποίηση
+    https://eservices.heraklion.gr/e-services/town-planning/ekdosh-ekthesis-autopsias-nomimopoihsi.html
+[Town Planning] Έλεγχος επικινδυνότητας κατασκευών
+    https://eservices.heraklion.gr/e-services/town-planning/elegxos-epikindinotitas-kataskeuwn.html
+[Town Planning] Ένσταση (μελέτης κτηματογράφησης ή μελέτης πολεοδόμησης ή τροποποίησης ρυμοτομικού σχεδίου)
+    https://eservices.heraklion.gr/e-services/town-planning/enstasi-meleti-ktimatografisis.html
+[Town Planning] Καταγγελία αυθαίρετης κατασκευής
+    https://eservices.heraklion.gr/e-services/town-planning/kataggelia-autheretis-kataskeuis.html
+[Town Planning] Θέματα Εκθέσεων Αυτοψίας (Ένσταση, Αποδοχή, Διαγραφή, Αναστολή Προστίμου Δήλωση κατεδάφισης)
+    https://eservices.heraklion.gr/e-services/town-planning/themata-ekthesewn-autopsias.html
+[Town Planning] Υποβολή δήλωσης ιδιοκτησίας σε πολεοδομική μελέτη
+    https://eservices.heraklion.gr/e-services/town-planning/upoboli-dilosis-idioktisias-poleodomiki-meleti-.html
+
+INTENTS ΧΩΡΙΣ ΥΠΗΡΕΣΙΑ — υποψήφια προς ΑΦΑΙΡΕΣΗ από το dataset
+==================================================================
+αίτηση_κίτρινης_διαγράμμισης  (68 δείγματα, καλύτερο score 0.325)
+    πλησιέστερο: Αίτηση για ασφαλτόστρωση - τσιμεντόστρωση - διάστρωση 3α
+άδεια_κολυμβητικής_δεξαμενής  (68 δείγματα, καλύτερο score 0.297)
+    πλησιέστερο: Βεβαίωση Υψομέτρου

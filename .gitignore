@@ -1,4 +1,17 @@
 venv/
+venv-pipeline/
 __pycache__/
 *.pyc
-dimos-intent-model/model.safetensors
+.DS_Store
+
+# Βάρη μοντέλων: 430 MB το καθένα, πάνω από το όριο των 100 MB του
+# GitHub. Τα υπόλοιπα αρχεία του μοντέλου (config, tokenizer,
+# label_encoder, labels.json) ΕΙΝΑΙ υπό git — είναι μικρά και σε αυτά
+# ζουν τα ονόματα των 218 intents, που άλλαξαν και πρέπει να
+# παρακολουθούνται.
+*.safetensors
+*.zip
+
+# Ενδιάμεσο αρχείο της αποτυχημένης προσπάθειας με qwen — δες
+# scripts/llm_prefill_table.py
+mappings/.llm_prefill.checkpoint.json

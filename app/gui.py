@@ -21,14 +21,21 @@ from pathlib import Path
 import webview
 
 from connector import (
+    TranslationUnavailable,
     JSON_PATH,
+    MSG,
+    compose_answer,
+    department_answer,
+    find_candidates,
+    load_departments,
+    load_no_service,
+    load_service_table,
+    resolve_query,
     MIN_BERT_CONFIDENCE,
     MIN_TFIDF_SCORE,
-    ask_llama,
     build_tfidf_index,
     detect_intent,
     load_bert,
-    tfidf_search,
 )
 
 BASE_DIR       = Path(__file__).parent.resolve()
@@ -246,6 +253,8 @@ _STATE: dict = {
     "tokenizer":     None,
     "model":         None,
     "label_encoder": None,
+    "service_table": None,
+    "no_service": None,
     "vectorizer":    None,
     "tfidf_matrix":  None,
     "valid_kb":      None,
@@ -262,6 +271,8 @@ def _load_pipeline() -> None:
             "tokenizer":     tokenizer,
             "model":         model,
             "label_encoder": label_encoder,
+            "service_table": load_service_table(valid_kb),
+            "no_service": load_no_service(load_departments()),
             "vectorizer":    vectorizer,
             "tfidf_matrix":  tfidf_matrix,
             "valid_kb":      valid_kb,
@@ -298,29 +309,32 @@ class Api:
             return "Παρακαλώ γράψτε μια ερώτηση."
 
         try:
+            try:
+                greek_query, lang = resolve_query(query)
+            except TranslationUnavailable:
+                return MSG["en"]["tr_fail"]
+
             intents = detect_intent(
-                query,
+                greek_query,
                 _STATE["tokenizer"], _STATE["model"], _STATE["label_encoder"],
             )
             top_intent, top_score = intents[0]
 
             if top_score < MIN_BERT_CONFIDENCE:
-                return (
-                    f"Συγγνώμη, δεν κατάλαβα την ερώτηση. "
-                    f"Παρακαλώ επικοινωνήστε με τον Δήμο στο {PHONE_FALLBACK}."
-                )
+                return MSG[lang]["unknown"]
 
-            candidates = tfidf_search(
+            if top_intent in (_STATE["no_service"] or {}):
+                return department_answer(_STATE["no_service"][top_intent], lang)
+
+            candidates, source = find_candidates(
                 top_intent,
                 _STATE["vectorizer"], _STATE["tfidf_matrix"], _STATE["valid_kb"],
+                _STATE["service_table"],
             )
             if not candidates or candidates[0][0] < MIN_TFIDF_SCORE:
-                return (
-                    f"Η υπηρεσία δεν φαίνεται να παρέχεται ηλεκτρονικά από τον Δήμο. "
-                    f"Παρακαλώ επικοινωνήστε στο {PHONE_FALLBACK}."
-                )
+                return MSG[lang]["outofscope"]
 
-            return ask_llama(query, top_intent, candidates)
+            return compose_answer(greek_query, top_intent, candidates, source, lang)
         except Exception as e:
             return f"Σφάλμα: {e}"
 
