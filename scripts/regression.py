@@ -92,8 +92,21 @@ def main():
     ap.add_argument("--update", action="store_true")
     args = ap.parse_args()
 
-    bot = Bot()
     results, failures = {}, []
+
+    # Έλεγχος του JS του παραθύρου πριν από οτιδήποτε άλλο: είναι γρήγορος
+    # και ελέγχει κώδικα που δεν αγγίζει καθόλου το pipeline της Python.
+    import subprocess
+    js = subprocess.run([sys.executable, str(Path(__file__).parent / "test_gui_js.py")],
+                        capture_output=True, text=True)
+    print("\n  JavaScript παραθύρου:")
+    for line in js.stdout.strip().split("\n"):
+        if line.strip():
+            print("  " + line.rstrip())
+    if js.returncode != 0:
+        failures.append("έλεγχοι JavaScript απέτυχαν")
+
+    bot = Bot()
 
     # ── 1. ακρίβεια intent ───────────────────────────────────
     rows = []
