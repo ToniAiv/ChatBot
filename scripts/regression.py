@@ -66,10 +66,17 @@ class Bot:
         self.ns = C.load_no_service(C.load_departments())
 
     def ask(self, q, translate=True):
-        """Επιστρέφει (intent, confidence, έκβαση)."""
+        """Επιστρέφει (intent, confidence, έκβαση). Στο «suggest» το
+        intent αντικαθίσταται από τη λίστα των προτεινόμενων."""
         gq, lang = (C.resolve_query(q) if translate else (q, "el"))
-        it, cf = C.detect_intent(gq, self.tok, self.mdl, self.le)[0]
+        tops = C.detect_intent(gq, self.tok, self.mdl, self.le)
+        it, cf = tops[0]
         if cf < C.MIN_BERT_CONFIDENCE:
+            if C.should_suggest(tops):
+                opts = C.suggestions(tops, self.vec, self.mat, self.valid,
+                                     self.table, self.ns)
+                if opts:
+                    return [o["intent"] for o in opts], cf, "suggest"
             return it, cf, "refuse"
         if it in self.ns:
             return it, cf, "phone"
@@ -97,19 +104,41 @@ def main():
         random.Random(0).shuffle(rows); rows = rows[:300]
 
     t0 = time.monotonic()
-    outcomes = Counter(); ok = 0
+    # ΠΡΟΣΟΧΗ: το intent_top1 μετριέται στο argmax του μοντέλου, ΑΝΕΞΑΡΤΗΤΑ
+    # από κατώφλια και προτάσεις. Είναι καθαρή ακρίβεια μοντέλου και πρέπει
+    # να μένει συγκρίσιμη διαχρονικά. Όταν προστέθηκαν οι προτάσεις, μια
+    # πρώτη εκδοχή το μετρούσε μόνο στις μη-προτεινόμενες και έδειχνε
+    # πτώση 0.8884 → 0.7722 χωρίς να έχει χαλάσει τίποτα.
+    outcomes = Counter(); ok = 0; sugg_hit = 0; direct_ok = 0
     for r in rows:
         it, cf, out = bot.ask(r["text"], translate=False)   # όλα ελληνικά
         outcomes[out] += 1
-        ok += key(it) == key(r["intent"])
+        gold = key(r["intent"])
+        if out == "suggest":
+            ok += gold == key(it[0])           # το argmax είναι το πρώτο
+            sugg_hit += gold in {key(x) for x in it}
+        else:
+            hit = gold == key(it)
+            ok += hit
+            if out in ("link", "phone"):
+                direct_ok += hit
     results["mode"] = "quick" if args.quick else "full"
     results["n"] = len(rows)
     results["intent_top1"] = ok / len(rows)
     results["coverage"] = (outcomes["link"] + outcomes["phone"]) / len(rows)
+    # Προσεγγίσιμο = απαντήθηκε σωστά κατευθείαν, Ή προτάθηκε λίστα που
+    # περιέχει τη σωστή υπηρεσία. Το δεύτερο απαιτεί να διαλέξει σωστά ο
+    # πολίτης — γι' αυτό είναι ξεχωριστό νούμερο, όχι μέρος της ακρίβειας.
+    results["reachable"] = (direct_ok + sugg_hit) / len(rows)
+    results["suggest_hit"] = sugg_hit / outcomes["suggest"] if outcomes["suggest"] else 0.0
     ms = (time.monotonic() - t0) / len(rows) * 1000
     print(f"\n  Test set: {len(rows)} προτάσεις, {ms:.0f} ms/ερώτηση")
     print(f"    intent top-1 : {results['intent_top1']:.4f}")
     print(f"    κάλυψη       : {results['coverage']:.4f}")
+    print(f"    προσεγγίσιμο : {results['reachable']:.4f}  (απάντηση ή σωστή πρόταση)")
+    if outcomes["suggest"]:
+        print(f"    προτάσεις    : {outcomes['suggest']} · σωστό μέσα στις επιλογές "
+              f"{results['suggest_hit']:.1%}")
     for k, v in outcomes.most_common():
         print(f"      {v:5} {v/len(rows):6.1%}  {k}")
 

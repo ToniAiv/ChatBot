@@ -34,6 +34,8 @@ from connector import (
     load_no_service,
     load_service_table,
     resolve_query,
+    should_suggest,
+    suggestions,
     MIN_BERT_CONFIDENCE,
     MIN_TFIDF_SCORE,
     build_tfidf_index,
@@ -64,6 +66,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  .options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .option {
+    text-align: left; padding: 9px 12px; border: 1px solid #c7d2e0;
+    background: #fff; border-radius: 8px; cursor: pointer;
+    font-size: 13px; line-height: 1.35; color: #16324f;
+  }
+  .option:hover:not(:disabled) { background: #eef4fb; border-color: #7aa7d4; }
+  .option:disabled { opacity: .45; cursor: default; }
   body {
     display: flex; flex-direction: column;
     background: #f5f7fa;
@@ -201,6 +211,35 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     return div;
   }
 
+  // Εμφανίζει την απάντηση: κείμενο, και αν το μοντέλο δεν ήταν
+  // σίγουρο, τις επιλογές ως κουμπιά. Οι τίτλοι μπαίνουν με textContent.
+  function render(reply) {
+    if (!reply) { addMessage('(κενή απάντηση)', 'bot'); return; }
+    const text = (typeof reply === 'string') ? reply : reply.text;
+    const opts = (typeof reply === 'string') ? [] : (reply.options || []);
+    const div = addMessage(text || '(κενή απάντηση)', 'bot');
+    if (!opts.length) return;
+
+    const box = document.createElement('div');
+    box.className = 'options';
+    opts.forEach(o => {
+      const b = document.createElement('button');
+      b.className = 'option';
+      b.textContent = (o.kind === 'phone' ? '\u260E  ' : '\u2192  ') + o.title;
+      b.addEventListener('click', async () => {
+        box.querySelectorAll('button').forEach(x => x.disabled = true);
+        addMessage(o.title, 'user');
+        const t = addTyping();
+        const res = await window.pywebview.api.choose(o.intent);
+        t.remove();
+        render(res);
+      });
+      box.appendChild(b);
+    });
+    div.appendChild(box);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
   function addTyping() {
     const div = document.createElement('div');
     div.className = 'msg bot typing';
@@ -226,7 +265,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     try {
       const reply = await window.pywebview.api.chat(text);
       typing.remove();
-      addMessage(reply || '(κενή απάντηση)', 'bot');
+      render(reply);
     } catch (e) {
       typing.remove();
       addMessage('Σφάλμα: ' + e, 'bot');
@@ -330,6 +369,42 @@ class Api:
     def is_ready(self) -> bool:
         return bool(_STATE["ready"])
 
+
+    def choose(self, intent: str) -> dict:
+        """
+        Ο πολίτης πάτησε μία από τις προτεινόμενες επιλογές.
+
+        Παρακάμπτεται το κατώφλι εμπιστοσύνης — και σωστά: το κατώφλι
+        υπάρχει για να μη ΜΑΝΤΕΨΕΙ το σύστημα, ενώ εδώ η επιλογή έγινε
+        από άνθρωπο. Δέχεται μόνο intents που ξέρει το μοντέλο, ώστε να
+        μη γίνει η μέθοδος τρόπος να ζητηθεί αυθαίρετο περιεχόμενο από
+        τη σελίδα.
+
+        Κάθε επιλογή καταγράφεται: είναι ετικετοποιημένο δεδομένο
+        εκπαίδευσης, δωρεάν, από πραγματικό χρήστη.
+        """
+        if _STATE["error"] or not _STATE["ready"]:
+            return self._reply("Το μοντέλο δεν είναι έτοιμο.")
+        known = set(_STATE["label_encoder"].classes_)
+        if intent not in known:
+            return self._reply("Άγνωστη επιλογή.")
+        try:
+            if intent in (_STATE["no_service"] or {}):
+                dept = _STATE["no_service"][intent]
+                usage_log.log(f"[επιλογή] {intent}", "el", "", intent, None,
+                              "chosen_phone", dept.get("name", ""))
+                return self._reply(department_answer(dept))
+            candidates, source = find_candidates(
+                intent, _STATE["vectorizer"], _STATE["tfidf_matrix"],
+                _STATE["valid_kb"], _STATE["service_table"])
+            if not candidates:
+                return self._reply(MSG["el"]["outofscope"])
+            usage_log.log(f"[επιλογή] {intent}", "el", "", intent, None,
+                          "chosen_link", candidates[0][1]["title"])
+            return self._reply(compose_answer("", intent, candidates, source))
+        except Exception as e:
+            return self._reply(f"Σφάλμα: {e}")
+
     def open_url(self, url: str) -> bool:
         """
         Ανοίγει σύνδεσμο υπηρεσίας στον browser — ΜΟΝΟ του Δήμου.
@@ -350,15 +425,24 @@ class Api:
             print(f"[!] open_url failed: {e}")
             return False
 
-    def chat(self, query: str) -> str:
+    @staticmethod
+    def _reply(text, options=None, lang="el"):
+        """
+        Η chat() επιστρέφει πάντα δομή, όχι σκέτο κείμενο: όταν το
+        μοντέλο δεν είναι σίγουρο, η απάντηση δεν είναι μήνυμα αλλά
+        τρεις επιλογές που πρέπει να γίνουν κουμπιά.
+        """
+        return {"text": text, "options": options or [], "lang": lang}
+
+    def chat(self, query: str) -> dict:
         if _STATE["error"]:
-            return f"Σφάλμα κατά τη φόρτωση: {_STATE['error']}"
+            return self._reply(f"Σφάλμα κατά τη φόρτωση: {_STATE['error']}")
         if not _STATE["ready"]:
-            return "Το μοντέλο φορτώνει ακόμα. Δοκιμάστε ξανά σε λίγο."
+            return self._reply("Το μοντέλο φορτώνει ακόμα. Δοκιμάστε ξανά σε λίγο.")
 
         query = (query or "").strip()
         if not query:
-            return "Παρακαλώ γράψτε μια ερώτηση."
+            return self._reply("Παρακαλώ γράψτε μια ερώτηση.")
 
         try:
             t0 = time.monotonic()
@@ -367,7 +451,7 @@ class Api:
             except TranslationUnavailable as exc:
                 usage_log.log(query, "en", "", None, None,
                               "translation_failed", str(exc)[:120])
-                return MSG["en"]["tr_fail"]
+                return self._reply(MSG["en"]["tr_fail"], lang="en")
 
             intents = detect_intent(
                 greek_query,
@@ -377,15 +461,28 @@ class Api:
 
             ms = (time.monotonic() - t0) * 1000
             if top_score < MIN_BERT_CONFIDENCE:
+                opts = []
+                if should_suggest(intents):
+                    opts = suggestions(
+                        intents, _STATE["vectorizer"], _STATE["tfidf_matrix"],
+                        _STATE["valid_kb"], _STATE["service_table"],
+                        _STATE["no_service"])
+                if opts:
+                    usage_log.log(query, lang, greek_query, top_intent, top_score,
+                                  "suggest", " | ".join(o["title"][:40] for o in opts), ms)
+                    return self._reply(
+                        MSG[lang]["suggest"],
+                        [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
+                         for o in opts], lang)
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "refuse_low_confidence", "", ms)
-                return MSG[lang]["unknown"]
+                return self._reply(MSG[lang]["unknown"], lang=lang)
 
             if top_intent in (_STATE["no_service"] or {}):
                 dept = _STATE["no_service"][top_intent]
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "phone", dept.get("name", ""), ms)
-                return department_answer(dept, lang)
+                return self._reply(department_answer(dept, lang), lang=lang)
 
             candidates, source = find_candidates(
                 top_intent,
@@ -395,15 +492,15 @@ class Api:
             if not candidates or candidates[0][0] < MIN_TFIDF_SCORE:
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "refuse_out_of_scope", "", ms)
-                return MSG[lang]["outofscope"]
+                return self._reply(MSG[lang]["outofscope"], lang=lang)
 
             answer = compose_answer(greek_query, top_intent, candidates, source, lang)
             usage_log.log(query, lang, greek_query, top_intent, top_score,
                           "link", f"{source}: {candidates[0][1]['title']}",
                           (time.monotonic() - t0) * 1000)
-            return answer
+            return self._reply(answer, lang=lang)
         except Exception as e:
-            return f"Σφάλμα: {e}"
+            return self._reply(f"Σφάλμα: {e}")
 
 
 # ══════════════════════════════════════════════════════════════

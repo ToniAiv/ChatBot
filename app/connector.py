@@ -53,6 +53,27 @@ MIN_BERT_CONFIDENCE = 0.80   # κάτω από αυτό → άγνωστη ερ�
 # το σύστημα απαντούσε σχεδόν πάντα, με 89% ακρίβεια — δηλαδή μία στις
 # εννιά απαντήσεις λάθος, χωρίς καμία ένδειξη προς τον πολίτη.
 MIN_TFIDF_SCORE     = 0.25   # κάτω από αυτό → out-of-scope
+MIN_SUGGEST_CONFIDENCE = 0.30
+# Κάτω από το 0.80 δεν απαντάμε — αλλά δεν σημαίνει ότι δεν ξέρουμε
+# τίποτα. Σε 395 αρνήσεις του test set, η σωστή απάντηση ήταν στα top-3
+# στο 87,6%. Το ποσοστό κρατάει μέχρι το 0.30 (86-96% ανά ζώνη) και
+# καταρρέει κάτω από αυτό (0.2-0.3: 50%, 0.1-0.2: 20%). Γι\' αυτό οι
+# προτάσεις σταματούν στο 0.30: τρεις άσχετες επιλογές είναι χειρότερες
+# από ένα ειλικρινές «δεν ξέρω».
+MIN_SUGGEST_MASS = 0.65
+# Το κατώφλι στο top-1 δεν αρκεί. Το «how much is the ticket to the
+# airport?» έβγαζε 0.45 — μέσα στη ζώνη — και πρότεινε άδεια βαρέων
+# οχημάτων, παραβίαση ΚΟΚ και δικαιολογητικά ανελκυστήρων. Το 81% που
+# μετρήθηκε στη ζώνη 0.4-0.5 αφορούσε ερωτήσεις ΕΝΤΟΣ αρμοδιότητας· οι
+# εκτός δεν ανήκουν σε εκείνη την κατανομή.
+# Τις ξεχωρίζει η συγκεντρωμένη πιθανοτική μάζα: όταν το μοντέλο διστάζει
+# ανάμεσα σε συγγενείς υπηρεσίες, τα top-3 μαζεύουν 0.80-0.94· όταν η
+# ερώτηση είναι εκτός, η μάζα σκορπίζεται (0.47-0.63).
+# Μετρημένο σε 353 ερωτήσεις ζώνης + 12 εκτός αρμοδιότητας:
+#   κατώφλι  κρατάει εντός  σωστά  διαρρέουν εκτός
+#     0.00        100%       92%       5/5
+#     0.65         92%       86%       1/5   ← επιλογή
+#     0.80         68%       65%       1/5
 TOP_K               = 5      # πόσα candidates στέλνουμε στο Llama
 
 # Τίτλοι που αποκλείονται από την αναζήτηση (template strings)
@@ -337,6 +358,8 @@ MSG = {
         "no_online": "Το αίτημα αυτό δεν γίνεται ηλεκτρονικά.",
         "dept":      "Αρμόδιο", "tel": "Τηλέφωνο", "email": "Email",
         "greek_page": "",
+        "suggest":   "Δεν είμαι σίγουρος. Μήπως εννοείτε κάποιο από αυτά;",
+        "suggest_none": "Αν κανένα δεν ταιριάζει, διατυπώστε το διαφορετικά.",
         "tr_fail":   f"Η μετάφραση δεν είναι διαθέσιμη αυτή τη στιγμή. Παρακαλώ επικοινωνήστε στο {PHONE}.",
     },
     "en": {
@@ -346,6 +369,8 @@ MSG = {
         "no_online": "This request cannot be submitted online.",
         "dept":      "Department", "tel": "Phone", "email": "Email",
         "greek_page": "(the Municipality's page is in Greek)",
+        "suggest":   "I'm not sure. Did you mean one of these?",
+        "suggest_none": "If none of these fit, please rephrase your question.",
         "tr_fail":   f"Translation is unavailable right now. Please contact the Municipality at {PHONE}.",
     },
 }
@@ -365,6 +390,54 @@ def resolve_query(query: str):
     if lang == "el":
         return query, "el"
     return translate_to_greek(query), "en"
+
+
+def should_suggest(intents) -> bool:
+    """Αξίζει να προτείνουμε επιλογές, ή είναι καλύτερο ένα «δεν ξέρω»;"""
+    if not intents or intents[0][1] < MIN_SUGGEST_CONFIDENCE:
+        return False
+    return sum(score for _, score in intents[:3]) >= MIN_SUGGEST_MASS
+
+
+def suggestions(intents, vectorizer, tfidf_matrix, valid_kb,
+                service_table=None, no_service=None, limit=3):
+    """
+    Μετατρέπει τα top-N intents του BERT σε επιλογές που καταλαβαίνει
+    ο πολίτης.
+
+    Δείχνει ΤΙΤΛΟΥΣ ΥΠΗΡΕΣΙΩΝ, όχι labels: το «μετακινηση_τοποθετηση_
+    καδων» δεν λέει τίποτα σε κανέναν έξω από το project. Δύο διαφορετικά
+    intents μπορεί να δείχνουν στην ίδια υπηρεσία (υπάρχουν 11 γνωστά
+    διπλότυπα ζεύγη), γι\' αυτό γίνεται αφαίρεση διπλότυπων με βάση το
+    URL — αλλιώς ο πολίτης θα έβλεπε την ίδια επιλογή δύο φορές.
+    """
+    out, seen = [], set()
+    for intent, score in intents:
+        if len(out) >= limit:
+            break
+        if no_service and intent in no_service:
+            dept = no_service[intent]
+            if not dept:
+                continue
+            k = ("dept", dept.get("name", ""))
+            if k in seen:
+                continue
+            seen.add(k)
+            out.append({"intent": intent, "score": score, "kind": "phone",
+                        "title": dept.get("name", ""), "url": "", "dept": dept})
+            continue
+        cand, _src = find_candidates(intent, vectorizer, tfidf_matrix,
+                                     valid_kb, service_table)
+        if not cand or cand[0][0] < MIN_TFIDF_SCORE:
+            continue
+        rec = cand[0][1]
+        k = ("svc", rec["url"])
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append({"intent": intent, "score": score, "kind": "link",
+                    "title": rec["title"], "url": rec["url"]})
+    return out
 
 
 def compose_answer(query: str, intent: str, candidates: list, source: str,
@@ -415,6 +488,18 @@ def run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix, valid_
         print(f"   {intent:<45} {score:.3f} {bar}")
 
     if top_score < MIN_BERT_CONFIDENCE:
+        opts = []
+        if should_suggest(intents):
+            opts = suggestions(intents, vectorizer, tfidf_matrix, valid_kb,
+                               service_table, no_service)
+        if opts:
+            print(f"\n🤔 (score: {top_score:.2f})")
+            print(MSG[lang]["suggest"])
+            for i, o in enumerate(opts, 1):
+                mark = "📞" if o["kind"] == "phone" else "🔗"
+                print(f"   {i}. {mark} {o['title']}")
+            print(MSG[lang]["suggest_none"])
+            return
         print(f"\n⚠️  (score: {top_score:.2f})")
         print(MSG[lang]["unknown"])
         return
