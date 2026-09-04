@@ -192,15 +192,25 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       if (m.index > last) {
         div.appendChild(document.createTextNode(str.slice(last, m.index)));
       }
+      // Το url ΠΡΕΠΕΙ να πιαστεί σε const μέσα στην επανάληψη. Το `m`
+      // δηλώνεται έξω από τον βρόχο (το απαιτεί το re.exec), οπότε ο
+      // listener θα έκλεινε πάνω στη μεταβλητή και όχι στην τιμή: όταν
+      // τελειώνει ο βρόχος το m γίνεται null και κάθε κλικ έσκαγε στο m[0].
+      const url = m[0];
       const a = document.createElement('a');
       a.href = '#';
-      a.textContent = m[0];
-      a.addEventListener('click', ev => {
+      a.textContent = url;
+      a.addEventListener('click', async ev => {
         ev.preventDefault();
-        window.pywebview.api.open_url(m[0]);
+        try {
+          const ok = await window.pywebview.api.open_url(url);
+          if (!ok) addMessage('Ο σύνδεσμος δεν μπόρεσε να ανοίξει: ' + url, 'bot');
+        } catch (e) {
+          addMessage('Σφάλμα ανοίγματος συνδέσμου: ' + e, 'bot');
+        }
       });
       div.appendChild(a);
-      last = m.index + m[0].length;
+      last = m.index + url.length;
     }
     if (last < str.length) {
       div.appendChild(document.createTextNode(str.slice(last)));
