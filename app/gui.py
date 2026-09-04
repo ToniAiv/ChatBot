@@ -15,11 +15,14 @@ Native παράθυρο με HTML/CSS interior. Χρησιμοποιεί απε�
 import base64
 import json
 import threading
+import time
 import webbrowser
+from urllib.parse import urlparse
 from pathlib import Path
 
 import webview
 
+import usage_log
 from connector import (
     TranslationUnavailable,
     JSON_PATH,
@@ -160,20 +163,39 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   const input = document.getElementById('input');
   const btn   = document.getElementById('send');
 
+  // Το κείμενο μπαίνει ΠΑΝΤΑ με textContent, ποτέ innerHTML.
+  //
+  // Παλιά αυτή η συνάρτηση έκανε `div.innerHTML = text` — και από εδώ
+  // περνάει τόσο ό,τι πληκτρολογεί ο πολίτης όσο και η απάντηση του
+  // Llama. Ένα «<img src=x onerror=...>» εκτελούνταν, και το JS στο
+  // pywebview έχει πρόσβαση στο window.pywebview.api, δηλαδή και στο
+  // open_url. Τώρα οι σύνδεσμοι χτίζονται ως κόμβοι DOM: ό,τι δεν είναι
+  // αναγνωρισμένο URL παραμένει αδρανές κείμενο.
   function addMessage(text, sender) {
     const div = document.createElement('div');
     div.className = 'msg ' + sender;
-    const html = String(text).replace(
-      /(https?:\/\/[^\s]+)/g,
-      '<a href="#" data-url="$1">$1</a>'
-    );
-    div.innerHTML = html;
-    div.querySelectorAll('a[data-url]').forEach(a => {
+
+    const str = String(text);
+    const re  = /(https?:\/\/[^\s]+)/g;
+    let last = 0, m;
+    while ((m = re.exec(str)) !== null) {
+      if (m.index > last) {
+        div.appendChild(document.createTextNode(str.slice(last, m.index)));
+      }
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = m[0];
       a.addEventListener('click', ev => {
         ev.preventDefault();
-        window.pywebview.api.open_url(a.dataset.url);
+        window.pywebview.api.open_url(m[0]);
       });
-    });
+      div.appendChild(a);
+      last = m.index + m[0].length;
+    }
+    if (last < str.length) {
+      div.appendChild(document.createTextNode(str.slice(last)));
+    }
+
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
     return div;
@@ -286,11 +308,41 @@ def _load_pipeline() -> None:
 # ══════════════════════════════════════════════════════════════
 # JS ↔ Python bridge  (μόνο methods, ΧΩΡΙΣ heavy attributes)
 # ══════════════════════════════════════════════════════════════
+# Έλεγχος συνδέσμων
+# ══════════════════════════════════════════════════════════════
+ALLOWED_HOSTS = ("heraklion.gr", "deyah.gr")
+
+
+def _is_allowed_url(url: str) -> bool:
+    """https και domain του Δήμου (ή υποτομέας του). Τίποτα άλλο."""
+    try:
+        u = urlparse(str(url))
+    except Exception:
+        return False
+    if u.scheme != "https" or not u.hostname:
+        return False
+    host = u.hostname.lower()
+    return any(host == d or host.endswith("." + d) for d in ALLOWED_HOSTS)
+
+
+# ══════════════════════════════════════════════════════════════
 class Api:
     def is_ready(self) -> bool:
         return bool(_STATE["ready"])
 
     def open_url(self, url: str) -> bool:
+        """
+        Ανοίγει σύνδεσμο υπηρεσίας στον browser — ΜΟΝΟ του Δήμου.
+
+        Χωρίς αυτόν τον έλεγχο δεχόταν οτιδήποτε: file://, custom
+        schemes, ξένα domains. Ο βοηθός δείχνει αποκλειστικά σελίδες
+        του heraklion.gr, οπότε το να το επιβάλλουμε εδώ δεν κοστίζει
+        τίποτα λειτουργικά και κλείνει τη διαδρομή που θα εκμεταλλευόταν
+        είτε ένα hallucinated URL είτε ένεση κώδικα στη σελίδα.
+        """
+        if not _is_allowed_url(url):
+            print(f"[!] Απορρίφθηκε σύνδεσμος εκτός Δήμου: {url[:120]}")
+            return False
         try:
             webbrowser.open(url, new=2)
             return True
@@ -309,9 +361,12 @@ class Api:
             return "Παρακαλώ γράψτε μια ερώτηση."
 
         try:
+            t0 = time.monotonic()
             try:
                 greek_query, lang = resolve_query(query)
-            except TranslationUnavailable:
+            except TranslationUnavailable as exc:
+                usage_log.log(query, "en", "", None, None,
+                              "translation_failed", str(exc)[:120])
                 return MSG["en"]["tr_fail"]
 
             intents = detect_intent(
@@ -320,11 +375,17 @@ class Api:
             )
             top_intent, top_score = intents[0]
 
+            ms = (time.monotonic() - t0) * 1000
             if top_score < MIN_BERT_CONFIDENCE:
+                usage_log.log(query, lang, greek_query, top_intent, top_score,
+                              "refuse_low_confidence", "", ms)
                 return MSG[lang]["unknown"]
 
             if top_intent in (_STATE["no_service"] or {}):
-                return department_answer(_STATE["no_service"][top_intent], lang)
+                dept = _STATE["no_service"][top_intent]
+                usage_log.log(query, lang, greek_query, top_intent, top_score,
+                              "phone", dept.get("name", ""), ms)
+                return department_answer(dept, lang)
 
             candidates, source = find_candidates(
                 top_intent,
@@ -332,9 +393,15 @@ class Api:
                 _STATE["service_table"],
             )
             if not candidates or candidates[0][0] < MIN_TFIDF_SCORE:
+                usage_log.log(query, lang, greek_query, top_intent, top_score,
+                              "refuse_out_of_scope", "", ms)
                 return MSG[lang]["outofscope"]
 
-            return compose_answer(greek_query, top_intent, candidates, source, lang)
+            answer = compose_answer(greek_query, top_intent, candidates, source, lang)
+            usage_log.log(query, lang, greek_query, top_intent, top_score,
+                          "link", f"{source}: {candidates[0][1]['title']}",
+                          (time.monotonic() - t0) * 1000)
+            return answer
         except Exception as e:
             return f"Σφάλμα: {e}"
 
