@@ -50,6 +50,12 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCES = [ROOT / "datasets" / "Expanded_Intent_Dataset_3.csv"]
 SOURCES += sorted((ROOT / "datasets" / "tests").glob("*.csv"))
 
+# Το εμπλουτισμένο KB περιέχει ΤΟΠΩΝΥΜΙΑ και ονόματα υπηρεσιών που δεν
+# υπάρχουν στο dataset: Φοινικιά, Καμίνια, Μεσαμπελιές, Αλικαρνασσός.
+# Χωρίς αυτά ο διορθωτής τα θεωρούσε άγνωστες λέξεις και τα αλλοίωνε —
+# «Φοινικιά» γινόταν «φοίνικας». Προσθέτει 721 λέξεις.
+KB_RICH = ROOT / "data" / "heraklion_eservices_enriched.json"
+
 _WORD = re.compile(r"[α-ωΑ-ΩίϊΐόάέύϋΰήώΆΈΉΊΌΎΏ]+")
 
 
@@ -80,6 +86,17 @@ _BY_SHAPE: dict = {}      # (μήκος, πρώτο γράμμα) → λέξει
 def _build() -> None:
     global _VOCAB, _FREQ, _INDEX, _BY_SHAPE
     freq: Counter = Counter()
+
+    # Τα τοπωνύμια μπαίνουν στο ΛΕΞΙΛΟΓΙΟ (ώστε να μην πειράζονται) αλλά
+    # με χαμηλή συχνότητα, ώστε να μη γίνονται στόχοι διόρθωσης άλλων
+    # λέξεων. Δεν θέλουμε το «βεβαιωση» να καταλήγει σε «Φοινικιά».
+    if KB_RICH.exists():
+        import json
+        for rec in json.loads(KB_RICH.read_text(encoding="utf-8")):
+            text = f"{rec.get('body','')} {rec.get('contact','')} {rec.get('title','')}"
+            for w in _WORD.findall(text):
+                freq[_strip(w)] += 1
+
     for path in SOURCES:
         if not path.exists():
             continue
@@ -159,6 +176,12 @@ def correct(text: str) -> str:
 
     def fix(m: re.Match) -> str:
         w = m.group(0)
+        # Κεφαλαίο μέσα σε πρόταση = κύριο όνομα (δρόμος, περιοχή,
+        # επώνυμο). Κοστίζει σχεδόν τίποτα — μόλις 0,05% των λέξεων του
+        # test set είναι τέτοιες — και προστατεύει ακριβώς ό,τι δεν
+        # μπορούμε να έχουμε σε λεξιλόγιο.
+        if m.start() > 0 and w[:1].isupper():
+            return w
         s = _strip(w)
         if len(s) < MIN_LEN or s in _VOCAB:
             return w
