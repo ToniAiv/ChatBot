@@ -68,7 +68,11 @@ class Bot:
     def ask(self, q, translate=True):
         """Επιστρέφει (intent, confidence, έκβαση). Στο «suggest» το
         intent αντικαθίσταται από τη λίστα των προτεινόμενων."""
-        gq, lang = (C.resolve_query(q) if translate else (q, "el"))
+        # Για ελληνικά, η παραγωγή περνάει από spellfix χωρίς μετάφραση.
+        # Το translate=False πρέπει να το κάνει κι αυτό, αλλιώς η μέτρηση
+        # δοκιμάζει διαδρομή που δεν υπάρχει (έδειχνε 0.7875 αντί 0.86).
+        gq, lang = (C.resolve_query(q) if translate
+                    else (C.spellfix.correct(q), "el"))
         tops = C.detect_intent(gq, self.tok, self.mdl, self.le)
         it, cf = tops[0]
         if cf < C.MIN_BERT_CONFIDENCE:
@@ -154,6 +158,23 @@ def main():
               f"{results['suggest_hit']:.1%}")
     for k, v in outcomes.most_common():
         print(f"      {v:5} {v/len(rows):6.1%}  {k}")
+
+    # ── 1β. αντοχή σε ορθογραφικά λάθη ───────────────────────
+    # Το dataset είναι ορθογραφικά τέλειο (παρήχθη από LLM), οπότε χωρίς
+    # τη διόρθωση ένα λάθος ανά πρόταση κόστιζε 9,5 μονάδες. Μετριέται
+    # εδώ ώστε μια αλλαγή στο spellfix να μην περάσει απαρατήρητη.
+    import random as _r
+    from typos import corrupt
+    rng = _r.Random(7)
+    sample = rows if args.quick else rows[:400]
+    ok_t = 0
+    for r in sample:
+        bad = corrupt(r["text"], rng, 1)
+        it, _cf, _o = bot.ask(bad, translate=False)
+        it = it[0] if isinstance(it, list) else it
+        ok_t += key(it) == key(r["intent"])
+    results["typo_top1"] = ok_t / len(sample)
+    print(f"    με 1 ορθ. λάθος: {results['typo_top1']:.4f}  (n={len(sample)})")
 
     # ── 2. ερωτήσεις επίδειξης ───────────────────────────────
     print(f"\n  Ερωτήσεις επίδειξης:")

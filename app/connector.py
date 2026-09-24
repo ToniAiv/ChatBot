@@ -25,6 +25,7 @@ import numpy as np
 import requests
 import torch
 
+import spellfix
 from language import (
     ENGLISH_SUPPORT,
     TranslationUnavailable,
@@ -383,13 +384,20 @@ def resolve_query(query: str):
     Το BERT δέχεται ΠΑΝΤΑ ελληνικά. Αν ο πολίτης έγραψε αγγλικά,
     μεταφράζεται πρώτα — μία κλήση LLM, ~1,8s, μόνο σε αυτή την
     περίπτωση. Η ελληνική διαδρομή δεν πληρώνει τίποτα.
+
+    Τελευταίο βήμα πάντα η διόρθωση ορθογραφίας: το dataset είναι
+    ορθογραφικά τέλειο, οπότε ένα λάθος ανά πρόταση κόστιζε 9,5 μονάδες
+    και δύο λάθη 27. Σε καθαρό κείμενο δεν αλλάζει τίποτα (μετρημένο:
+    ίδιο 0.890 top-1 με και χωρίς).
     """
     if not ENGLISH_SUPPORT:
-        return query, "el"
+        return spellfix.correct(query), "el"
     lang = detect_language(query)
     if lang == "el":
-        return query, "el"
-    return translate_to_greek(query), "en"
+        return spellfix.correct(query), "el"
+    # Και στα μεταφρασμένα: το llama3.1 παράγει περιστασιακά ανορθόγραφα
+    # ελληνικά, και η διόρθωση δεν κοστίζει τίποτα σε καθαρό κείμενο.
+    return spellfix.correct(translate_to_greek(query)), "en"
 
 
 def should_suggest(intents) -> bool:
