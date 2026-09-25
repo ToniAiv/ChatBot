@@ -12,6 +12,8 @@ Native παράθυρο με HTML/CSS interior. Χρησιμοποιεί απε�
     Ollama να τρέχει τοπικά με llama3.1
 """
 
+from __future__ import annotations
+
 import base64
 import json
 import threading
@@ -32,6 +34,8 @@ from connector import (
     find_candidates,
     load_departments,
     load_no_service,
+    load_sections,
+    SECTIONS,
     load_service_table,
     resolve_query,
     should_suggest,
@@ -338,6 +342,7 @@ def _load_pipeline() -> None:
         with open(JSON_PATH, encoding="utf-8") as f:
             kb = json.load(f)
         vectorizer, tfidf_matrix, valid_kb = build_tfidf_index(kb)
+        SECTIONS.update(load_sections())
         _STATE.update({
             "tokenizer":     tokenizer,
             "model":         model,

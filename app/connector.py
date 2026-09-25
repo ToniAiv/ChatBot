@@ -12,6 +12,8 @@ Pipeline:
     python3 connector.py --query "..."    # single query
 """
 
+from __future__ import annotations
+
 import argparse
 import difflib
 import csv
@@ -26,6 +28,7 @@ import requests
 import torch
 
 import spellfix
+from aspects import detect_aspect
 from language import (
     ENGLISH_SUPPORT,
     TranslationUnavailable,
@@ -44,6 +47,7 @@ MODEL_DIR    = ROOT / "models" / "intent-model-218"   # 218 κλάσεις (Αυ
 JSON_PATH    = ROOT / "data" / "heraklion_eservices.json"
 TABLE_PATH   = ROOT / "mappings" / "intent_to_service.csv"
 DEPTS_PATH   = ROOT / "mappings" / "departments.csv"
+SECTIONS_PATH = ROOT / "data" / "service_sections.json"
 OLLAMA_URL   = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "llama3.1"
 
@@ -360,6 +364,12 @@ MSG = {
         "dept":      "Αρμόδιο", "tel": "Τηλέφωνο", "email": "Email",
         "greek_page": "",
         "suggest":   "Δεν είμαι σίγουρος. Μήπως εννοείτε κάποιο από αυτά;",
+        "docs_head": "Για «{title}» χρειάζεστε:",
+        "contact_head": "Στοιχεία επικοινωνίας για «{title}»:",
+        "online_yes": "Ναι, η υπηρεσία «{title}» γίνεται ηλεκτρονικά:",
+        "online_gov": "Εναλλακτικά, υπάρχει και μέσω gov.gr.",
+        "online_no": "Όχι. Η υπηρεσία «{title}» παρέχεται μόνο με φυσική παρουσία στα γραφεία του Δήμου.",
+        "source":    "Πηγή:",
         "suggest_none": "Αν κανένα δεν ταιριάζει, διατυπώστε το διαφορετικά.",
         "tr_fail":   f"Η μετάφραση δεν είναι διαθέσιμη αυτή τη στιγμή. Παρακαλώ επικοινωνήστε στο {PHONE}.",
     },
@@ -371,6 +381,12 @@ MSG = {
         "dept":      "Department", "tel": "Phone", "email": "Email",
         "greek_page": "(the Municipality's page is in Greek)",
         "suggest":   "I'm not sure. Did you mean one of these?",
+        "docs_head": "For «{title}» you will need (in Greek, as listed by the Municipality):",
+        "contact_head": "Contact details for «{title}»:",
+        "online_yes": "Yes, «{title}» can be done online:",
+        "online_gov": "It is also available through gov.gr.",
+        "online_no": "No. «{title}» is only available in person at the Municipality's offices.",
+        "source":    "Source:",
         "suggest_none": "If none of these fit, please rephrase your question.",
         "tr_fail":   f"Translation is unavailable right now. Please contact the Municipality at {PHONE}.",
     },
@@ -448,6 +464,71 @@ def suggestions(intents, vectorizer, tfidf_matrix, valid_kb,
     return out
 
 
+def load_sections() -> dict:
+    """
+    Οι ενότητες κάθε σελίδας υπηρεσίας (δικαιολογητικά, επικοινωνία…),
+    από το scripts/extract_sections.py. Αν λείπει το αρχείο, το bot
+    συνεχίζει να δίνει μόνο συνδέσμους — όπως πριν.
+    """
+    if not SECTIONS_PATH.exists():
+        print("⚠️  Δεν βρέθηκαν ενότητες υπηρεσιών — μόνο σύνδεσμοι.")
+        return {}
+    data = json.loads(SECTIONS_PATH.read_text(encoding="utf-8"))
+    print(f"✅ Ενότητες υπηρεσιών: {len(data)} σελίδες")
+    return data
+
+
+SECTIONS: dict = {}
+
+_DOCS_HEAD = re.compile(r"^(τι χρειάζεται|τι θα χρειαστείτε|απαιτούμενα δικαιολογητικά|δικαιολογητικά)", re.I)
+_IN_PERSON = "αποκλειστικά με φυσική παρουσία"
+
+
+def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | None:
+    """
+    Απάντηση ΠΕΡΙΕΧΟΜΕΝΟΥ από τις ενότητες της σελίδας — αυτούσιο το
+    κείμενο του δήμου, χωρίς γλωσσικό μοντέλο, άρα χωρίς παραποίηση.
+
+    Επιστρέφει None όταν δεν υπάρχει κατάλληλη ενότητα· τότε ο καλών
+    δίνει τον σύνδεσμο όπως πριν. Το κόστος (cost) και ο χρόνος (time)
+    δεν έχουν σταθερή ενότητα στις σελίδες, οπότε πέφτουν πάντα εκεί.
+    """
+    if not aspect or aspect in ("cost", "time"):
+        return None
+    page = SECTIONS.get(rec.get("url", ""))
+    if not page:
+        return None
+    sec, m, title, url = page["sections"], MSG[lang], rec["title"], rec["url"]
+
+    if aspect == "docs":
+        body = next((t for h, t in sec.items() if _DOCS_HEAD.match(h)), None)
+        if not body:
+            return None
+        return f"{m['docs_head'].format(title=title)}\n{body}\n\n{m['source']} {url}"
+
+    if aspect == "contact":
+        body = sec.get("Στοιχεία επικοινωνίας")
+        if not body:
+            return None
+        return f"{m['contact_head'].format(title=title)}\n{body}\n\n{m['source']} {url}"
+
+    if aspect == "online":
+        # 31 σελίδες βρίσκονται στην πύλη e-services αλλά η υπηρεσία γίνεται
+        # ΜΟΝΟ δια ζώσης. Ο σκέτος σύνδεσμος υπονοούσε ότι γίνεται online.
+        if any(_IN_PERSON in t for t in sec.values()):
+            out = m["online_no"].format(title=title)
+            contact = sec.get("Στοιχεία επικοινωνίας")
+            if contact:
+                out += f"\n\n{contact}"
+            return f"{out}\n\n{m['source']} {url}"
+        out = f"{m['online_yes'].format(title=title)}\n{url}"
+        if any("gov.gr" in h for h in sec):
+            out += f"\n{m['online_gov']}"
+        return out
+
+    return None
+
+
 def compose_answer(query: str, intent: str, candidates: list, source: str,
                    lang: str = "el") -> str:
     """
@@ -465,6 +546,12 @@ def compose_answer(query: str, intent: str, candidates: list, source: str,
     m = MSG[lang]
     if source == "table" and candidates:
         rec = candidates[0][1]
+        # Αν ο πολίτης ρωτάει κάτι ΣΥΓΚΕΚΡΙΜΕΝΟ για την υπηρεσία
+        # (δικαιολογητικά, επικοινωνία, αν γίνεται online), απαντάμε με το
+        # περιεχόμενο της σελίδας. Αλλιώς ο σύνδεσμος, όπως πριν.
+        content = content_answer(rec, detect_aspect(query), lang)
+        if content:
+            return content
         note = f"\n{m['greek_page']}" if m["greek_page"] else ""
         return f"{m['service']}\n«{rec['title']}»{note}\n\n{rec['url']}"
     return ask_llama(query, intent, candidates)
@@ -554,6 +641,7 @@ def main():
     service_table = load_service_table(valid_kb)
     departments = load_departments()
     no_service = load_no_service(departments)
+    SECTIONS.update(load_sections())
     print()
 
     if args.query:

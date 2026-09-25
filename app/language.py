@@ -27,6 +27,8 @@
 αγγλικό test set ~200 προτάσεων, αλλιώς γίνεται overfitting σε λίγα
 παραδείγματα.
 """
+from __future__ import annotations
+
 import re
 import unicodedata
 

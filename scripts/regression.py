@@ -176,6 +176,39 @@ def main():
     results["typo_top1"] = ok_t / len(sample)
     print(f"    με 1 ορθ. λάθος: {results['typo_top1']:.4f}  (n={len(sample)})")
 
+    # ── 1γ. απαντήσεις περιεχομένου ──────────────────────────
+    # Ανιχνευτής πτυχής: σετ γραμμένο ΠΡΙΝ τον ανιχνευτή, με παγίδες
+    # («χρειάζομαι βεβαίωση» ≠ «τι χρειάζομαι για βεβαίωση», «έξω από το
+    # σπίτι» ≠ «από το σπίτι»).
+    from aspects import detect_aspect
+    ae = list(csv.DictReader(open(DATASETS / "aspects_eval.csv", encoding="utf-8")))
+    results["aspect_acc"] = sum((detect_aspect(r["text"]) or "none") == r["aspect"]
+                                for r in ae) / len(ae)
+    print(f"    πτυχή ερώτησης : {results['aspect_acc']:.4f}  (n={len(ae)})")
+
+    # Από άκρη σε άκρη: η απάντηση πρέπει να ξεκινά με το σωστό πρότυπο.
+    C.SECTIONS.update(C.load_sections())
+    CONTENT = [
+        ("τι χαρτια χρειαζομαι για βεβαιωση μονιμης κατοικιας", "Για «"),
+        ("θελω βεβαιωση μονιμης κατοικιας",                     "Η αρμόδια υπηρεσία"),
+        ("ποιο ειναι το τηλεφωνο για πιστοποιητικο οικογενειακης καταστασης", "Στοιχεία επικοινωνίας"),
+        ("μπορω να κανω την αιτηση για θεση αμεα ηλεκτρονικα",  "Ναι,"),
+        ("γινεται ηλεκτρονικα η δηλωση βαπτισης",               "Όχι."),
+        ("ποσο κοστιζει η βεβαιωση κατοικιας",                  "Η αρμόδια υπηρεσία"),
+    ]
+    c_ok = 0
+    for q, want in CONTENT:
+        gq, lang = C.resolve_query(q)
+        it, cf = C.detect_intent(gq, bot.tok, bot.mdl, bot.le)[0]
+        cand, src = C.find_candidates(it, bot.vec, bot.mat, bot.valid, bot.table)
+        ans = C.compose_answer(gq, it, cand, src, lang)
+        good = ans.startswith(want)
+        c_ok += good
+        if not good:
+            failures.append(f"περιεχόμενο: «{q[:40]}» περίμενα «{want}», πήρα «{ans[:40]}»")
+    results["content"] = c_ok / len(CONTENT)
+    print(f"    απαντήσεις περιεχομένου: {c_ok}/{len(CONTENT)}")
+
     # ── 2. ερωτήσεις επίδειξης ───────────────────────────────
     print(f"\n  Ερωτήσεις επίδειξης:")
     demo = [d for d in DEMO if not (args.quick and re.search(r"[a-z]{4}", d[0]))]
