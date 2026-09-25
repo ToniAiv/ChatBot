@@ -28,6 +28,8 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
+from acronyms import PROTECTED as _ACRONYMS
+
 ENABLED = True
 MIN_LEN = 4          # κάτω από αυτό οι γείτονες είναι πάρα πολλοί
 # Ήταν 5. Μια πρώτη μέτρηση έδειχνε ότι το κατέβασμα αξίζει μόλις +0,5
@@ -194,7 +196,9 @@ def correct(text: str) -> str:
         if m.start() > 0 and w[:1].isupper():
             return w
         s = _strip(w)
-        if len(s) < MIN_LEN or s in _VOCAB:
+        # Ακρωνύμια του πίνακα: ποτέ διόρθωση. Το «κδαπ» δεν είναι στο
+        # corpus και γινόταν «καπη» — άλλη υπηρεσία, με βεβαιότητα 0,95.
+        if len(s) < MIN_LEN or s in _VOCAB or s in _ACRONYMS:
             return w
         hit = _INDEX.get(phonetic(s))          # 1. ομόηχο
         if hit:

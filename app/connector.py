@@ -27,6 +27,7 @@ import numpy as np
 import requests
 import torch
 
+import acronyms
 import spellfix
 from aspects import detect_aspect
 from language import (
@@ -415,13 +416,22 @@ def resolve_query(query: str):
     ίδιο 0.890 top-1 με και χωρίς).
     """
     if not ENGLISH_SUPPORT:
-        return spellfix.correct(query), "el"
+        return prepare_greek(query), "el"
+    # Τα ακρωνύμια ΠΡΙΝ την ανίχνευση γλώσσας: το «etap» ή «DEYAH» είναι
+    # λατινικοί χαρακτήρες μέσα σε ελληνική ερώτηση.
+    query = acronyms.expand(query)
     lang = detect_language(query)
     if lang == "el":
-        return spellfix.correct(query), "el"
+        return prepare_greek(query), "el"
     # Και στα μεταφρασμένα: το llama3.1 παράγει περιστασιακά ανορθόγραφα
     # ελληνικά, και η διόρθωση δεν κοστίζει τίποτα σε καθαρό κείμενο.
-    return spellfix.correct(translate_to_greek(query)), "en"
+    return prepare_greek(translate_to_greek(query)), "en"
+
+
+def prepare_greek(text: str) -> str:
+    """Ακρωνύμια → μορφή dataset, μετά ορθογραφία. Με αυτή τη σειρά: ο
+    διορθωτής δεν πρέπει να δει ποτέ «Τ.Α.Π.» ή «κδαπ»."""
+    return spellfix.correct(acronyms.expand(text))
 
 
 def should_suggest(intents) -> bool:

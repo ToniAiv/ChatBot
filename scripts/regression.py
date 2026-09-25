@@ -72,7 +72,7 @@ class Bot:
         # Το translate=False πρέπει να το κάνει κι αυτό, αλλιώς η μέτρηση
         # δοκιμάζει διαδρομή που δεν υπάρχει (έδειχνε 0.7875 αντί 0.86).
         gq, lang = (C.resolve_query(q) if translate
-                    else (C.spellfix.correct(q), "el"))
+                    else (C.prepare_greek(q), "el"))
         tops = C.detect_intent(gq, self.tok, self.mdl, self.le)
         it, cf = tops[0]
         if cf < C.MIN_BERT_CONFIDENCE:
@@ -215,6 +215,12 @@ def main():
     results["aspect_acc"] = sum((detect_aspect(r["text"]) or "none") == r["aspect"]
                                 for r in ae) / len(ae)
     print(f"    πτυχή ερώτησης : {results['aspect_acc']:.4f}  (n={len(ae)})")
+
+    # Ακρωνύμια: ΤΑΠ / Τ.Α.Π. / etap / «τέλος ακίνητης περιουσίας» στο ίδιο
+    # intent (datasets/acronyms_eval.csv, mappings/acronyms.csv).
+    from eval_acronyms import evaluate as eval_acronyms
+    results["acronyms"], n_ac = eval_acronyms(bot.tok, bot.mdl, bot.le, verbose=False)
+    print(f"    ακρωνύμια      : {results['acronyms']:.4f}  (n={n_ac})")
 
     # Από άκρη σε άκρη: η απάντηση πρέπει να ξεκινά με το σωστό πρότυπο.
     C.SECTIONS.update(C.load_sections())
