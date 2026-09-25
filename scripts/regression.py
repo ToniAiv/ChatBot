@@ -126,19 +126,49 @@ def main():
     # να μένει συγκρίσιμη διαχρονικά. Όταν προστέθηκαν οι προτάσεις, μια
     # πρώτη εκδοχή το μετρούσε μόνο στις μη-προτεινόμενες και έδειχνε
     # πτώση 0.8884 → 0.7722 χωρίς να έχει χαλάσει τίποτα.
+    # ΠΡΟΟΡΙΣΜΟΣ = η σελίδα ή το τμήμα που θα δει ο πολίτης, υπολογισμένος
+    # ΑΚΡΙΒΩΣ όπως τον υπολογίζει το bot (πίνακας → τμήμα → εφεδρεία).
+    # «Προσεγγίσιμο» σημαίνει: ο πολίτης καταλήγει εκεί που θα κατέληγε αν
+    # το μοντέλο τον είχε καταλάβει τέλεια.
+    #
+    # Γιατί όχι σύγκριση intent: πολλά intents οδηγούν νόμιμα στην ίδια
+    # σελίδα (6 ανάγκες ΤΑΠ → εφαρμογή e-ΤΑΠ· «μείωση τιμολογίου» και
+    # «έλεγχος λογαριασμού» → ίδιο τηλέφωνο ΔΕΥΑΗ). Σε επίπεδο intent οι
+    # προτάσεις φαίνονταν 85,5% σωστές ενώ ο πολίτης έβλεπε σωστή σελίδα
+    # πολύ συχνότερα. Μια ενδιάμεση εκδοχή διάβαζε τον προορισμό μόνο από
+    # τον ενεργό πίνακα και έδινε «κανέναν» στα proposed intents — που
+    # απαντώνται από την εφεδρεία — μετρώντας τα πάντα ως αποτυχία.
+    #
+    # Περιορισμός: αν ένα intent είναι ΛΑΘΟΣ αντιστοιχισμένο, αυτό δεν
+    # φαίνεται εδώ — η μέτρηση κρατάει τον πίνακα σταθερό. Το intent_top1
+    # μένει σε επίπεδο intent ακριβώς γι' αυτό.
+    _classes = {key(c): c for c in bot.le.classes_}
+    _cache = {}
+    def dest(intent):
+        c = _classes.get(key(intent), intent)
+        if c not in _cache:
+            if c in bot.ns:
+                d = bot.ns[c]
+                _cache[c] = "dept:" + (d.get("name", "") if d else "")
+            else:
+                cand, _ = C.find_candidates(c, bot.vec, bot.mat, bot.valid, bot.table)
+                _cache[c] = (cand[0][1]["url"] if cand and cand[0][0] >= C.MIN_TFIDF_SCORE
+                             else None)
+        return _cache[c]
+
     outcomes = Counter(); ok = 0; sugg_hit = 0; direct_ok = 0
     for r in rows:
         it, cf, out = bot.ask(r["text"], translate=False)   # όλα ελληνικά
         outcomes[out] += 1
         gold = key(r["intent"])
+        gd = dest(r["intent"])
         if out == "suggest":
             ok += gold == key(it[0])           # το argmax είναι το πρώτο
-            sugg_hit += gold in {key(x) for x in it}
+            sugg_hit += gd is not None and gd in {dest(x) for x in it}
         else:
-            hit = gold == key(it)
-            ok += hit
+            ok += gold == key(it)
             if out in ("link", "phone"):
-                direct_ok += hit
+                direct_ok += gd is not None and dest(it) == gd
     results["mode"] = "quick" if args.quick else "full"
     results["n"] = len(rows)
     results["intent_top1"] = ok / len(rows)
