@@ -204,9 +204,15 @@ def department_answer(dept: dict, lang: str = "el") -> str:
     m = MSG[lang]
     if not dept:
         return m["outofscope"]
-    lines = [m["no_online"], "", f"{m['dept']}: {dept['name']}", f"{m['tel']}: {dept['tel']}"]
+    # Το «δεν γίνεται ηλεκτρονικά» λέγεται ΜΟΝΟ όταν το ξέρουμε. Για τους
+    # παιδικούς σταθμούς ή το «τηλέφωνο του δήμου» δεν μπορεί να στηριχτεί,
+    # οπότε η απάντηση ξεκινά κατευθείαν από το αρμόδιο τμήμα.
+    lines = [m["no_online"], ""] if dept.get("online", "no") == "no" else []
+    lines += [f"{m['dept']}: {dept['name']}", f"{m['tel']}: {dept['tel']}"]
     if dept.get("email"):
         lines.append(f"{m['email']}: {dept['email']}")
+    if dept.get("info_url"):
+        lines += ["", f"{m['more_info']} {dept['info_url']}"]
     return "\n".join(lines)
 
 
@@ -362,6 +368,7 @@ MSG = {
         "service":   "Η αρμόδια υπηρεσία του Δήμου είναι:",
         "no_online": "Το αίτημα αυτό δεν γίνεται ηλεκτρονικά.",
         "dept":      "Αρμόδιο", "tel": "Τηλέφωνο", "email": "Email",
+        "more_info": "Περισσότερες πληροφορίες:",
         "greek_page": "",
         "suggest":   "Δεν είμαι σίγουρος. Μήπως εννοείτε κάποιο από αυτά;",
         "docs_head": "Για «{title}» χρειάζεστε:",
@@ -379,6 +386,7 @@ MSG = {
         "service":   "The service you need is:",
         "no_online": "This request cannot be submitted online.",
         "dept":      "Department", "tel": "Phone", "email": "Email",
+        "more_info": "More information:",
         "greek_page": "(the Municipality's page is in Greek)",
         "suggest":   "I'm not sure. Did you mean one of these?",
         "docs_head": "For «{title}» you will need (in Greek, as listed by the Municipality):",
