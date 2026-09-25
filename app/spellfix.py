@@ -69,6 +69,13 @@ SOURCES += sorted((ROOT / "datasets" / "tests").glob("*.csv"))
 # «Φοινικιά» γινόταν «φοίνικας». Προσθέτει 721 λέξεις.
 KB_RICH = ROOT / "data" / "heraklion_eservices_enriched.json"
 
+# Το λεξιλόγιο του Greek BERT (Wikipedia, Europarl, OSCAR): ~26.000
+# ολόκληρες λέξεις. Μπαίνει ΜΟΝΟ ως «υπάρχει, μην το αγγίζεις», όχι ως
+# στόχος διόρθωσης. Χωρίς αυτό, καθημερινές λέξεις που δεν τύχαινε να
+# έχει το dataset αλλοιώνονταν: «γράφω» → «γράφτω», «παιδάκι» → «παιδική».
+USE_BERT_VOCAB = True
+BERT_TOKENIZER = ROOT / "models" / "intent-model-218" / "tokenizer.json"
+
 _WORD = re.compile(r"[α-ωΑ-ΩίϊΐόάέύϋΰήώΆΈΉΊΌΎΏ]+")
 
 
@@ -94,10 +101,11 @@ _VOCAB: set = set()
 _FREQ: dict = {}
 _INDEX: dict = {}
 _BY_SHAPE: dict = {}      # (μήκος, πρώτο γράμμα) → λέξεις
+_GENERAL: set = set()     # λέξεις μόνο του BERT, όχι του δικού μας corpus
 
 
 def _build() -> None:
-    global _VOCAB, _FREQ, _INDEX, _BY_SHAPE
+    global _VOCAB, _FREQ, _INDEX, _BY_SHAPE, _GENERAL
     freq: Counter = Counter()
 
     # Τα τοπωνύμια μπαίνουν στο ΛΕΞΙΛΟΓΙΟ (ώστε να μην πειράζονται) αλλά
@@ -118,6 +126,12 @@ def _build() -> None:
                 for w in _WORD.findall(str(row.get("text", ""))):
                     freq[_strip(w)] += 1
     _VOCAB = set(freq)
+    _GENERAL = set()
+    if USE_BERT_VOCAB and BERT_TOKENIZER.exists():
+        import json
+        vocab = json.loads(BERT_TOKENIZER.read_text(encoding="utf-8"))["model"]["vocab"]
+        _GENERAL = {w for w in vocab if len(w) >= MIN_LEN
+                    and re.fullmatch(r"[α-ωςϊϋ]+", w)} - _VOCAB
     _FREQ = freq
     best: dict = {}
     for w, n in freq.items():
@@ -131,8 +145,10 @@ def _build() -> None:
     # Ομαδοποίηση για την απόσταση επεξεργασίας: χωρίς αυτήν κάθε άγνωστη
     # λέξη θα συγκρινόταν με 7.900 λέξεις. Με φίλτρο μήκους ±1 και ίδιο
     # πρώτο γράμμα, οι υποψήφιες πέφτουν σε λίγες δεκάδες.
+    # Μόνο το δικό μας corpus: οι λέξεις του BERT προστατεύουν, δεν
+    # γίνονται στόχοι (και θα πολλαπλασίαζαν τις συγκρίσεις ×4).
     _BY_SHAPE = {}
-    for w in _VOCAB:
+    for w in freq:
         if len(w) >= MIN_LEN:
             _BY_SHAPE.setdefault((len(w), w[0]), []).append(w)
 
@@ -203,6 +219,8 @@ def correct(text: str) -> str:
         hit = _INDEX.get(phonetic(s))          # 1. ομόηχο
         if hit:
             return hit
+        if s in _GENERAL:                       # υπαρκτή λέξη, όχι του τομέα
+            return w
         return _nearest(s) or w                 # 2. μηχανικό λάθος
 
     return _WORD.sub(fix, str(text))
