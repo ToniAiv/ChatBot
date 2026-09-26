@@ -61,7 +61,9 @@ MAX_EDIT = 2         # δεύτερο πέρασμα για ΜΗΧΑΝΙΚΑ λ�
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = [ROOT / "datasets" / "Expanded_Intent_Dataset_3.csv"]
-SOURCES += sorted((ROOT / "datasets" / "tests").glob("*.csv"))
+# Τα test sets ΔΕΝ μπαίνουν στο λεξιλόγιο: θα μετρούσαμε τον διορθωτή σε
+# λέξεις που έχει ήδη δει. Η προστασία καθημερινών λέξεων γίνεται πλέον
+# από το λεξιλόγιο του BERT (βλ. USE_BERT_VOCAB).
 
 # Το εμπλουτισμένο KB περιέχει ΤΟΠΩΝΥΜΙΑ και ονόματα υπηρεσιών που δεν
 # υπάρχουν στο dataset: Φοινικιά, Καμίνια, Μεσαμπελιές, Αλικαρνασσός.
