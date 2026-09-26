@@ -1,0 +1,71 @@
+text,intent,kind
+thelo pistopoiitiko oikogeneiakis katastasis,πιστοποιητικο_οικογενειακης_καταστασης,greeklish
+8elw pistopoihtiko oikogeneiakhs katastashs,πιστοποιητικο_οικογενειακης_καταστασης,greeklish
+pos plirono klisi parkarismatos,παραβασεις_κοκ_προστιμα,greeklish
+pws plhrwnw klhsh gia parkarisma?,παραβασεις_κοκ_προστιμα,greeklish
+o kados einai gematos,μετακινηση_τοποθετηση_καδων,greeklish
+o kados mprosta sto spiti mou mirizei,μετακινηση_τοποθετηση_καδων,greeklish
+thelo vevaiosi monimis katoikias,βεβαιωση_κατοικιας,greeklish
+xreiazomai bebaiwsh monimhs katoikias,βεβαιωση_κατοικιας,greeklish
+pou vgazo pistopoiitiko gennisis?,πιστοποιητικο_γεννησης,greeklish
+8elw na plhrwsw ton logariasmo ths deyah,ηλεκτρονικη_εξοφληση_λογαριασμου_δευαη,greeklish
+pos plirono to nero online?,ηλεκτρονικη_εξοφληση_λογαριασμου_δευαη,greeklish
+exei lakouva o dromos mou,αιτηση_βλαβης_οδοστρωματος,greeklish
+den anavei i lampa stin kolona,βλαβες_δικτυου_δημοτικου_φωτισμου,greeklish
+to fanari sti diastavrosi einai xalasmeno,βλαβη_φωτεινων_σηματοδοτων,greeklish
+exw ena palio krevati na peta3w,ογκοδεματα,greeklish
+thelo na petaxo enan palio kanape,ογκοδεματα,greeklish
+yparxoun adespota skylia sti geitonia,αδεσποτα_ζωα,greeklish
+thelo karta stathmeusis katoikou,σημα_σταθμευσης_κατοικου,greeklish
+pethane o pateras mou thelo plisiesterous syggeneis,πλησιεστεροι_συγγενεις,greeklish
+thelw na kanw metadhmoteush sto hrakleio,μεταδημοτευση_δημοτικοτητασ|μεταδημοτευση_αγαμου|μεταδημοτευση_διετουσ|μεταδημοτευση_συζυγου|μεταδημοτευση_εκλογεσ,greeklish
+xrostao ston dimo kai thelo diakanonismo,διακανονισμος_οφειλης_φυσικου_προσωπου,greeklish
+thelo na kano politiko gamo,τελεση_πολιτικου_γαμου,greeklish
+pou dilono ti gennisi tou paidiou mou,δηλωση_ονοματοδοσιας|ληξιαρχειο,greeklish
+thelo aitisi gia 8esh sta8meyshs amea,αιτηση_παραχωρησης_αποκλειστικης_θεσης_σταθμευσης_αμεα,greeklish
+exei egkataleleimmeno aytokinhto sto dromo mou,απομακρυνση_εγκαταλελειμμενων_οχηματων,greeklish
+to oikopedo dipla exei 3era xorta,καθαρισμος_οικοπεδου_πυροπροστασια,greeklish
+exoume polla kounoupia,απεντομωση_κοινοχρηστων,greeklish
+pou einai to lhxiarxeio?,ληξιαρχειο,greeklish
+thelo vevaiosi mi ofeilis tap,μη_οφειλη_ταπ_ακινητα,greeklish
+ena dentro epese ston dromo,σπασμενα_κλαδια_δεντρου,greeklish
+thelo na kopei ena dentro mprosta sto spiti,πρασινο_δενδρα,greeklish
+h paidikh xara einai xalasmenh,παιδικες_χαρες,greeklish
+thelo pistopoiitiko entopiotitas gia ton diorismo,πιστοποιητικο_εντοπιοτητας,greeklish
+thelo antigrafo lhxiarxikhs praxhs gamou,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γαμου,greeklish
+o geitonas exei kanei af8aireto,καταγγελια_αυθαιρετησ_κατασκευησ,greeklish
+thelo adeia gia skalwsia sto pezodromio,αδεια_τοποθετησης_ικριωματων,greeklish
+pws grafw to paidi ston paidiko sta8mo,μοναδες_προσχολικης_αγωγης,greeklish
+exei spasei o agogos tou nerou,βλαβη_αγωγου_υδρευσης,greeklish
+thelw na dhlwsw gamo,δηλωση_γαμου,greeklish
+pou einai h laikh agora thn triti?,πληροφοριες_λαικων_αγορων,greeklish
+how do I get a residence certificate?,βεβαιωση_κατοικιας,english
+I need a family status certificate for the bank,πιστοποιητικο_οικογενειακης_καταστασης,english
+where can I pay my water bill online?,ηλεκτρονικη_εξοφληση_λογαριασμου_δευαη,english
+there is a pothole in my street,αιτηση_βλαβης_οδοστρωματος,english
+the street light outside my house is not working,βλαβες_δικτυου_δημοτικου_φωτισμου,english
+the traffic light at the crossing is broken,βλαβη_φωτεινων_σηματοδοτων,english
+someone dumped an old fridge on the pavement,ογκοδεματα,english
+how can I throw away an old sofa?,ογκοδεματα,english
+there are stray dogs in the neighbourhood,αδεσποτα_ζωα,english
+I got a parking fine but I was parked legally,ενσταση_παρανομης_σταθμευσης,english
+how do I pay a parking ticket?,παραβασεις_κοκ_προστιμα,english
+I want a resident parking permit,σημα_σταθμευσης_κατοικου,english
+the bin in front of my house is full,μετακινηση_τοποθετηση_καδων,english
+I want to get married at the town hall,τελεση_πολιτικου_γαμου,english
+where do I register the birth of my baby?,δηλωση_ονοματοδοσιας|ληξιαρχειο,english
+I need a birth certificate,πιστοποιητικο_γεννησης,english
+my father died and I need a certificate of next of kin,πλησιεστεροι_συγγενεις,english
+I can't pay it all at once can I pay in instalments?,διακανονισμος_οφειλης_φυσικου_προσωπου,english
+there is an abandoned car in my street,απομακρυνση_εγκαταλελειμμενων_οχηματων,english
+the plot next door is full of dry grass,καθαρισμος_οικοπεδου_πυροπροστασια,english
+there are many mosquitoes in the area,απεντομωση_κοινοχρηστων,english
+a tree fell on the road,σπασμενα_κλαδια_δεντρου,english
+the playground swing is broken,παιδικες_χαρες,english
+where is the registry office?,ληξιαρχειο,english
+my neighbour built an illegal extension,καταγγελια_αυθαιρετησ_κατασκευησ,english
+how do I enrol my child in a nursery?,μοναδες_προσχολικης_αγωγης,english
+a water pipe burst in my street,βλαβη_αγωγου_υδρευσης,english
+when is the farmers market on tuesday?,πληροφοριες_λαικων_αγορων,english
+I want a disabled parking space,αιτηση_παραχωρησης_αποκλειστικης_θεσης_σταθμευσης_αμεα,english
+how do I transfer my municipal registration to Heraklion?,μεταδημοτευση_δημοτικοτητασ|μεταδημοτευση_αγαμου|μεταδημοτευση_διετουσ|μεταδημοτευση_συζυγου|μεταδημοτευση_εκλογεσ,english

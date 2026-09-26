@@ -7,6 +7,7 @@
   answer — πρέπει να απαντήσει με ένα από τα intents της στήλης
   none   — δεν πρέπει να απαντήσει (άρνηση· πρόταση = μισό σωστό)
   any    — όλα αποδεκτά, αρκεί αν απαντήσει να είναι ένα από τα intents
+Η απάντηση «κουβέντας» (app/smalltalk.py) μετράει λάθος μόνο στο answer.
 
     python3 scripts/eval_general.py
 """
@@ -27,7 +28,9 @@ def judge(expect, allowed, out, it):
     tops = it if isinstance(it, list) else [it]
     ok_intent = (not allowed) or any(key(t) in allowed for t in tops)
     if expect == "none":
-        return {"refuse": "pass", "suggest": "partial"}.get(out, "fail")
+        return {"refuse": "pass", "smalltalk": "pass", "suggest": "partial"}.get(out, "fail")
+    if out == "smalltalk":          # αίτημα που πήρε απάντηση κουβέντας = χάθηκε
+        return "fail" if expect == "answer" else "pass"
     if expect == "answer":
         if out in ("link", "phone"):
             return "pass" if ok_intent else "fail"

@@ -39,6 +39,7 @@ from connector import (
     load_service_table,
     resolve_query,
     should_suggest,
+    smalltalk_answer,
     suggestions,
     MIN_BERT_CONFIDENCE,
     MIN_TFIDF_SCORE,
@@ -460,6 +461,16 @@ class Api:
             return self._reply("Παρακαλώ γράψτε μια ερώτηση.")
 
         try:
+            st = smalltalk_answer(query, _STATE["vectorizer"], _STATE["tfidf_matrix"],
+                                  _STATE["valid_kb"], _STATE["service_table"],
+                                  _STATE["no_service"])
+            if st:
+                usage_log.log(query, st["lang"], "", None, None, "smalltalk", st["kind"])
+                return self._reply(
+                    st["text"],
+                    [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
+                     for o in st["options"]], st["lang"])
+
             t0 = time.monotonic()
             try:
                 greek_query, lang = resolve_query(query)

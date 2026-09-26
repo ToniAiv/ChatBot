@@ -28,6 +28,8 @@ import requests
 import torch
 
 import acronyms
+import greeklish
+import smalltalk
 import spellfix
 from aspects import detect_aspect
 from language import (
@@ -423,6 +425,12 @@ def resolve_query(query: str):
     lang = detect_language(query)
     if lang == "el":
         return prepare_greek(query), "el"
+    # Greeklish: μεταγραφή, όχι μετάφραση. Το llama παραισθανόταν («klisi
+    # parkarismatos» → «θέση στάθμευσης ΑμεΑ») και κόστιζε ~1,5s. Όποιος
+    # γράφει greeklish είναι Έλληνας, άρα απαντάμε στα ελληνικά.
+    greek = greeklish.to_greek(query)
+    if greek:
+        return prepare_greek(greek), "el"
     # Και στα μεταφρασμένα: το llama3.1 παράγει περιστασιακά ανορθόγραφα
     # ελληνικά, και η διόρθωση δεν κοστίζει τίποτα σε καθαρό κείμενο.
     return prepare_greek(translate_to_greek(query)), "en"
@@ -432,6 +440,28 @@ def prepare_greek(text: str) -> str:
     """Ακρωνύμια → μορφή dataset, μετά ορθογραφία. Με αυτή τη σειρά: ο
     διορθωτής δεν πρέπει να δει ποτέ «Τ.Α.Π.» ή «κδαπ»."""
     return spellfix.correct(acronyms.expand(text))
+
+
+def smalltalk_answer(query: str, vectorizer, tfidf_matrix, valid_kb,
+                     service_table=None, no_service=None) -> dict | None:
+    """
+    Χαιρετισμός / ευχαριστώ / «τι κάνεις» → απάντηση χωρίς μοντέλο και
+    χωρίς μετάφραση (το «hello» δεν χρειάζεται 1,5s στο llama).
+    None αν το μήνυμα είναι (και) αίτημα.
+
+    Στον χαιρετισμό και στη βοήθεια δίνονται παραδείγματα ως κουμπιά,
+    με τον ίδιο μηχανισμό που χρησιμοποιεί το «Μήπως εννοείτε;».
+    """
+    kind = smalltalk.detect(query)
+    if not kind:
+        return None
+    lang = "en" if ENGLISH_SUPPORT and detect_language(query) == "en" else "el"
+    opts = []
+    if kind in smalltalk.WITH_EXAMPLES:
+        opts = suggestions([(i, 1.0) for i in smalltalk.EXAMPLES], vectorizer,
+                           tfidf_matrix, valid_kb, service_table, no_service)
+    return {"kind": kind, "lang": lang, "options": opts,
+            "text": smalltalk.reply(kind, lang, PHONE)}
 
 
 def should_suggest(intents) -> bool:
@@ -581,7 +611,16 @@ def run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix, valid_
     print(f"  Ερώτηση: {query}")
     print(f"{'─'*55}")
 
-    # Step 0: γλώσσα. Το BERT δέχεται πάντα ελληνικά.
+    # Step 0: κουβέντα (χαιρετισμός, ευχαριστώ) — χωρίς μοντέλο.
+    st = smalltalk_answer(query, vectorizer, tfidf_matrix, valid_kb,
+                          service_table, no_service)
+    if st:
+        print(f"\n💬 {st['text']}")
+        for o in st["options"]:
+            print(f"   → {o['title']}")
+        return
+
+    # Step 0β: γλώσσα. Το BERT δέχεται πάντα ελληνικά.
     try:
         greek_query, lang = resolve_query(query)
     except TranslationUnavailable as exc:

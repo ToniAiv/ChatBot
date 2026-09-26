@@ -68,6 +68,9 @@ class Bot:
     def ask(self, q, translate=True):
         """Επιστρέφει (intent, confidence, έκβαση). Στο «suggest» το
         intent αντικαθίσταται από τη λίστα των προτεινόμενων."""
+        st = C.smalltalk_answer(q, self.vec, self.mat, self.valid, self.table, self.ns)
+        if st:
+            return st["kind"], 1.0, "smalltalk"
         # Για ελληνικά, η παραγωγή περνάει από spellfix χωρίς μετάφραση.
         # Το translate=False πρέπει να το κάνει κι αυτό, αλλιώς η μέτρηση
         # δοκιμάζει διαδρομή που δεν υπάρχει (έδειχνε 0.7875 αντί 0.86).
@@ -221,6 +224,13 @@ def main():
     from eval_acronyms import evaluate as eval_acronyms
     results["acronyms"], n_ac = eval_acronyms(bot.tok, bot.mdl, bot.le, verbose=False)
     print(f"    ακρωνύμια      : {results['acronyms']:.4f}  (n={n_ac})")
+
+    # Greeklish: μεταγραφή + διορθωτής (app/greeklish.py). Μόνο το greeklish
+    # κομμάτι του σετ — τα αγγλικά θέλουν Ollama και είναι αργά.
+    from eval_greeklish import evaluate as eval_greeklish
+    gs = eval_greeklish(bot.tok, bot.mdl, bot.le, verbose=False, kinds=("greeklish",))["greeklish"]
+    results["greeklish"] = gs["sure_ok"] / gs["n"]
+    print(f"    greeklish      : {results['greeklish']:.4f}  (n={gs['n']:.0f}, σωστό και σίγουρο)")
 
     # Από άκρη σε άκρη: η απάντηση πρέπει να ξεκινά με το σωστό πρότυπο.
     C.SECTIONS.update(C.load_sections())

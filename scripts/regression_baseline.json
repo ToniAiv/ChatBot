@@ -8,6 +8,7 @@
   "typo_top1": 0.915,
   "aspect_acc": 1.0,
   "acronyms": 0.8387096774193549,
+  "greeklish": 0.625,
   "content": 1.0,
   "demo": 1.0
 }
