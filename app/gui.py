@@ -100,6 +100,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     font-weight: 700; font-size: 14px; color: #1a1a1a;
     letter-spacing: 0.5px;
   }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .reset-btn {
+    padding: 6px 12px; border: 1px solid #c7d2e0; background: #fff;
+    border-radius: 16px; font-size: 12px; color: #16324f; cursor: pointer;
+    font-family: inherit;
+  }
+  .reset-btn:hover:not(:disabled) { background: #eef4fb; border-color: #7aa7d4; }
+  .reset-btn:disabled { opacity: .45; cursor: default; }
   .status { font-size: 12px; color: #8899aa; display: flex; align-items: center; gap: 6px; }
   .status::before {
     content: ''; width: 8px; height: 8px; border-radius: 50%;
@@ -166,7 +174,10 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <body>
   <div class="header">
     <!-- LOGO_PLACEHOLDER -->
-    <div class="status">Online</div>
+    <div class="header-right">
+      <button id="reset" class="reset-btn" disabled title="Ξεκινά από την αρχή και ξεχνά ό,τι γράφτηκε">Νέα συζήτηση</button>
+      <div class="status">Online</div>
+    </div>
   </div>
 
   <div class="chat" id="chat"></div>
@@ -180,6 +191,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   const chat  = document.getElementById('chat');
   const input = document.getElementById('input');
   const btn   = document.getElementById('send');
+  const reset = document.getElementById('reset');
 
   // Το κείμενο μπαίνει ΠΑΝΤΑ με textContent, ποτέ innerHTML.
   //
@@ -270,6 +282,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   function setEnabled(on) {
     input.disabled = !on;
     btn.disabled   = !on;
+    reset.disabled = !on;
     if (on) input.focus();
   }
 
@@ -291,7 +304,28 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     setEnabled(true);
   }
 
+  function welcome() {
+    addMessage(
+      'Καλησπέρα! Είμαι ο εικονικός βοηθός του Δήμου Ηρακλείου. ' +
+      'Πώς μπορώ να σας βοηθήσω;',
+      'bot'
+    );
+  }
+
+  // «Νέα συζήτηση»: καθαρίζει την οθόνη ΚΑΙ τη μνήμη του bot (context).
+  // Σε κοινόχρηστο υπολογιστή ο επόμενος πολίτης δεν πρέπει να «κληρονομήσει»
+  // το μισό αίτημα του προηγούμενου.
+  async function newConversation() {
+    setEnabled(false);
+    try { await window.pywebview.api.reset(); } catch (e) {}
+    chat.textContent = '';
+    input.value = '';
+    welcome();
+    setEnabled(true);
+  }
+
   btn.addEventListener('click', send);
+  reset.addEventListener('click', newConversation);
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') send();
   });
@@ -307,11 +341,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     }
     input.placeholder = 'Γράψτε την ερώτησή σας…';
     setEnabled(true);
-    addMessage(
-      'Καλησπέρα! Είμαι ο εικονικός βοηθός του Δήμου Ηρακλείου. ' +
-      'Πώς μπορώ να σας βοηθήσω;',
-      'bot'
-    );
+    welcome();
   }
 
   window.addEventListener('pywebviewready', waitReady);
@@ -389,6 +419,11 @@ class Api:
         # Με «_»: το pywebview δεν εκθέτει στη σελίδα ιδιότητες που
         # ξεκινούν με κάτω παύλα, οπότε το JS δεν μπορεί να αλλάξει τη μνήμη.
         self._ctx = context.Pending()
+
+    def reset(self) -> bool:
+        """Κουμπί «Νέα συζήτηση»: ξεχνάει το εκκρεμές μήνυμα (context.py)."""
+        self._ctx.clear()
+        return True
 
     def is_ready(self) -> bool:
         return bool(_STATE["ready"])

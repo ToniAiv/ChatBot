@@ -24,7 +24,7 @@ GUI = ROOT / "app" / "gui.py"
 
 HARNESS = r"""
 // ── ψεύτικο DOM, όσο χρειάζεται για να τρέξει το script ──
-let OPENED = [], CHOSEN = [], CHAT_CALLS = [];
+let OPENED = [], CHOSEN = [], CHAT_CALLS = [], RESETS = 0;
 
 function mkEl(tag) {
   return {
@@ -64,6 +64,7 @@ global.window = {
     choose:   async i => { CHOSEN.push(i); return { text: 'ΑΠΑΝΤΗΣΗ ΓΙΑ ' + i, options: [] }; },
     chat:     async q => { CHAT_CALLS.push(q); return { text: 'ok', options: [] }; },
     is_ready: async () => true,
+    reset:    async () => { RESETS++; return true; },
   } },
 };
 global.setTimeout = (f) => f();
@@ -124,6 +125,15 @@ function check(name, cond, extra) {
   let threw = false;
   try { render('απλό κείμενο'); } catch (e) { threw = true; }
   check('η render δέχεται και σκέτο string', !threw);
+
+  // 6. «Νέα συζήτηση»: σβήνει τη μνήμη του bot και την οθόνη
+  addMessage('παλιό μήνυμα', 'user');
+  await document.getElementById('reset').listeners.click();
+  const after = document.getElementById('chat').children;
+  check('η «Νέα συζήτηση» σβήνει τη μνήμη του bot', RESETS === 1, 'reset κλήσεις: ' + RESETS);
+  check('η «Νέα συζήτηση» καθαρίζει την οθόνη',
+        after.length === 1 && after[0].textContent.startsWith('Καλησπέρα'),
+        after.length + ' μηνύματα');
 
   console.log(fails.length ? '\n  ΑΠΟΤΥΧΙΕΣ: ' + fails.length : '\n  Όλοι οι έλεγχοι πέρασαν');
   process.exit(fails.length ? 1 : 0);
