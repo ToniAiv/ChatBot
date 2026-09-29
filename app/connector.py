@@ -381,6 +381,8 @@ MSG = {
         "online_no": "Όχι. Η υπηρεσία «{title}» παρέχεται μόνο με φυσική παρουσία στα γραφεία του Δήμου.",
         "source":    "Πηγή:",
         "suggest_none": "Αν κανένα δεν ταιριάζει, διατυπώστε το διαφορετικά.",
+        "clarify":   f"Δεν είμαι σίγουρος ότι κατάλαβα. Μπορείτε να μου πείτε λίγα περισσότερα, π.χ. για ποια υπηρεσία ή τι ακριβώς συμβαίνει; Αν προτιμάτε, καλέστε στο {PHONE}.",
+        "clarify_aspect": "Για ποια υπηρεσία ρωτάτε; Γράψτε π.χ. «βεβαίωση κατοικίας» ή «άδεια παιδότοπου».",
         "tr_fail":   f"Η μετάφραση δεν είναι διαθέσιμη αυτή τη στιγμή. Παρακαλώ επικοινωνήστε στο {PHONE}.",
     },
     "en": {
@@ -399,6 +401,8 @@ MSG = {
         "online_no": "No. «{title}» is only available in person at the Municipality's offices.",
         "source":    "Source:",
         "suggest_none": "If none of these fit, please rephrase your question.",
+        "clarify":   f"I'm not sure I understood. Could you tell me a bit more, e.g. which service or what exactly is happening? You can also call {PHONE}.",
+        "clarify_aspect": "Which service are you asking about? For example «residence certificate».",
         "tr_fail":   f"Translation is unavailable right now. Please contact the Municipality at {PHONE}.",
     },
 }
@@ -462,6 +466,38 @@ def smalltalk_answer(query: str, vectorizer, tfidf_matrix, valid_kb,
                            tfidf_matrix, valid_kb, service_table, no_service)
     return {"kind": kind, "lang": lang, "options": opts,
             "text": smalltalk.reply(kind, lang, PHONE)}
+
+
+def combine_with_context(greek_query: str, intents, pending: dict | None,
+                         tokenizer, model, label_encoder):
+    """
+    Κανόνας «πρώτα το τρέχον μήνυμα» (B' στην παρουσίαση «Σύνδεση μηνυμάτων»).
+
+    1. Αν το τρέχον μήνυμα είναι σίγουρο μόνο του → αυτό, το προηγούμενο
+       αγνοείται («τι καιρό κάνει» + «θέλω να δηλώσω γάμο» → γάμος).
+    2. Αλλιώς δοκιμάζουμε προηγούμενο + τρέχον, και το κρατάμε ΜΟΝΟ αν
+       είναι σίγουρο ΚΑΙ πιο σίγουρο από το τρέχον μόνο του.
+
+    Το «πάντα ένωση» μετρήθηκε: περισσότερα σωστά αλλά χαλούσε 6 στους 45
+    διαλόγους που έλυνε το μήνυμα μόνο του. Το llama για «σχετίζονται;»
+    δεν έδωσε κάτι παραπάνω και κόστιζε ~850ms.
+
+    Επιστρέφει (κείμενο, intents, αν χρησιμοποιήθηκε το προηγούμενο).
+    """
+    if not pending or intents[0][1] >= MIN_BERT_CONFIDENCE:
+        return greek_query, intents, False
+    combined = f"{pending['greek']} {greek_query}"
+    ci = detect_intent(combined, tokenizer, model, label_encoder)
+    if ci[0][1] >= MIN_BERT_CONFIDENCE and ci[0][1] > intents[0][1]:
+        return combined, ci, True
+    return greek_query, intents, False
+
+
+def carried_aspect(query: str, pending: dict | None) -> str | None:
+    """Η πτυχή του τρέχοντος μηνύματος, αλλιώς του εκκρεμούς. Το intent
+    και η πτυχή λύνονται χωριστά: το «για τη βεβαίωση κατοικίας» βρίσκει
+    την υπηρεσία, το προηγούμενο «τι δικαιολογητικά;» λέει τι θέλει."""
+    return detect_aspect(query) or (pending or {}).get("aspect")
 
 
 def should_suggest(intents) -> bool:
@@ -578,7 +614,7 @@ def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | Non
 
 
 def compose_answer(query: str, intent: str, candidates: list, source: str,
-                   lang: str = "el") -> str:
+                   lang: str = "el", aspect: str | None = None) -> str:
     """
     Παράγει την τελική απάντηση προς τον πολίτη.
 
@@ -597,7 +633,9 @@ def compose_answer(query: str, intent: str, candidates: list, source: str,
         # Αν ο πολίτης ρωτάει κάτι ΣΥΓΚΕΚΡΙΜΕΝΟ για την υπηρεσία
         # (δικαιολογητικά, επικοινωνία, αν γίνεται online), απαντάμε με το
         # περιεχόμενο της σελίδας. Αλλιώς ο σύνδεσμος, όπως πριν.
-        content = content_answer(rec, detect_aspect(query), lang)
+        # Η πτυχή μπορεί να έρθει από προηγούμενο μήνυμα («τι
+        # δικαιολογητικά;» → «για την άδεια παιδότοπου»), βλ. context.py.
+        content = content_answer(rec, aspect or detect_aspect(query), lang)
         if content:
             return content
         note = f"\n{m['greek_page']}" if m["greek_page"] else ""

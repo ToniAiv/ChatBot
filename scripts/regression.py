@@ -232,6 +232,12 @@ def main():
     results["greeklish"] = gs["sure_ok"] / gs["n"]
     print(f"    greeklish      : {results['greeklish']:.4f}  (n={gs['n']:.0f}, σωστό και σίγουρο)")
 
+    # Σύνδεση μηνυμάτων (context.py): 45 διάλογοι Μ1 → Μ2 με τον πραγματικό
+    # κώδικα του παραθύρου. Με BOT_CONTEXT=0 πρέπει να πέσει στο 21/45.
+    from eval_dialogue import score_app
+    results["dialogue"], n_d = score_app(bot)
+    print(f"    διάλογοι       : {results['dialogue']:.4f}  (n={n_d})")
+
     # Από άκρη σε άκρη: η απάντηση πρέπει να ξεκινά με το σωστό πρότυπο.
     C.SECTIONS.update(C.load_sections())
     CONTENT = [

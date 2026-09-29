@@ -24,9 +24,12 @@ from pathlib import Path
 
 import webview
 
+import context
 import usage_log
 from connector import (
     TranslationUnavailable,
+    carried_aspect,
+    combine_with_context,
     JSON_PATH,
     MSG,
     compose_answer,
@@ -382,6 +385,11 @@ def _is_allowed_url(url: str) -> bool:
 
 # ══════════════════════════════════════════════════════════════
 class Api:
+    def __init__(self):
+        # Με «_»: το pywebview δεν εκθέτει στη σελίδα ιδιότητες που
+        # ξεκινούν με κάτω παύλα, οπότε το JS δεν μπορεί να αλλάξει τη μνήμη.
+        self._ctx = context.Pending()
+
     def is_ready(self) -> bool:
         return bool(_STATE["ready"])
 
@@ -401,6 +409,7 @@ class Api:
         """
         if _STATE["error"] or not _STATE["ready"]:
             return self._reply("Το μοντέλο δεν είναι έτοιμο.")
+        self._ctx.clear()          # ο πολίτης διάλεξε: το εκκρεμές λύθηκε
         known = set(_STATE["label_encoder"].classes_)
         if intent not in known:
             return self._reply("Άγνωστη επιλογή.")
@@ -471,6 +480,7 @@ class Api:
                     [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
                      for o in st["options"]], st["lang"])
 
+            pending = self._ctx.take()     # μνήμη ενός μηνύματος (context.py)
             t0 = time.monotonic()
             try:
                 greek_query, lang = resolve_query(query)
@@ -483,6 +493,12 @@ class Api:
                 greek_query,
                 _STATE["tokenizer"], _STATE["model"], _STATE["label_encoder"],
             )
+            current_greek = greek_query
+            aspect = carried_aspect(current_greek, pending)
+            greek_query, intents, used_ctx = combine_with_context(
+                greek_query, intents, pending,
+                _STATE["tokenizer"], _STATE["model"], _STATE["label_encoder"])
+            ctx_tag = " +context" if used_ctx else ""
             top_intent, top_score = intents[0]
 
             ms = (time.monotonic() - t0) * 1000
@@ -493,6 +509,7 @@ class Api:
                         intents, _STATE["vectorizer"], _STATE["tfidf_matrix"],
                         _STATE["valid_kb"], _STATE["service_table"],
                         _STATE["no_service"])
+                self._ctx.remember(current_greek, aspect)
                 if opts:
                     usage_log.log(query, lang, greek_query, top_intent, top_score,
                                   "suggest", " | ".join(o["title"][:40] for o in opts), ms)
@@ -502,12 +519,16 @@ class Api:
                          for o in opts], lang)
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "refuse_low_confidence", "", ms)
-                return self._reply(MSG[lang]["unknown"], lang=lang)
+                if not context.ENABLED:
+                    return self._reply(MSG[lang]["unknown"], lang=lang)
+                # Αντί για «Δεν κατάλαβα»: ζητάμε διευκρίνιση, και το επόμενο
+                # μήνυμα θα συνδυαστεί με αυτό.
+                return self._reply(MSG[lang]["clarify_aspect" if aspect else "clarify"], lang=lang)
 
             if top_intent in (_STATE["no_service"] or {}):
                 dept = _STATE["no_service"][top_intent]
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
-                              "phone", dept.get("name", ""), ms)
+                              "phone" + ctx_tag, dept.get("name", ""), ms)
                 return self._reply(department_answer(dept, lang), lang=lang)
 
             candidates, source = find_candidates(
@@ -520,9 +541,10 @@ class Api:
                               "refuse_out_of_scope", "", ms)
                 return self._reply(MSG[lang]["outofscope"], lang=lang)
 
-            answer = compose_answer(greek_query, top_intent, candidates, source, lang)
+            answer = compose_answer(current_greek, top_intent, candidates, source, lang,
+                                    aspect=aspect)
             usage_log.log(query, lang, greek_query, top_intent, top_score,
-                          "link", f"{source}: {candidates[0][1]['title']}",
+                          "link" + ctx_tag, f"{source}: {candidates[0][1]['title']}",
                           (time.monotonic() - t0) * 1000)
             return self._reply(answer, lang=lang)
         except Exception as e:
