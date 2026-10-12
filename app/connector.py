@@ -18,6 +18,7 @@ import argparse
 import difflib
 import csv
 import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -47,7 +48,10 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # Αγκυρωμένα στη ρίζα του project, όχι στο cwd — το παλιό connector.py
 # έτρεχε μόνο αν τον καλούσες από τον φάκελο New-praktiki/.
 ROOT         = Path(__file__).resolve().parent.parent
-MODEL_DIR    = ROOT / "models" / "intent-model-218"   # 218 κλάσεις (Αυγ 2026)
+# Ποιο μοντέλο φορτώνεται: BOT_MODEL=models/intent-model-234 ./run.sh
+# Χωρίς τη ρύθμιση, το 218 (Αυγ 2026). Έτσι τα δύο μοντέλα συγκρίνονται και
+# η επιστροφή στο παλιό είναι μία μεταβλητή, όχι αλλαγή κώδικα.
+MODEL_DIR    = ROOT / os.environ.get("BOT_MODEL", "models/intent-model-218")
 JSON_PATH    = ROOT / "data" / "heraklion_eservices.json"
 TABLE_PATH   = ROOT / "mappings" / "intent_to_service.csv"
 DEPTS_PATH   = ROOT / "mappings" / "departments.csv"
