@@ -28,6 +28,7 @@ import requests
 import torch
 
 import acronyms
+import departments
 import greeklish
 import smalltalk
 import spellfix
@@ -202,18 +203,29 @@ def load_no_service(depts: dict) -> dict:
     return out
 
 
-def department_answer(dept: dict, lang: str = "el") -> str:
-    """Απάντηση για αίτημα που δεν εξυπηρετείται ηλεκτρονικά."""
+def department_answer(dept: dict, lang: str = "el", contact: bool = False) -> str:
+    """
+    Απάντηση με τα στοιχεία ενός τμήματος.
+
+    contact=False: αίτημα που δεν εξυπηρετείται ηλεκτρονικά.
+    contact=True: ο πολίτης ρώτησε ο ίδιος «τηλέφωνο / πού βρίσκεται»
+    (departments.py). Τότε το «δεν γίνεται ηλεκτρονικά» δεν έχει νόημα.
+    """
     m = MSG[lang]
     if not dept:
         return m["outofscope"]
     # Το «δεν γίνεται ηλεκτρονικά» λέγεται ΜΟΝΟ όταν το ξέρουμε. Για τους
     # παιδικούς σταθμούς ή το «τηλέφωνο του δήμου» δεν μπορεί να στηριχτεί,
     # οπότε η απάντηση ξεκινά κατευθείαν από το αρμόδιο τμήμα.
-    lines = [m["no_online"], ""] if dept.get("online", "no") == "no" else []
+    if contact:
+        lines = [m["contact_dept"], ""]
+    else:
+        lines = [m["no_online"], ""] if dept.get("online", "no") == "no" else []
     lines += [f"{m['dept']}: {dept['name']}", f"{m['tel']}: {dept['tel']}"]
     if dept.get("email"):
         lines.append(f"{m['email']}: {dept['email']}")
+    if dept.get("address"):
+        lines.append(f"{m['address']}: {dept['address']}")
     if dept.get("info_url"):
         lines += ["", f"{m['more_info']} {dept['info_url']}"]
     return "\n".join(lines)
@@ -370,7 +382,8 @@ MSG = {
         "outofscope": f"Η υπηρεσία δεν φαίνεται να παρέχεται από τον Δήμο. Παρακαλώ επικοινωνήστε στο {PHONE}.",
         "service":   "Η αρμόδια υπηρεσία του Δήμου είναι:",
         "no_online": "Το αίτημα αυτό δεν γίνεται ηλεκτρονικά.",
-        "dept":      "Αρμόδιο", "tel": "Τηλέφωνο", "email": "Email",
+        "dept":      "Αρμόδιο", "tel": "Τηλέφωνο", "email": "Email", "address": "Διεύθυνση",
+        "contact_dept": "Στοιχεία επικοινωνίας:",
         "more_info": "Περισσότερες πληροφορίες:",
         "greek_page": "",
         "suggest":   "Δεν είμαι σίγουρος. Μήπως εννοείτε κάποιο από αυτά;",
@@ -390,7 +403,8 @@ MSG = {
         "outofscope": f"This does not appear to be a service the Municipality provides. Please call {PHONE}.",
         "service":   "The service you need is:",
         "no_online": "This request cannot be submitted online.",
-        "dept":      "Department", "tel": "Phone", "email": "Email",
+        "dept":      "Department", "tel": "Phone", "email": "Email", "address": "Address",
+        "contact_dept": "Contact details (the Municipality's information is in Greek):",
         "more_info": "More information:",
         "greek_page": "(the Municipality's page is in Greek)",
         "suggest":   "I'm not sure. Did you mean one of these?",
@@ -498,6 +512,44 @@ def carried_aspect(query: str, pending: dict | None) -> str | None:
     και η πτυχή λύνονται χωριστά: το «για τη βεβαίωση κατοικίας» βρίσκει
     την υπηρεσία, το προηγούμενο «τι δικαιολογητικά;» λέει τι θέλει."""
     return detect_aspect(query) or (pending or {}).get("aspect")
+
+
+# Intents «δρομολόγησης»: δεν είναι υπηρεσίες αλλά γενικές κατηγορίες
+# (Intention_trackdown της ομάδας, «ΚΑΤΗΓΟΡΙΕΣ ΔΡΟΜΟΛΟΓΗΣΗΣ»). Όταν το μοντέλο
+# καταλήγει σε αυτά, δεν ξέρει ΠΟΙΟ τμήμα θέλει ο πολίτης.
+ROUTING_INTENTS = {"δελτια_τυπου", "νεαανακοινωσεις", "επικοινωνια", "γενικες_υπηρεσιες",
+                   "δημοτολογιο", "ληξιαρχειο", "τεχνικη_υπηρεσια",
+                   "αιτηση_γενικου_τεχνικου_περιεχομενου"}
+
+
+def department_override(greek_query: str, intents, pending: dict | None = None) -> str | None:
+    """
+    Κωδικός τμήματος αν ο πολίτης ρωτάει στοιχεία επικοινωνίας ΣΥΓΚΕΚΡΙΜΕΝΟΥ
+    τμήματος («τηλέφωνο της πολεοδομίας»), αλλιώς None.
+
+    Αντικαθιστά την απάντηση του μοντέλου ΜΟΝΟ όταν αυτή είναι γενική
+    (intent δρομολόγησης) ή αβέβαιη, ή όταν ο πολίτης ζητά ρητά το γραφείο /
+    τμήμα («το γραφείο αδεσπότων») ή ονομάζει φορέα («η δημοτική αστυνομία»).
+    Μια σίγουρη υπηρεσία μένει: το
+    «τηλέφωνο για τη βεβαίωση κατοικίας» έχει τα δικά της στοιχεία, στη
+    σελίδα της υπηρεσίας.
+
+    Με εκκρεμές μήνυμα (context.py): «τι ώρες ανοίγει;» → «το ΚΕΠ». Η
+    ερώτηση επικοινωνίας ήρθε πρώτη και το τμήμα δεύτερο.
+    """
+    found = departments.match(greek_query) if departments.ENABLED else None
+    if not found:
+        return None
+    code, organization = found
+    asked = departments.is_contact_question(greek_query) or (
+        pending is not None and departments.is_contact_question(pending.get("greek", "")))
+    if not asked:
+        return None
+    top, conf = intents[0]
+    if (top in ROUTING_INTENTS or conf < MIN_BERT_CONFIDENCE
+            or departments.names_office(greek_query) or organization):
+        return code
+    return None
 
 
 def should_suggest(intents) -> bool:

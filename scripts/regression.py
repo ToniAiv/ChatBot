@@ -63,11 +63,14 @@ class Bot:
         kb = json.load(open(C.JSON_PATH, encoding="utf-8"))
         self.vec, self.mat, self.valid = C.build_tfidf_index(kb)
         self.table = C.load_service_table(self.valid)
-        self.ns = C.load_no_service(C.load_departments())
+        self.depts = C.load_departments()
+        self.ns = C.load_no_service(self.depts)
+        self.last_dept = None
 
     def ask(self, q, translate=True):
         """Επιστρέφει (intent, confidence, έκβαση). Στο «suggest» το
         intent αντικαθίσταται από τη λίστα των προτεινόμενων."""
+        self.last_dept = None
         st = C.smalltalk_answer(q, self.vec, self.mat, self.valid, self.table, self.ns)
         if st:
             return st["kind"], 1.0, "smalltalk"
@@ -78,6 +81,12 @@ class Bot:
                     else (C.prepare_greek(q), "el"))
         tops = C.detect_intent(gq, self.tok, self.mdl, self.le)
         it, cf = tops[0]
+        # «τηλέφωνο της πολεοδομίας» → στοιχεία του τμήματος (departments.py).
+        # Το intent μένει το argmax, ώστε το intent_top1 να μετράει μόνο το
+        # μοντέλο· ο προορισμός της απάντησης είναι στο self.last_dept.
+        self.last_dept = C.department_override(gq, tops)
+        if self.last_dept:
+            return it, cf, "phone"
         if cf < C.MIN_BERT_CONFIDENCE:
             if C.should_suggest(tops):
                 opts = C.suggestions(tops, self.vec, self.mat, self.valid,
@@ -189,7 +198,8 @@ def main():
         else:
             ok += gold == key(it)
             if out in ("link", "phone"):
-                direct_ok += gd is not None and dest(it) == gd
+                got = ("dept:" + bot.depts[bot.last_dept]["name"]) if bot.last_dept else dest(it)
+                direct_ok += gd is not None and got == gd
     results["mode"] = "quick" if args.quick else "full"
     results["n"] = len(rows)
     results["intent_top1"] = ok / len(rows)
@@ -255,6 +265,12 @@ def main():
     from eval_dialogue import score_app
     results["dialogue"], n_d = score_app(bot)
     print(f"    διάλογοι       : {results['dialogue']:.4f}  (n={n_d})")
+
+    # Αναγνώριση τμήματος (departments.py): «τηλέφωνο της πολεοδομίας» →
+    # στοιχεία του τμήματος, με παγίδες όπου το σωστό ΔΕΝ είναι τμήμα.
+    from eval_departments import evaluate as eval_departments
+    results["departments"], n_dp = eval_departments(bot)
+    print(f"    τμήματα        : {results['departments']:.4f}  (n={n_dp})")
 
     # Από άκρη σε άκρη: η απάντηση πρέπει να ξεκινά με το σωστό πρότυπο.
     C.SECTIONS.update(C.load_sections())

@@ -1,15 +1,45 @@
-code,name,tel,email,source,info_url,online
-DEYAH,ΔΕΥΑΗ — Δημοτική Επιχείρηση Ύδρευσης Αποχέτευσης,"11122, 2810 339050",mail@deyah.gr,data/heraklion_eservices_enriched.json,,no
-KOIMITIRIA,Δημοτικά Κοιμητήρια,"2810 231079, 2813 409681",kimitirio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/citizen/koimitiria/koimitiria.html,no
-LIXIARXEIO,Ληξιαρχείο,"2813 409397, 409393",lixiarxio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-DIMOTOLOGIO,Δημοτολόγιο,"2813 409327, 409350",dhmotologio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-MITROO,Μητρώο Αρρένων,2813 409354,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-POLEODOMIA,Πολεοδομία,"2813 409343, 409328",poleodomia@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-TEXNIKI,Τεχνική Υπηρεσία,"2813 409899, 409826",grammty@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-ADEIODOTISEIS,Αδειοδοτήσεις & Εμπορικές Δραστηριότητες,2813 409565,katasthmata@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-YPAITHRIO,Τμήμα Υπαίθριου Εμπορίου,"2810 286633, 330894",,data/heraklion_eservices_enriched.json,,no
-PROSODOI,Τμήμα Ελέγχου Προσόδων,"2813 409138, 409426, 409434",prosodon@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-TAP,Τμήμα ΤΑΠ,"2813 409136, 409449",tap@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-KOINONIKA,Διεύθυνση Κοινωνικής Ανάπτυξης,2813 409112,social@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no
-KENTRO,Τηλεφωνικό Κέντρο Δήμου Ηρακλείου,2813 409000,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/citizen/contacts/thlefwna-yphresiwn.html,unknown
-PROSXOLIKI,Τμήμα Προσχολικής Αγωγής (παιδικοί σταθμοί),"2813 409920, 921",prosxoliki@heraklion.gr,heraklion.gr/child/paidikoi + heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/child/paidikoi,unknown
+code,name,tel,email,source,info_url,online,address
+DEYAH,ΔΕΥΑΗ — Δημοτική Επιχείρηση Ύδρευσης Αποχέτευσης,"11122, 2810 339050",mail@deyah.gr,data/heraklion_eservices_enriched.json,,no,Κ. Χατζηγεωργίου 2 - Εγκαταστάσεις Β.Κ. - Φοινικιά
+KOIMITIRIA,Δημοτικά Κοιμητήρια,"2810 231079, 2813 409681, 683",kimitirio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/citizen/koimitiria/koimitiria.html,no,Αγ. Κωνσταντίνου και Αγ. Ιωάννη
+LIXIARXEIO,Ληξιαρχείο,"2813 409397, 409393",lixiarxio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,Πλατεία Δασκαλογιάννη
+DIMOTOLOGIO,Δημοτολόγιο,"2813 409327, 409350",dhmotologio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,Πλατεία Δασκαλογιάννη
+MITROO,Μητρώο Αρρένων,2813 409354,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,
+POLEODOMIA,Πολεοδομία,"2813 409343, 409328",poleodomia@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,Πλατεία Δασκαλογιάννη
+TEXNIKI,Τεχνική Υπηρεσία,"2813 409899, 409826",grammty@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,"Διονυσίου 13Α, Νέα Αλικαρνασσός"
+ADEIODOTISEIS,Αδειοδοτήσεις & Εμπορικές Δραστηριότητες,2813 409565,katasthmata@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,
+YPAITHRIO,Τμήμα Υπαίθριου Εμπορίου,"2810 286633, 330894",,data/heraklion_eservices_enriched.json,,no,
+PROSODOI,Τμήμα Ελέγχου Προσόδων,"2813 409138, 409426, 409434",prosodon@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,"Αγίου Τίτου 1, Λότζια"
+TAP,Τμήμα ΤΑΠ,"2813 409136, 409449",tap@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,"Αγίου Τίτου 1, Λότζια"
+KOINONIKA,Διεύθυνση Κοινωνικής Ανάπτυξης,2813 409112,social@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,no,
+KENTRO,Τηλεφωνικό Κέντρο Δήμου Ηρακλείου,"2813 409000, 2813 409409",info@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/citizen/contacts/thlefwna-yphresiwn.html,unknown,"Αγίου Τίτου 1, Τ.Κ. 71202, Ηράκλειο"
+PROSXOLIKI,Τμήμα Προσχολικής Αγωγής (παιδικοί σταθμοί),"2813 409920, 921",prosxoliki@heraklion.gr,heraklion.gr/child/paidikoi + heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,https://www.heraklion.gr/child/paidikoi,unknown,"Ιωάννη Προκοπίδη, Νέα Αλικαρνασσός"
+MAYOR,Γραφείο Δημάρχου,"2813 409101 (Δήμαρχος), 2813 409102, 103 (Γραμματεία)",mayor@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+PROTOKOLLO,Πρωτόκολλο,"2813 409141, 142, 143, 144, 156",protokolo@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+NOMIKI,Νομική Υπηρεσία,2813 409194,nomiki@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+DPO,Υπεύθυνος Προστασίας Δεδομένων,2813 409192,dpo@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+PISTOPOIITIKA,Τμήμα Πιστοποιητικών,"2813 409302, 303",,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+EKLOGIKA,Εκλογικά,"2813 409350, 392",,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+ITHAGENEIES,Ιθαγένειες - Προξενεία,2813 409352,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+POLITIKOI_GAMOI,Πολιτικοί Γάμοι,2813 409164,politikoi_gamoi@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,Ανδρόγεω 2
+DASTYNOMIA,Δημοτική Αστυνομία,2813 409500,dastynomia@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,Λεωφ. Σοφοκλή Βενιζέλου (Παραλιακή)
+POLITIKI_PROSTASIA,Πολιτική Προστασία,2813 409500,pprostasiadimou@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,Λεωφ. Σοφοκλή Βενιζέλου (Παραλιακή)
+PALIA_POLI,Θέματα Παλιάς Πόλης,2813 409845,palia-poli@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+TEIXI,Ενετικά Τείχη,2813 409830,teixi@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+KYKLOFORIA,Τεχνική Υπηρεσία — Κυκλοφορίας,2813 409887,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Διονυσίου 13Α, Νέα Αλικαρνασσός"
+ILEKTROFOTISMOS,Τεχνική Υπηρεσία — Ηλεκτροφωτισμού,2813 409807,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Διονυσίου 13Α, Νέα Αλικαρνασσός"
+ODOPOIIA,Τεχνική Υπηρεσία — Οδοποιίας,2813 409834,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Διονυσίου 13Α, Νέα Αλικαρνασσός"
+SXOLEIA,Τεχνική Υπηρεσία — Σχολείων,2813 409861,,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Διονυσίου 13Α, Νέα Αλικαρνασσός"
+KATHARIOTITA,Θέματα Καθαριότητας,2813 409660,kathariotita@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,ΒΙ.ΠΕ. Ηρακλείου
+PRASINO,Θέματα Πρασίνου,"2810 289320, 244057",prasino@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+AGROTIKI,"Δ/νση Περιβάλλοντος, Αγροτικής Ανάπτυξης & Εμπορίου",2810 341974,zoikis-paragogis@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+ADESPOTA,Γραφείο Αδέσποτων Ζώων,2810 336122,adespota@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+EISPRAXEIS,Ταμειακής Βεβαίωσης - Εισπράξεων,"2813 409146, 409458",eispraxeis@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Αγίου Τίτου 1, Λότζια"
+EPIDOMATA,Θέματα Επιδοματικής Πολιτικής,"2810 311328, 528707",kprostasia@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,Μάχης Κρήτης & Ηφαίστου
+IATREIO,Δημοτικό Ιατρείο,2810 319670,iatreio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+FARMAKEIO,Δημοτικό Κοινωνικό Φαρμακείο,2810 289874,koinonikofarmakeio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+PANTOPOLEIO,Δημοτικό Κοινωνικό Παντοπωλείο,2810 335572,dhkoipan@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+ASTEGOI,Κέντρο Υποδοχής Αστέγων,"2810 336050, 336055",kentroastegon@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+POLITISMOS,Πολιτιστικά θέματα,"2813 409108, 409264",politistika@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,
+VIVLIOTHIKI,Βικελαία Δημοτική Βιβλιοθήκη,"2813 409704, 409705",vikelaia@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Μέγαρο «Αχτάρικα», Πλατεία Ελευθερίου Βενιζέλου"
+ODEIO,Δημοτικό Ωδείο Ηρακλείου,"2813 404990, 404991",odeio@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"ΠΣΚΗ, Πλαστήρα & Γιαννίκου"
+KEP,Κέντρο Εξυπηρέτησης Πολιτών (ΚΕΠ),2813 401000,kep0006@heraklion.gr,heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html (12/10/2026),https://www.heraklion.gr/municipality/contacts/thlefwna-yphresiwn.html,,"Ανδρόγεω 2 (και ΚΕΠ στην Πλαστήρα & Πανασανού 1, στη Ν. Αλικαρνασσό και στις Δημοτικές Ενότητες)"

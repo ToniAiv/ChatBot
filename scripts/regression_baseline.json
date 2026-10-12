@@ -2,14 +2,15 @@
   "mode": "full",
   "n": 2404,
   "intent_top1": 0.8564891846921797,
-  "coverage": 0.7662229617304492,
+  "coverage": 0.7687188019966722,
   "reachable": 0.8901830282861897,
-  "suggest_hit": 0.9170616113744076,
+  "suggest_hit": 0.9158653846153846,
   "typo_top1": 0.915,
   "aspect_acc": 1.0,
   "acronyms": 0.8387096774193549,
   "greeklish": 0.625,
   "dialogue": 0.7111111111111111,
+  "departments": 0.9655172413793104,
   "content": 1.0,
   "demo": 1.0
 }

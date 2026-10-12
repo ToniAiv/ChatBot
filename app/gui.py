@@ -30,6 +30,7 @@ from connector import (
     TranslationUnavailable,
     carried_aspect,
     combine_with_context,
+    department_override,
     JSON_PATH,
     MSG,
     compose_answer,
@@ -377,12 +378,14 @@ def _load_pipeline() -> None:
             kb = json.load(f)
         vectorizer, tfidf_matrix, valid_kb = build_tfidf_index(kb)
         SECTIONS.update(load_sections())
+        departments = load_departments()
         _STATE.update({
             "tokenizer":     tokenizer,
             "model":         model,
             "label_encoder": label_encoder,
             "service_table": load_service_table(valid_kb),
-            "no_service": load_no_service(load_departments()),
+            "no_service": load_no_service(departments),
+            "departments": departments,
             "vectorizer":    vectorizer,
             "tfidf_matrix":  tfidf_matrix,
             "valid_kb":      valid_kb,
@@ -537,6 +540,14 @@ class Api:
             top_intent, top_score = intents[0]
 
             ms = (time.monotonic() - t0) * 1000
+            # «τηλέφωνο της πολεοδομίας» → στοιχεία του τμήματος (departments.py)
+            code = department_override(greek_query, intents, pending)
+            dept = _STATE["departments"].get(code) if code else None
+            if dept:
+                usage_log.log(query, lang, greek_query, top_intent, top_score,
+                              "phone_dept" + ctx_tag, code, ms)
+                return self._reply(department_answer(dept, lang, contact=True), lang=lang)
+
             if top_score < MIN_BERT_CONFIDENCE:
                 opts = []
                 if should_suggest(intents):
