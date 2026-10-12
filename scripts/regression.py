@@ -115,10 +115,28 @@ def main():
 
     bot = Bot()
 
+    # Κάθε κλάση του μοντέλου χρειάζεται γραμμή στον πίνακα υπηρεσιών· αλλιώς
+    # πέφτει σιωπηλά στον TF-IDF. Σημαντικό μετά από επανεκπαίδευση με νέα
+    # intents (βλ. scripts/prepare_dataset.py).
+    table_rows = {key(r["intent"]) for r in csv.DictReader(open(C.TABLE_PATH, encoding="utf-8"))}
+    no_row = sorted(c for c in bot.le.classes_ if key(c) not in table_rows)
+    if no_row:
+        print(f"\n  ⚠ {len(no_row)} κλάσεις του μοντέλου ΧΩΡΙΣ γραμμή στον πίνακα: {no_row[:8]}")
+        failures.append(f"{len(no_row)} κλάσεις χωρίς γραμμή στον πίνακα υπηρεσιών")
+
     # ── 1. ακρίβεια intent ───────────────────────────────────
     rows = []
     for f in sorted(glob.glob(str(DATASETS / "tests" / "*.csv"))):
         rows += [r for r in csv.DictReader(open(f, encoding="utf-8")) if r.get("text")]
+    # Δοκιμές για intents που ΔΕΝ υπάρχουν στο φορτωμένο μοντέλο (π.χ. μετά
+    # από επανεκπαίδευση που αφαίρεσε το «στέγαστρο ΟΑΣΑ») δεν μετρούν ως
+    # λάθη — παραλείπονται, και το πλήθος τους φαίνεται.
+    known = {key(c) for c in bot.le.classes_}
+    skipped = Counter(r["intent"] for r in rows if key(r["intent"]) not in known)
+    rows = [r for r in rows if key(r["intent"]) in known]
+    if skipped:
+        print(f"\n  ↷ παραλείπονται {sum(skipped.values())} δοκιμές για intents που δεν έχει το μοντέλο: "
+              f"{dict(skipped)}")
     if args.quick:
         import random
         random.Random(0).shuffle(rows); rows = rows[:300]
