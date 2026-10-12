@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import csv
+import os
 import re
 import unicodedata
 from collections import Counter
@@ -76,7 +77,9 @@ KB_RICH = ROOT / "data" / "heraklion_eservices_enriched.json"
 # στόχος διόρθωσης. Χωρίς αυτό, καθημερινές λέξεις που δεν τύχαινε να
 # έχει το dataset αλλοιώνονταν: «γράφω» → «γράφτω», «παιδάκι» → «παιδική».
 USE_BERT_VOCAB = True
-BERT_TOKENIZER = ROOT / "models" / "intent-model-218" / "tokenizer.json"
+# Από το μοντέλο σε χρήση (ίδια ρύθμιση με το connector.py). Όλα τα μοντέλα
+# μας έχουν το ίδιο λεξιλόγιο Greek BERT (35.000 λέξεις, επαληθευμένο 218/234).
+BERT_TOKENIZER = ROOT / os.environ.get("BOT_MODEL", "models/intent-model-234") / "tokenizer.json"
 
 _WORD = re.compile(r"[α-ωΑ-ΩίϊΐόάέύϋΰήώΆΈΉΊΌΎΏ]+")
 
