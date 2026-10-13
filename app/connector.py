@@ -164,12 +164,23 @@ def load_service_table(valid_kb: list) -> dict:
         return {}
 
     by_url = {r["url"]: r for r in valid_kb}
+    # Σελίδες που λείπουν από την αναζήτηση ΜΟΝΟ επειδή ο τίτλος τους στο KB
+    # είναι πρότυπο (EXCLUDED_TITLES): η αρχική του eservices αποθηκεύτηκε ως
+    # «Ο ΛΟΓΑΡΙΑΣΜΟΣ ΜΟΥ». Μια ελεγμένη γραμμή μπορεί να δείχνει εκεί· ο
+    # πολίτης βλέπει τον τίτλο του πίνακα. Σελίδες που έχουν φύγει από το KB
+    # εξακολουθούν να αγνοούνται.
+    templated = set()
+    if JSON_PATH.exists():
+        templated = {r["url"] for r in json.loads(JSON_PATH.read_text(encoding="utf-8"))
+                     if r.get("title") in EXCLUDED_TITLES}
     table, skipped = {}, 0
     with TABLE_PATH.open(encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             if row.get("status") not in ("verified", "auto"):
                 continue
             rec = by_url.get(row.get("url", ""))
+            if rec is None and row.get("url") in templated and row.get("title"):
+                rec = {"url": row["url"], "title": row["title"]}
             if rec is None:      # ο πίνακας δείχνει σε εγγραφή που δεν υπάρχει πια
                 skipped += 1
                 continue
