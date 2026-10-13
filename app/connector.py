@@ -88,6 +88,10 @@ MIN_SUGGEST_MASS = 0.65
 #     0.00        100%       92%       5/5
 #     0.65         92%       86%       1/5   ← επιλογή
 #     0.80         68%       65%       1/5
+POOL_DESTINATIONS = True
+# Βεβαιότητα ανά προορισμό: τα intents που οδηγούν στην ίδια σελίδα/τμήμα
+# αθροίζονται πριν τη σύγκριση με το 0,80 (destination_confidence). Με False,
+# ακριβώς η παλιά συμπεριφορά (μόνο το top-1).
 TOP_K               = 5      # πόσα candidates στέλνουμε στο Llama
 
 # Τίτλοι που αποκλείονται από την αναζήτηση (template strings)
@@ -488,7 +492,8 @@ def smalltalk_answer(query: str, vectorizer, tfidf_matrix, valid_kb,
 
 
 def combine_with_context(greek_query: str, intents, pending: dict | None,
-                         tokenizer, model, label_encoder):
+                         tokenizer, model, label_encoder,
+                         service_table=None, no_service=None):
     """
     Κανόνας «πρώτα το τρέχον μήνυμα» (B' στην παρουσίαση «Σύνδεση μηνυμάτων»).
 
@@ -502,12 +507,18 @@ def combine_with_context(greek_query: str, intents, pending: dict | None,
     δεν έδωσε κάτι παραπάνω και κόστιζε ~850ms.
 
     Επιστρέφει (κείμενο, intents, αν χρησιμοποιήθηκε το προηγούμενο).
+
+    «Σίγουρο» = βεβαιότητα προορισμού (destination_confidence), όπως και
+    στην απόφαση απάντησης· αλλιώς ένα μήνυμα που απαντιέται μόνο του θα
+    μπορούσε να ενωθεί με το προηγούμενο.
     """
-    if not pending or intents[0][1] >= MIN_BERT_CONFIDENCE:
+    conf = destination_confidence(intents, service_table, no_service)
+    if not pending or conf >= MIN_BERT_CONFIDENCE:
         return greek_query, intents, False
     combined = f"{pending['greek']} {greek_query}"
     ci = detect_intent(combined, tokenizer, model, label_encoder)
-    if ci[0][1] >= MIN_BERT_CONFIDENCE and ci[0][1] > intents[0][1]:
+    cconf = destination_confidence(ci, service_table, no_service)
+    if cconf >= MIN_BERT_CONFIDENCE and cconf > conf:
         return combined, ci, True
     return greek_query, intents, False
 
@@ -555,6 +566,54 @@ def department_override(greek_query: str, intents, pending: dict | None = None) 
             or departments.names_office(greek_query) or organization):
         return code
     return None
+
+
+def destination_key(intent: str, service_table=None, no_service=None):
+    """
+    Πού καταλήγει ο πολίτης για αυτό το intent: ("svc", url) ή ("dept", κωδικός).
+    None όταν ο προορισμός δεν είναι ρητός (proposed → εφεδρεία TF-IDF/Llama)
+    ή όταν το intent είναι δρομολόγησης: εκεί η κοινή κατάληξη (τηλεφωνικό
+    κέντρο) δεν σημαίνει ότι καταλάβαμε την ερώτηση.
+    """
+    if intent in ROUTING_INTENTS:
+        return None
+    if no_service and intent in no_service:
+        dept = no_service[intent]
+        return ("dept", dept["code"]) if dept and dept.get("code") else None
+    rec = (service_table or {}).get(intent)
+    return ("svc", rec["url"]) if rec else None
+
+
+def destination_confidence(intents, service_table=None, no_service=None) -> float:
+    """
+    Βεβαιότητα για τον ΠΡΟΟΡΙΣΜΟ του top-1: άθροισμα των top-5 intents που
+    οδηγούν στην ίδια σελίδα ή στο ίδιο τμήμα. Συγκρίνεται με το ίδιο
+    MIN_BERT_CONFIDENCE.
+
+    Πολλά intents καταλήγουν νόμιμα στο ίδιο σημείο (6 ανάγκες ΤΑΠ → e-ΤΑΠ,
+    6 θέματα τάφων → Κοιμητήρια, 2 «άδειες περίφραξης» → μία σελίδα). Όταν το
+    μοντέλο μοιράζεται ανάμεσά τους («κάδος για μπάζα στο δρόμο»: 0,68 + 0,25
+    σε δύο intents της ίδιας σελίδας), κανένα δεν περνούσε
+    το 0,80 και ο πολίτης έπαιρνε «Μήπως εννοείτε;» με επιλογές που όλες
+    πήγαιναν στο ίδιο μέρος. Η απάντηση εξαρτάται μόνο από τη σελίδα ή το
+    τμήμα, όχι από το intent.
+
+    Αρκεί ο προορισμός του top-1: αν κάποιος άλλος μάζευε ≥ 0,80 από τα top-5,
+    το top-1 (εκτός αυτού) θα είχε ≤ 0,20, άρα και κάθε μέλος του, και τα
+    το πολύ 4 μέλη του δεν θα έφταναν το 0,80.
+
+    Μετρημένο 13/10/2026 (μοντέλο 234, 2.528 προτάσεις tests/): κάλυψη
+    71,2% → 74,0%, ακρίβεια όταν απαντά 95,1% → 95,3%, σίγουρα λάθη 88 → 88.
+    Και οι 71 ερωτήσεις που άλλαξαν πήγαν στον σωστό προορισμό. Χωρίς την
+    εξαίρεση των intents δρομολόγησης, το «πότε ανοίγουν τα σχολεία;»
+    (ανακοινώσεις + επικοινωνία → τηλεφωνικό κέντρο, 0,83) έπαιρνε σίγουρη
+    απάντηση.
+    """
+    top, score = intents[0]
+    key = destination_key(top, service_table, no_service) if POOL_DESTINATIONS else None
+    if key is None:
+        return score
+    return sum(s for i, s in intents if destination_key(i, service_table, no_service) == key)
 
 
 def should_suggest(intents) -> bool:
@@ -734,7 +793,7 @@ def run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix, valid_
         bar = "█" * int(score * 20)
         print(f"   {intent:<45} {score:.3f} {bar}")
 
-    if top_score < MIN_BERT_CONFIDENCE:
+    if destination_confidence(intents, service_table, no_service) < MIN_BERT_CONFIDENCE:
         opts = []
         if should_suggest(intents):
             opts = suggestions(intents, vectorizer, tfidf_matrix, valid_kb,

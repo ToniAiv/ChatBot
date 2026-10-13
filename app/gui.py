@@ -35,6 +35,7 @@ from connector import (
     MSG,
     compose_answer,
     department_answer,
+    destination_confidence,
     find_candidates,
     load_departments,
     load_no_service,
@@ -535,9 +536,16 @@ class Api:
             aspect = carried_aspect(current_greek, pending)
             greek_query, intents, used_ctx = combine_with_context(
                 greek_query, intents, pending,
-                _STATE["tokenizer"], _STATE["model"], _STATE["label_encoder"])
+                _STATE["tokenizer"], _STATE["model"], _STATE["label_encoder"],
+                _STATE["service_table"], _STATE["no_service"])
             ctx_tag = " +context" if used_ctx else ""
             top_intent, top_score = intents[0]
+            # Βεβαιότητα για τη σελίδα/το τμήμα, όχι μόνο για το top-1 intent
+            # (connector.destination_confidence).
+            confidence = destination_confidence(
+                intents, _STATE["service_table"], _STATE["no_service"])
+            if top_score < MIN_BERT_CONFIDENCE <= confidence:
+                ctx_tag += " +pooled"
 
             ms = (time.monotonic() - t0) * 1000
             # «τηλέφωνο της πολεοδομίας» → στοιχεία του τμήματος (departments.py)
@@ -548,7 +556,7 @@ class Api:
                               "phone_dept" + ctx_tag, code, ms)
                 return self._reply(department_answer(dept, lang, contact=True), lang=lang)
 
-            if top_score < MIN_BERT_CONFIDENCE:
+            if confidence < MIN_BERT_CONFIDENCE:
                 opts = []
                 if should_suggest(intents):
                     opts = suggestions(

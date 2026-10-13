@@ -89,7 +89,9 @@ class Bot:
         self.last_dept = C.department_override(gq, tops)
         if self.last_dept:
             return it, cf, "phone"
-        if cf < C.MIN_BERT_CONFIDENCE:
+        # Βεβαιότητα προορισμού (connector.destination_confidence): το intent
+        # μένει το argmax, και ο προορισμός του είναι αυτός που αθροίστηκε.
+        if C.destination_confidence(tops, self.table, self.ns) < C.MIN_BERT_CONFIDENCE:
             if C.should_suggest(tops):
                 opts = C.suggestions(tops, self.vec, self.mat, self.valid,
                                      self.table, self.ns)

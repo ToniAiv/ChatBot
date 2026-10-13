@@ -75,7 +75,8 @@ def strategy(name, bot, m1, m2, r1):
         pending = ctx.take()
         g2 = C.prepare_greek(m2)
         ints = C.detect_intent(g2, bot.tok, bot.mdl, bot.le)
-        _g, _i, used = C.combine_with_context(g2, ints, pending, bot.tok, bot.mdl, bot.le)
+        _g, _i, used = C.combine_with_context(g2, ints, pending, bot.tok, bot.mdl, bot.le,
+                                              bot.table, bot.ns)
         r = run(bot, f"{m1} {m2}") if used else run(bot, m2)
         return r, pending is not None
     if name == "E":
