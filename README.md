@@ -171,7 +171,6 @@ cd scripts && python3 prepare_dataset.py ΑΡΧΕΙΟ_ΟΜΑΔΑΣ.csv ../datase
                 language.py (αγγλικά), usage_log.py, logo.png
     models/     intent-model-234/      ← εν χρήσει (dataset v6, 12/10/2026)
                 intent-model-218/      ← προηγούμενο, εφεδρεία (BOT_MODEL=…)
-                intent-model-102-old/  ← παλαιότερη έκδοση
     data/       η βάση γνώσης (167 υπηρεσίες με συνδέσμους)
     datasets/   δεδομένα εκπαίδευσης και το test set
     scripts/    εργαλεία αξιολόγησης και προετοιμασίας δεδομένων

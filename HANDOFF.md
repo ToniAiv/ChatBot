@@ -78,7 +78,7 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 | `mappings/` | `intent_to_service.csv` (237 γραμμές: 51 verified / 127 auto / 11 proposed / 48 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · τα υπόλοιπα είναι ιστορικά |
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |
 | `datasets/` | `intent_dataset_v6_clean.csv` (**αυτό εκπαιδεύει**: 23.304 προτάσεις, 234 intents) · `source/` (το αρχείο της ομάδας αυτούσιο) · `Expanded_Intent_Dataset_3.csv` (παλιό, 218) · `tests/` · σετ αξιολόγησης (§6) |
-| `models/` | `intent-model-234/` (**σε χρήση**) · `intent-model-218/` (εφεδρεία) · `intent-model-102-old/`. Τα βάρη (`*.safetensors`, 430 MB) είναι εκτός git· τα υπόλοιπα αρχεία είναι στο git. Υπάρχει και το zip του 234 τοπικά |
+| `models/` | `intent-model-234/` (**σε χρήση**) · `intent-model-218/` (εφεδρεία). Τα βάρη (`*.safetensors`, 430 MB) είναι εκτός git και υπάρχουν **μόνο** σε αυτούς τους φακέλους· τα υπόλοιπα αρχεία είναι στο git. Το `intent-model-102-old` αφαιρέθηκε 13/10 (μένει στο ιστορικό του git χωρίς βάρη) |
 | `scripts/` | `regression.py` · `compare_models.py` · `prepare_dataset.py` · `eval_*.py` · `test_gui_js.py` · `typos.py` · `extract_sections.py` · `check_urls.py` |
 | `reports/` | `retrain_backlog.md` (**όλες οι εκκρεμότητες dataset**) · `model_comparison.json` · `url_check.txt` · `eval_results.txt` |
 | `archive/` | `prakt_train_0.ipynb` (παλιό αντίγραφο του notebook εκπαίδευσης· τα διορθωμένα κελιά είναι στο Παράρτημα) |
