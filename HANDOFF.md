@@ -80,8 +80,8 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |
 | `datasets/` | `intent_dataset_v6_clean.csv` (**αυτό εκπαιδεύει**: 23.304 προτάσεις, 234 intents) · `source/` (το αρχείο της ομάδας αυτούσιο) · `Expanded_Intent_Dataset_3.csv` (παλιό, 218) · `tests/` · σετ αξιολόγησης (§6) |
 | `models/` | `intent-model-234/` (**σε χρήση**) · `intent-model-218/` (εφεδρεία). Τα βάρη (`*.safetensors`, 430 MB) είναι εκτός git και υπάρχουν **μόνο** σε αυτούς τους φακέλους· τα υπόλοιπα αρχεία είναι στο git. Το `intent-model-102-old` αφαιρέθηκε 13/10 (μένει στο ιστορικό του git χωρίς βάρη) |
-| `scripts/` | `regression.py` · `compare_models.py` · `prepare_dataset.py` · `eval_*.py` · `test_gui_js.py` · `typos.py` · `extract_sections.py` · `check_urls.py` |
-| `reports/` | `retrain_backlog.md` (**όλες οι εκκρεμότητες dataset**) · `model_comparison.json` · `url_check.txt` · `eval_results.txt` |
+| `scripts/` | `regression.py` · `compare_models.py` · `prepare_dataset.py` · `precheck_table.py` · `eval_*.py` · `test_gui_js.py` · `typos.py` · `extract_sections.py` · `check_urls.py` |
+| `reports/` | `retrain_backlog.md` (**όλες οι εκκρεμότητες dataset**) · `table_precheck.md` / `.csv` (ύποπτες γραμμές πίνακα) · `model_comparison.json` · `url_check.txt` · `eval_results.txt` |
 | `archive/` | `prakt_train_0.ipynb` (παλιό αντίγραφο του notebook εκπαίδευσης· τα διορθωμένα κελιά είναι στο Παράρτημα) |
 
 ## 5. Μοντέλα και εκπαίδευση
@@ -199,7 +199,7 @@ holdout είναι καθαρό. Από 13/10 το `prepare_dataset.py` ελέγ
 1. **Ομάδες υπηρεσιών στο «Μήπως εννοείτε;»** (σχεδιασμένο, όχι υλοποιημένο). Αφορά πλέον μόνο οικογένειες με **διαφορετικούς** προορισμούς: όσες έχουν κοινό λύθηκαν παραπάνω. Ένας πίνακας `mappings/intent_groups.csv` με οικογένειες (μεταδημοτεύσεις, διορθώσεις στοιχείων, ληξιαρχικές πράξεις, ΚΟΚ/κυκλοφορία, κοινωνικές κατ' οίκον). Όταν η πιθανότητα μαζεύεται σε μία οικογένεια αλλά το top-1 είναι κάτω από 0,80, δείχνουμε όλη την οικογένεια.
 2. **Αγγλικά:** οδηγία μετάφρασης για «καθημερινά ελληνικά». Σήμερα 40%: η μετάφραση βγαίνει επίσημη («οδό» αντί για «δρόμο»).
 3. **Φλύαρα μηνύματα:** χωρισμός σε προτάσεις (σήμερα 0/4).
-4. **Προέλεγχος των 127 `auto` + 11 `proposed` γραμμών** του πίνακα με script, ώστε η ομάδα να ελέγξει ~20 ύποπτες αντί για 138. Στις 12/10 βρέθηκαν 3 γραμμές με λάθος προορισμό, και η μία ήταν μάλιστα verified.
+4. ✅ **Προέλεγχος του πίνακα (13/10):** `scripts/precheck_table.py` → `reports/table_precheck.md` / `.csv`. 20 ύποπτες από τις 138· πιάνει 6/8 παλιά λάθη. Πρώτη εκτίμηση: 6 μάλλον λάθος, 4 αβέβαιες, 10 μάλλον σωστές. **Εκκρεμεί:** η ομάδα να συμπληρώσει τη στήλη «απόφαση». Ενεργές και μάλλον λάθος: `γενικες_υπηρεσιες` και `εκτος_σχεδιου`.
 5. **Σελίδες χωρίς ενότητα δικαιολογητικών:** να το λέει ρητά, αντί να δίνει μόνο σύνδεσμο.
 6. Λίγα **αγγλικά ζεύγη** στο `dialogue_eval`. Το context με αγγλικά δεν έχει δοκιμαστεί.
 
