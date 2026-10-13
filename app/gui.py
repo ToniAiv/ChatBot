@@ -36,7 +36,9 @@ from connector import (
     compose_answer,
     department_answer,
     destination_confidence,
+    family_suggestions,
     find_candidates,
+    load_groups,
     load_departments,
     load_no_service,
     load_sections,
@@ -387,6 +389,7 @@ def _load_pipeline() -> None:
             "service_table": load_service_table(valid_kb),
             "no_service": load_no_service(departments),
             "departments": departments,
+            "groups":        load_groups(),
             "vectorizer":    vectorizer,
             "tfidf_matrix":  tfidf_matrix,
             "valid_kb":      valid_kb,
@@ -557,8 +560,17 @@ class Api:
                 return self._reply(department_answer(dept, lang, contact=True), lang=lang)
 
             if confidence < MIN_BERT_CONFIDENCE:
-                opts = []
-                if should_suggest(intents):
+                opts, msg, outcome = [], MSG[lang]["suggest"], "suggest"
+                # Οικογένεια υπηρεσιών («Μεταδημότευση»: όλα τα είδη) πριν από
+                # τις 3 ανάμεικτες επιλογές (connector.family_suggestions).
+                fam = family_suggestions(
+                    intents, _STATE["groups"], _STATE["vectorizer"], _STATE["tfidf_matrix"],
+                    _STATE["valid_kb"], _STATE["service_table"], _STATE["no_service"])
+                if fam:
+                    opts = fam[1]
+                    msg = MSG[lang]["suggest_family"].format(title=fam[0][lang])
+                    outcome = "suggest_family"
+                elif should_suggest(intents):
                     opts = suggestions(
                         intents, _STATE["vectorizer"], _STATE["tfidf_matrix"],
                         _STATE["valid_kb"], _STATE["service_table"],
@@ -566,9 +578,9 @@ class Api:
                 self._ctx.remember(current_greek, aspect)
                 if opts:
                     usage_log.log(query, lang, greek_query, top_intent, top_score,
-                                  "suggest", " | ".join(o["title"][:40] for o in opts), ms)
+                                  outcome, " | ".join(o["title"][:40] for o in opts), ms)
                     return self._reply(
-                        MSG[lang]["suggest"],
+                        msg,
                         [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
                          for o in opts], lang)
                 usage_log.log(query, lang, greek_query, top_intent, top_score,

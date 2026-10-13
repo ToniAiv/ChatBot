@@ -21,6 +21,7 @@ import json
 import os
 import re
 import unicodedata
+from collections import defaultdict
 from pathlib import Path
 
 import joblib
@@ -57,6 +58,7 @@ JSON_PATH    = ROOT / "data" / "heraklion_eservices.json"
 TABLE_PATH   = ROOT / "mappings" / "intent_to_service.csv"
 DEPTS_PATH   = ROOT / "mappings" / "departments.csv"
 SECTIONS_PATH = ROOT / "data" / "service_sections.json"
+GROUPS_PATH  = ROOT / "mappings" / "intent_groups.csv"
 OLLAMA_URL   = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "llama3.1"
 
@@ -92,6 +94,14 @@ POOL_DESTINATIONS = True
 # Βεβαιότητα ανά προορισμό: τα intents που οδηγούν στην ίδια σελίδα/τμήμα
 # αθροίζονται πριν τη σύγκριση με το 0,80 (destination_confidence). Με False,
 # ακριβώς η παλιά συμπεριφορά (μόνο το top-1).
+FAMILY_SUGGESTIONS = True
+FAMILY_LIMIT = 3
+# Οικογένειες υπηρεσιών (mappings/intent_groups.csv) στο «Μήπως εννοείτε;»:
+# όταν το top-1 ανήκει σε οικογένεια που μαζεύει ≥ MIN_SUGGEST_MASS από τα
+# top-5, δείχνουμε τα μέλη της με τίτλο, αντί για 3 ανάμεικτες επιλογές.
+# Όριο 3 (απόφαση χρήστη 13/10): ίδια νούμερα με πριν, ίδιος αριθμός κουμπιών.
+# Με 6 («όλη η οικογένεια») προσεγγίσιμο +0,3 μονάδες αλλά 3,9 κουμπιά
+# κατά μέσο όρο αντί για 2,9. Με False, ακριβώς η παλιά συμπεριφορά.
 TOP_K               = 5      # πόσα candidates στέλνουμε στο Llama
 
 # Τίτλοι που αποκλείονται από την αναζήτηση (template strings)
@@ -407,6 +417,7 @@ MSG = {
         "more_info": "Περισσότερες πληροφορίες:",
         "greek_page": "",
         "suggest":   "Δεν είμαι σίγουρος. Μήπως εννοείτε κάποιο από αυτά;",
+        "suggest_family": "Βρήκα υπηρεσίες για «{title}». Ποια από αυτές χρειάζεστε;",
         "docs_head": "Για «{title}» χρειάζεστε:",
         "contact_head": "Στοιχεία επικοινωνίας για «{title}»:",
         "online_yes": "Ναι, η υπηρεσία «{title}» γίνεται ηλεκτρονικά:",
@@ -428,6 +439,7 @@ MSG = {
         "more_info": "More information:",
         "greek_page": "(the Municipality's page is in Greek)",
         "suggest":   "I'm not sure. Did you mean one of these?",
+        "suggest_family": "I found services about “{title}”. Which one do you need?",
         "docs_head": "For «{title}» you will need (in Greek, as listed by the Municipality):",
         "contact_head": "Contact details for «{title}»:",
         "online_yes": "Yes, «{title}» can be done online:",
@@ -675,6 +687,73 @@ def suggestions(intents, vectorizer, tfidf_matrix, valid_kb,
     return out
 
 
+def load_groups() -> dict:
+    """
+    Οικογένειες υπηρεσιών: {"members": {ομάδα: [intents]}, "of": {intent:
+    [ομάδες]}, "title": {ομάδα: {"el": …, "en": …}}}. Ένα intent μπορεί να
+    ανήκει σε πολλές (η «δήλωση γάμου» είναι και «Γάμος» και «Δηλώσεις»).
+
+    Ορίστηκαν από τη δομή των υπηρεσιών, όχι από τα λάθη του test set: κάθε
+    οικογένεια είναι συγγενικές υπηρεσίες με ΔΙΑΦΟΡΕΤΙΚΟ προορισμό. Όσες
+    μοιράζονται προορισμό τις καλύπτει το destination_confidence.
+    """
+    out = {"members": defaultdict(list), "of": defaultdict(list), "title": {}}
+    if not GROUPS_PATH.exists():
+        return out
+    with GROUPS_PATH.open(encoding="utf-8-sig") as f:
+        for r in csv.DictReader(f):
+            out["members"][r["group"]].append(r["intent"])
+            out["of"][r["intent"]].append(r["group"])
+            out["title"][r["group"]] = {"el": r["title_el"], "en": r["title_en"]}
+    print(f"✅ Οικογένειες υπηρεσιών: {len(out['members'])}")
+    return out
+
+
+def family_suggestions(intents, groups, vectorizer, tfidf_matrix, valid_kb,
+                       service_table=None, no_service=None):
+    """
+    (τίτλος {"el","en"}, επιλογές) αν το top-1 ανήκει σε οικογένεια που
+    μαζεύει ≥ MIN_SUGGEST_MASS από τα top-5, αλλιώς None.
+
+    Τα μέλη εμφανίζονται πρώτα όσα είναι στα top-5 (κατά πιθανότητα) και μετά
+    τα υπόλοιπα της οικογένειας, ως FAMILY_LIMIT διαφορετικοί προορισμοί.
+
+    Μετρημένο 13/10/2026 (μοντέλο 234, 2.528 προτάσεις tests/): ~216 από τις
+    476 προτάσεις γίνονται οικογένεια. Προσεγγίσιμο 87,34% → 87,18%: 3
+    κερδίζονται, 3 χάνονται, και 4 «χάνονται» μόνο στη μέτρηση: proposed
+    intents όπου το regression μετράει ως σωστή τη μαντεψιά του TF-IDF (το
+    «ζιγκ-ζαγκ μπροστά στο μαγαζί» → «Διαγραφή οφειλής»). Με όριο 6:
+    +0,3 μονάδες, αλλά 3,9 επιλογές κατά μέσο όρο αντί για 2,9. Σε νέο σετ
+    (family_holdout, 36) κανένα κέρδος, καμία απώλεια.
+    Η αξία είναι η οργάνωση: επιλογές της ίδιας ομάδας, με τίτλο.
+    Τα σίγουρα λάθη μέσα σε οικογένεια (33 από τα 88, τα 10 στον ΚΟΚ) ΔΕΝ
+    τα πιάνει: το μοντέλο είναι ≥ 0,80. Λύνονται μόνο στο dataset.
+    """
+    if not FAMILY_SUGGESTIONS or not groups or not intents:
+        return None
+    members = groups["members"]
+    top = intents[0][0]
+    best, mass = None, 0.0
+    for g in groups["of"].get(top, []):
+        m = sum(s for i, s in intents if i in members[g])
+        if m > mass or (m == mass and best and len(members[g]) < len(members[best])):
+            best, mass = g, m
+    if best is None or mass < MIN_SUGGEST_MASS:
+        return None
+    scores = dict(intents)
+    seen = [i for i, _ in intents if i in members[best]]
+    # Μόνο μέλη με ΡΗΤΟ προορισμό (πίνακας ή τμήμα). Ένα proposed μέλος πέφτει
+    # στον TF-IDF του ονόματός του, και κάτω από τον τίτλο «Σήμανση δρόμων»
+    # εμφανιζόταν «Διαγραφή οφειλής».
+    order = [i for i in seen + [m for m in members[best] if m not in seen]
+             if destination_key(i, service_table, no_service) is not None]
+    opts = suggestions([(i, scores.get(i, 0.0)) for i in order], vectorizer, tfidf_matrix,
+                       valid_kb, service_table, no_service, limit=FAMILY_LIMIT)
+    # Μία μόνο επιλογή δεν είναι «οικογένεια»· ας την χειριστεί το κανονικό
+    # «Μήπως εννοείτε;».
+    return (groups["title"][best], opts) if len(opts) >= 2 else None
+
+
 def load_sections() -> dict:
     """
     Οι ενότητες κάθε σελίδας υπηρεσίας (δικαιολογητικά, επικοινωνία…),
@@ -771,7 +850,7 @@ def compose_answer(query: str, intent: str, candidates: list, source: str,
 
 
 def run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix, valid_kb,
-        service_table=None, no_service=None):
+        service_table=None, no_service=None, groups=None):
     print(f"\n{'─'*55}")
     print(f"  Ερώτηση: {query}")
     print(f"{'─'*55}")
@@ -805,13 +884,17 @@ def run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix, valid_
         print(f"   {intent:<45} {score:.3f} {bar}")
 
     if destination_confidence(intents, service_table, no_service) < MIN_BERT_CONFIDENCE:
-        opts = []
-        if should_suggest(intents):
+        opts, msg = [], MSG[lang]["suggest"]
+        fam = family_suggestions(intents, groups, vectorizer, tfidf_matrix, valid_kb,
+                                 service_table, no_service)
+        if fam:
+            opts, msg = fam[1], MSG[lang]["suggest_family"].format(title=fam[0][lang])
+        elif should_suggest(intents):
             opts = suggestions(intents, vectorizer, tfidf_matrix, valid_kb,
                                service_table, no_service)
         if opts:
             print(f"\n🤔 (score: {top_score:.2f})")
-            print(MSG[lang]["suggest"])
+            print(msg)
             for i, o in enumerate(opts, 1):
                 mark = "📞" if o["kind"] == "phone" else "🔗"
                 print(f"   {i}. {mark} {o['title']}")
@@ -863,12 +946,13 @@ def main():
     service_table = load_service_table(valid_kb)
     departments = load_departments()
     no_service = load_no_service(departments)
+    groups = load_groups()
     SECTIONS.update(load_sections())
     print()
 
     if args.query:
         run(args.query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix,
-            valid_kb, service_table, no_service)
+            valid_kb, service_table, no_service, groups)
     else:
         print("💬 Interactive mode — γράψε την ερώτησή σου (ή 'exit')\n")
         while True:
@@ -880,7 +964,7 @@ def main():
             if not query or query.lower() in {"exit", "quit", "q"}:
                 break
             run(query, tokenizer, model, label_encoder, vectorizer, tfidf_matrix,
-                valid_kb, service_table, no_service)
+                valid_kb, service_table, no_service, groups)
 
 
 if __name__ == "__main__":

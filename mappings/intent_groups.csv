@@ -1,0 +1,118 @@
+group,title_el,title_en,intent
+metadimotefsi,Μεταδημότευση,Transfer of municipal registration,μεταδημοτευση_αγαμου
+metadimotefsi,Μεταδημότευση,Transfer of municipal registration,μεταδημοτευση_δημοτικοτητασ
+metadimotefsi,Μεταδημότευση,Transfer of municipal registration,μεταδημοτευση_διετουσ
+metadimotefsi,Μεταδημότευση,Transfer of municipal registration,μεταδημοτευση_εκλογεσ
+metadimotefsi,Μεταδημότευση,Transfer of municipal registration,μεταδημοτευση_συζυγου
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,διορθωση_γεννησησ
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,διορθωση_ηλικιασ
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,διορθωση_ονοματοσ
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,διορθωση_στοιχειων_ληξιαρχικων_πραξεων
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,αλλαγη_στοιχειων_τεκνου_δημοτολογιο
+diorthoseis,Διόρθωση ή αλλαγή στοιχείων,Correcting personal details,μεταβολες_ληξιαρχικων_πραξεων
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γαμου
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γεννησης
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_θανατου
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_συμφωνου_συμβιωσης
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,πιστοποιητικο_γεννησης
+antigrafa,Αντίγραφα και πιστοποιητικά,Copies and certificates,πιστοποιητικο_οικογενειακης_καταστασης
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_γεννησης
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_βαπτισης
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_ονοματοδοσιας
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_γαμου
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_θανατου
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_συμφωνου_συμβιωσης
+diloseis,Δηλώσεις στο ληξιαρχείο,Registry office declarations,δηλωση_διαζυγιου
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,δηλωση_γαμου
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γαμου
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,αδεια_πολιτικου_γαμου_ελληνες
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,αδεια_πολιτικου_γαμου_αλλοδαποι
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,τελεση_πολιτικου_γαμου
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,δηλωση_συμφωνου_συμβιωσης
+gamos,Γάμος και σύμφωνο συμβίωσης,Marriage and civil partnership,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_συμφωνου_συμβιωσης
+gennisi,Γέννηση παιδιού,Birth of a child,δηλωση_γεννησης
+gennisi,Γέννηση παιδιού,Birth of a child,δηλωση_ονοματοδοσιας
+gennisi,Γέννηση παιδιού,Birth of a child,δηλωση_βαπτισης
+gennisi,Γέννηση παιδιού,Birth of a child,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γεννησης
+gennisi,Γέννηση παιδιού,Birth of a child,πιστοποιητικο_γεννησης
+kok,"Στάθμευση, πρόστιμα και ΚΟΚ","Parking, fines and traffic code",γενικη_αιτηση_κοκ
+kok,"Στάθμευση, πρόστιμα και ΚΟΚ","Parking, fines and traffic code",παραβασεις_κοκ_προστιμα
+kok,"Στάθμευση, πρόστιμα και ΚΟΚ","Parking, fines and traffic code",καταγγελια_παραβιασης_κοκ
+kok,"Στάθμευση, πρόστιμα και ΚΟΚ","Parking, fines and traffic code",ενσταση_παρανομης_σταθμευσης
+kok,"Στάθμευση, πρόστιμα και ΚΟΚ","Parking, fines and traffic code",αιτημα_κυκλοφοριακων_ρυθμισεων
+simansi,Σήμανση δρόμων,Road signs and markings,τοποθετηση_πινακιδων_σημανσης_και_καθρεπτων
+simansi,Σήμανση δρόμων,Road signs and markings,σημανση_οδοστρωματος
+simansi,Σήμανση δρόμων,Road signs and markings,καθρεφτης_ορατοτητας
+simansi,Σήμανση δρόμων,Road signs and markings,αιτηση_κιτρινης_διαγραμμισης
+simansi,Σήμανση δρόμων,Road signs and markings,αδεια_οριζοντιας_σημανσης_εισοδου_εξοδου
+simansi,Σήμανση δρόμων,Road signs and markings,αιτημα_κυκλοφοριακων_ρυθμισεων
+kat_oikon,Βοήθεια στο σπίτι,Help at home,αιτηση_κοινωνικης_εργασιας_κατ_οικον
+kat_oikon,Βοήθεια στο σπίτι,Help at home,οικογενειακη_βοηθεια_κατ_οικον
+kat_oikon,Βοήθεια στο σπίτι,Help at home,αιτηση_φυσικοθεραπειας_κατ_οικον
+kat_oikon,Βοήθεια στο σπίτι,Help at home,αιτηση_εργοθεραπειας_κατ_οικον
+kat_oikon,Βοήθεια στο σπίτι,Help at home,αιτηση_ιατρονοσηλευτικης_φροντιδας_κατ_οικον
+koinoniki,Κοινωνική στήριξη,Social support,αιτηση_κοινωνικης_εργασιας
+koinoniki,Κοινωνική στήριξη,Social support,αιτηση_κοινωνικης_εργασιας_κατ_οικον
+koinoniki,Κοινωνική στήριξη,Social support,οικογενειακη_βοηθεια_κατ_οικον
+koinoniki,Κοινωνική στήριξη,Social support,επιδοματα
+koinoniki,Κοινωνική στήριξη,Social support,φαρμακευτικη_περιθαλψη
+koinoniki,Κοινωνική στήριξη,Social support,πιστοποιητικο_οικονομικησ_αδυναμιασ
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_φυσικοθεραπειας
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_φυσικοθεραπειας_κατ_οικον
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_εργοθεραπειας
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_εργοθεραπειας_κατ_οικον
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_ιατρονοσηλευτικης_φροντιδας_καπη
+therapeies,Θεραπείες στο ΚΑΠΗ ή στο σπίτι,Therapy at a day centre or at home,αιτηση_ιατρονοσηλευτικης_φροντιδας_κατ_οικον
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,διακανονισμος_οφειλης_φυσικου_προσωπου
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,διακανονισμος_οφειλης_νομικου_προσωπου
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,ηλεκτρονικες_πληρωμες_οφειλων
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,απαλλαγη_προσαυξησεων_βεβαιωμενης_οφειλης
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,διαγραφη_οφειλης
+ofeiles,Οφειλές προς τον δήμο,Debts to the municipality,κατασχεσεις_οφειλων
+pinakides,Πινακίδες αυτοκινήτου,Vehicle licence plates,επιστροφη_πινακιδων
+pinakides,Πινακίδες αυτοκινήτου,Vehicle licence plates,μη_επιστροφη_πινακιδων
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,αιτηση_βλαβης_οδοστρωματος
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,επισκευη_οδοστρωματος
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,ασφαλτοστρωση_οδου
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,αιτηση_ασφαλτοστρωσης_τσιμεντοστρωσης_διαστρωσης_3α
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,εκτελεση_εργων_οδοποιιας
+dromoi,Δρόμοι και πεζοδρόμια,Roads and pavements,καταγγελια_εμποδιων_οδοστρωματος
+fotismos,Φωτισμός και φανάρια,Street lighting and traffic lights,βλαβες_δικτυου_δημοτικου_φωτισμου
+fotismos,Φωτισμός και φανάρια,Street lighting and traffic lights,τοποθετηση_φωτιστικων_σωματων
+fotismos,Φωτισμός και φανάρια,Street lighting and traffic lights,τοποθετηση_δημοτικου_φωτισμου
+fotismos,Φωτισμός και φανάρια,Street lighting and traffic lights,βλαβη_φωτεινων_σηματοδοτων
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,μετακινηση_τοποθετηση_καδων
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,επισκευη_αντικατασταση_καδων_απορριμματων
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,γενικο_αιτημα_καθαριοτητας
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,καθαριοτητα_κοινοχρηστου_χωρου
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,αιτημα_οδοκαθαρισμου
+katharriotita,Καθαριότητα και κάδοι,Cleaning and bins,ογκοδεματα
+prasino,Δέντρα και πράσινο,Trees and green spaces,κλαδεμα_κοινοχρηστων
+prasino,Δέντρα και πράσινο,Trees and green spaces,πρασινο_δενδρα
+prasino,Δέντρα και πράσινο,Trees and green spaces,σπασμενα_κλαδια_δεντρου
+prasino,Δέντρα και πράσινο,Trees and green spaces,φυτευση_κοινοχρηστων
+prasino,Δέντρα και πράσινο,Trees and green spaces,φυτουγεια
+prasino,Δέντρα και πράσινο,Trees and green spaces,καταστροφη_ζιζανιων
+mfpad,Παιδικοί σταθμοί,Nurseries and childcare centres,μοναδες_προσχολικης_αγωγης
+mfpad,Παιδικοί σταθμοί,Nurseries and childcare centres,ενιαια_αδεια_ιδρυσης_μφπαδ
+mfpad,Παιδικοί σταθμοί,Nurseries and childcare centres,αναθεωρηση_αδειας_μφπαδ
+mfpad,Παιδικοί σταθμοί,Nurseries and childcare centres,εγκριση_προσληψης_προσωπικου_μφπαδ
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,πληροφοριες_λαικων_αγορων
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,καταγγελια_λαικων_αγορων_εμποριου
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,βεβαιωση_δραστηριοποιησης_βραχυχρονιων_αγορων
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,βεβαιωση_δραστηριοποιησης_υπαιθριου
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,συμμετοχη_εμποροπανηγυρη
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,αδεια_παραγωγου_αγροτη
+laikes,Λαϊκές αγορές και υπαίθριο εμπόριο,Street markets and outdoor trading,αδεια_πωλητη_υπαιθριου_εμποριου
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,βεβαιωση_χρησης_γης
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,υψομετρο
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,διευθυνση_οικοπεδου
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,βεβαιωση_ορων_δομησης
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,βεβαιωση_αρτιοτητας
+poleodomia,Βεβαιώσεις Πολεοδομίας,Town planning certificates,βεβαιωση_χαρακτηρισμοσ_κτιριου
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,αδεια_καδου_οικοδομικων_υπολειμματων
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,αδεια_τοποθετησης_ικριωματων
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,αιτηση_προσωρινης_χρησης_οδοστρωματος_πεζοδρομιου
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,αδεια_χρησης_κοινοχρηστου_περιφραξης_οδοστρωματος
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,μηνιαια_εκδοση_αδειων_οικοδομικων
+adeies_ergasion,Άδειες για εργασίες σε δρόμο ή πεζοδρόμιο,Permits for works on roads or pavements,αδεια_διακοπης_κυκλοφοριας

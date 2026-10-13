@@ -67,12 +67,15 @@ class Bot:
         self.table = C.load_service_table(self.valid)
         self.depts = C.load_departments()
         self.ns = C.load_no_service(self.depts)
+        self.groups = C.load_groups()
         self.last_dept = None
+        self.last_family = None
 
     def ask(self, q, translate=True):
         """Επιστρέφει (intent, confidence, έκβαση). Στο «suggest» το
         intent αντικαθίσταται από τη λίστα των προτεινόμενων."""
         self.last_dept = None
+        self.last_family = None
         st = C.smalltalk_answer(q, self.vec, self.mat, self.valid, self.table, self.ns)
         if st:
             return st["kind"], 1.0, "smalltalk"
@@ -92,6 +95,13 @@ class Bot:
         # Βεβαιότητα προορισμού (connector.destination_confidence): το intent
         # μένει το argmax, και ο προορισμός του είναι αυτός που αθροίστηκε.
         if C.destination_confidence(tops, self.table, self.ns) < C.MIN_BERT_CONFIDENCE:
+            # Οικογένεια: έκβαση «suggest» όπως και οι 3 επιλογές, ώστε τα
+            # νούμερα να συγκρίνονται· η οικογένεια μένει στο self.last_family.
+            fam = C.family_suggestions(tops, self.groups, self.vec, self.mat, self.valid,
+                                       self.table, self.ns)
+            if fam:
+                self.last_family = fam[0]["el"]
+                return [o["intent"] for o in fam[1]], cf, "suggest"
             if C.should_suggest(tops):
                 opts = C.suggestions(tops, self.vec, self.mat, self.valid,
                                      self.table, self.ns)
@@ -136,6 +146,13 @@ def main():
     if no_row:
         print(f"\n  ⚠ {len(no_row)} κλάσεις του μοντέλου ΧΩΡΙΣ γραμμή στον πίνακα: {no_row[:8]}")
         failures.append(f"{len(no_row)} κλάσεις χωρίς γραμμή στον πίνακα υπηρεσιών")
+    # Οι οικογένειες (mappings/intent_groups.csv) πρέπει να γράφουν τα intents
+    # ακριβώς όπως το μοντέλο· αλλιώς ένα μέλος δεν εμφανίζεται ποτέ, σιωπηλά.
+    class_set = set(bot.le.classes_)
+    bad_members = sorted({i for ms in bot.groups["members"].values() for i in ms} - class_set)
+    if bad_members:
+        print(f"\n  ⚠ {len(bad_members)} μέλη οικογενειών που δεν είναι κλάσεις του μοντέλου: {bad_members[:8]}")
+        failures.append(f"{len(bad_members)} άγνωστα μέλη στο intent_groups.csv")
 
     # ── 1. ακρίβεια intent ───────────────────────────────────
     rows = []
