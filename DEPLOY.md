@@ -90,8 +90,14 @@ javascript:(function(){var s=document.createElement('script');s.src='https://<se
 - **Α) Σκέτη εικόνα, ΧΩΡΙΣ Ollama** (φθηνό, ~2 GB, μόνο ελληνικά):
   `docker build -t heraklion-bot .` και `docker run -p 8000:8000 heraklion-bot`.
   Το build φέρνει τα βάρη του μοντέλου (`models/intent-model-234-v2/model.safetensors`,
-  430 MB, **δεν είναι στο git** — dataset v6 με την αναδιάρθρωση copy-signal
-  στα ληξιαρχικά). Δοκιμασμένο build + run (18/10/2026).
+  432 MB, **δεν είναι στο git** — πάνω από το όριο 100 MB του GitHub, όπως και
+  του 234/218). Dataset v6 με την αναδιάρθρωση copy-signal στα ληξιαρχικά.
+  Δοκιμασμένο build + run (18/10/2026).
+  **Τα μικρά αρχεία του μοντέλου (config/tokenizer/label_encoder) ΕΙΝΑΙ στο git·
+  λείπει ΜΟΝΟ το `model.safetensors`.** Πάρ' το από το zip του retrain (Colab)
+  και βάλ' το στον φάκελο `models/intent-model-234-v2/` πριν το build. Έλεγχος
+  ότι είναι το σωστό: `sha256sum` =
+  `eab1f24b9eef6c4ccd101403296551fa5995507eb46d82a2f8c7db561002d286`.
 - **Β) Με Ollama** (αγγλικά + διατύπωση με LLM, θέλει μνήμη για το Llama):
   `OLLAMA_MODEL=llama3.2:3b docker compose -f docker-compose.ollama.yml up --build`.
   Σηκώνει δύο containers (app + ollama), κατεβάζει το μοντέλο μία φορά.
