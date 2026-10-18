@@ -7,7 +7,7 @@ Web έκδοση του βοηθού: ο ίδιος βοηθός με το πα�
 ένας reverse proxy (nginx / Caddy) με HTTPS και όριο ερωτήσεων ανά IP.
 
 Σελίδες:
-    /             δοκιμαστική σελίδα με το αιωρούμενο κουμπί (web/demo.html)
+    /             → /heraklion (με BOT_SHOWCASE), αλλιώς → /chat
     /widget.js    το αιωρούμενο κουμπί· μπαίνει σε οποιαδήποτε σελίδα με ένα <script>
     /chat         η οθόνη συνομιλίας (η ίδια με του παραθύρου)
     /heraklion    η ζωντανή αρχική του heraklion.gr με το κουμπί (μόνο τοπικά, BOT_SHOWCASE)
@@ -189,10 +189,7 @@ def _official_page(path: str, own_origin: str) -> bytes:
 
 
 STATIC = {
-    "/": ("demo.html", "text/html; charset=utf-8"),
-    "/demo": ("demo.html", "text/html; charset=utf-8"),
     "/widget.js": ("widget.js", "application/javascript; charset=utf-8"),
-    "/logo.png": (None, "image/png"),
 }
 
 
@@ -229,6 +226,12 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(obj, ensure_ascii=False).encode("utf-8"),
                    "application/json; charset=utf-8")
 
+    def _redirect(self, location: str) -> None:
+        self.send_response(302)
+        self.send_header("Location", location)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def log_message(self, fmt, *args):     # χωρίς IP και ερωτήσεις στην κονσόλα
         return
 
@@ -237,6 +240,8 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/api/health":
             return self._json(200, {"ready": bool(gui._STATE["ready"]), "error": gui._STATE["error"]})
+        if path == "/":
+            return self._redirect("/heraklion" if SHOWCASE else "/chat")
         if path == "/chat":
             extra = {}
             if FRAME_ANCESTORS != "*":
@@ -253,7 +258,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(502, {"error": f"η επίσημη σελίδα δεν φόρτωσε: {e}"[:200]})
         if path in STATIC:
             name, ctype = STATIC[path]
-            f = gui.LOGO_PATH if name is None else WEB / name
+            f = WEB / name
             if f.exists():
                 return self._send(200, f.read_bytes(), ctype)
         self._json(404, {"error": "not found"})
@@ -307,11 +312,11 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     threading.Thread(target=gui._load_pipeline, daemon=True).start()
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"🌐 Βοηθός στο http://{HOST}:{PORT}/  (δοκιμαστική σελίδα)", flush=True)
+    if SHOWCASE:
+        print(f"🌐 Βοηθός πάνω στην επίσημη σελίδα: http://{HOST}:{PORT}/heraklion"
+              f"  ·  ηλεκτρονικές υπηρεσίες: http://{HOST}:{PORT}/eservices", flush=True)
     print(f"   συνομιλία: http://{HOST}:{PORT}/chat · API: /api/chat · log: "
           f"{'ΑΝΟΙΧΤΟ' if usage_log.ENABLED else 'κλειστό'}", flush=True)
-    if SHOWCASE:
-        print(f"   πάνω στην επίσημη σελίδα: http://{HOST}:{PORT}/heraklion · /eservices", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

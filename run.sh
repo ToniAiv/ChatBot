@@ -2,7 +2,7 @@
 # Εκκίνηση του εικονικού βοηθού. Τρέχει από οπουδήποτε.
 #   ./run.sh            παράθυρο (desktop)
 #   ./run.sh cli --query "..."
-#   ./run.sh web        web έκδοση: http://127.0.0.1:8000/ (δες DEPLOY.md)
+#   ./run.sh web        web έκδοση: http://127.0.0.1:8000/heraklion και /eservices (DEPLOY.md)
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="$ROOT/venv/bin/python"

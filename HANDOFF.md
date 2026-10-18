@@ -31,7 +31,7 @@ cd ~/Documents/Projects/Praktiki/New-praktiki
 ollama serve                      # σε ΑΛΛΟ terminal — το run.sh δεν ξεκινά χωρίς αυτό
 ./run.sh                          # παράθυρο
 ./run.sh cli --query "θελω βεβαιωση μονιμης κατοικιας"
-./run.sh web                      # web έκδοση: http://127.0.0.1:8000/ — χωρίς Ollama (DEPLOY.md)
+./run.sh web                      # web έκδοση: http://127.0.0.1:8000/heraklion και /eservices — χωρίς Ollama (DEPLOY.md)
 ```
 
 | Διακόπτης | Τι κάνει |
@@ -79,7 +79,7 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 | Φάκελος | Τι υπάρχει |
 |---|---|
 | `app/` | `connector.py` (pipeline, μηνύματα MSG, κατώφλια) · `gui.py` (παράθυρο + JS) · `smalltalk.py` · `context.py` · `acronyms.py` · `greeklish.py` · `language.py` · `spellfix.py` · `aspects.py` · `departments.py` · `usage_log.py` · **`server.py`** (web έκδοση, 18/10) |
-| `web/` | `widget.js` (αιωρούμενο κουμπί, μπαίνει σε οποιαδήποτε σελίδα) · `demo.html` (δοκιμαστική σελίδα για το showcase). Οδηγίες για float και hosting: **`DEPLOY.md`** |
+| `web/` | `widget.js` (αιωρούμενο κουμπί, μπαίνει σε οποιαδήποτε σελίδα). Οδηγίες για float και hosting: **`DEPLOY.md`** |
 | `mappings/` | `intent_to_service.csv` (237 γραμμές: 52 verified / 125 auto / 11 proposed / 49 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · τα υπόλοιπα είναι ιστορικά |
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |
 | `datasets/` | `intent_dataset_v6_clean.csv` (**αυτό εκπαιδεύει**: 23.304 προτάσεις, 234 intents) · `source/` (το αρχείο της ομάδας αυτούσιο) · `Expanded_Intent_Dataset_3.csv` (παλιό, 218) · `tests/` · σετ αξιολόγησης (§6) |
