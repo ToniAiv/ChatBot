@@ -179,8 +179,8 @@ cd scripts && python3 prepare_dataset.py ΑΡΧΕΙΟ_ΟΜΑΔΑΣ.csv ../datase
 
 Το αρχείο της ομάδας δεν αλλάζει. Φυλάσσεται αυτούσιο στο `datasets/source/`.
 
-Τρέχουσα εκδοχή: `datasets/intent_dataset_v6_clean.csv`, με 23.304 προτάσεις
-και 234 intents.
+Τρέχουσα εκδοχή: `datasets/intent_dataset_v6_clean.csv`, με 23.202 προτάσεις
+και 233 intents (18/10: χωρίς το `τέλος_0_5`, ΕΥΔΑΠ → ΔΕΥΑΗ, Κορωπί → Ηράκλειο).
 
 ## Ασφάλεια
 
