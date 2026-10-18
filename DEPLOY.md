@@ -87,7 +87,7 @@ javascript:(function(){var s=document.createElement('script');s.src='https://<se
 
 - **Docker:** `docker build -t heraklion-bot .` και `docker run -p 8000:8000 heraklion-bot`.
   Το build γίνεται από τον φάκελο `New-praktiki`, όπου υπάρχουν τα βάρη του
-  μοντέλου (`models/intent-model-234/model.safetensors`, 430 MB, **δεν είναι
+  μοντέλου (`models/intent-model-233/model.safetensors`, 430 MB, **δεν είναι
   στο git**). Το Dockerfile **δεν έχει δοκιμαστεί ακόμα**.
 - **Χωρίς Docker:** Python 3.9+, `pip install -r requirements.txt`, και μετά
   `BOT_HOST=0.0.0.0 PYTHONPATH=app python app/server.py`.

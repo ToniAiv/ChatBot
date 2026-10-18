@@ -5,6 +5,7 @@ datasets/
 reports/
 scripts/
 models/intent-model-218/
+models/intent-model-234/
 **/__pycache__/
 **/.DS_Store
 *.zip

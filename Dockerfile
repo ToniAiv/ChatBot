@@ -1,7 +1,7 @@
 # Web έκδοση του βοηθού (app/server.py). ΔΕΝ έχει δοκιμαστεί ακόμα σε build.
 #
 # Τα βάρη του μοντέλου ΔΕΝ είναι στο git (430 MB): πριν το build, το
-# models/intent-model-234/model.safetensors πρέπει να υπάρχει τοπικά.
+# models/intent-model-233/model.safetensors πρέπει να υπάρχει τοπικά.
 #
 #   docker build -t heraklion-bot .
 #   docker run -p 8000:8000 heraklion-bot
@@ -20,7 +20,7 @@ COPY app/ app/
 COPY web/ web/
 COPY data/ data/
 COPY mappings/ mappings/
-COPY models/intent-model-234/ models/intent-model-234/
+COPY models/intent-model-233/ models/intent-model-233/
 
 RUN useradd --create-home bot && mkdir -p logs && chown -R bot /bot
 USER bot

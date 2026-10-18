@@ -133,12 +133,13 @@ code 1 αν κάτι πέσει πάνω από 2 μονάδες, ή αν αστ
 ## Εναλλαγή και σύγκριση μοντέλων
 
 ```bash
-BOT_MODEL=models/intent-model-234 ./run.sh       # το bot με το νέο μοντέλο
-python3 scripts/compare_models.py models/intent-model-218 models/intent-model-234
+BOT_MODEL=models/intent-model-234 ./run.sh       # το bot με το προηγούμενο μοντέλο
+python3 scripts/compare_models.py models/intent-model-234 models/intent-model-233
 ```
 
-Χωρίς τη ρύθμιση `BOT_MODEL` φορτώνεται το `models/intent-model-234`
-(από 12/10/2026). Για επιστροφή στο παλιό: `BOT_MODEL=models/intent-model-218`.
+Χωρίς τη ρύθμιση `BOT_MODEL` φορτώνεται το `models/intent-model-233`
+(από 18/10/2026· `reports/model_233_evaluation.md`). Για επιστροφή στο
+προηγούμενο: `BOT_MODEL=models/intent-model-234`.
 Είναι μία μεταβλητή, όχι αλλαγή κώδικα.
 
 **218 → 234, σύγκριση στις ίδιες ερωτήσεις:**
@@ -204,8 +205,9 @@ cd scripts && python3 prepare_dataset.py ΑΡΧΕΙΟ_ΟΜΑΔΑΣ.csv ../datase
 
     app/        connector.py (pipeline), gui.py (παράθυρο),
                 language.py (αγγλικά), usage_log.py, logo.png
-    models/     intent-model-234/      ← εν χρήσει (dataset v6, 12/10/2026)
-                intent-model-218/      ← προηγούμενο, εφεδρεία (BOT_MODEL=…)
+    models/     intent-model-233/      ← εν χρήσει (dataset v6 με τις διορθώσεις της ομάδας, 18/10/2026)
+                intent-model-234/      ← προηγούμενο, εφεδρεία (BOT_MODEL=…)
+                intent-model-218/      ← παλαιότερο
     data/       η βάση γνώσης (167 υπηρεσίες με συνδέσμους)
     datasets/   δεδομένα εκπαίδευσης και το test set
     scripts/    εργαλεία αξιολόγησης και προετοιμασίας δεδομένων
