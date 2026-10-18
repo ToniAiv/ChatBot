@@ -85,10 +85,17 @@ javascript:(function(){var s=document.createElement('script');s.src='https://<se
 
 ## 3. Για το hosting
 
-- **Docker:** `docker build -t heraklion-bot .` και `docker run -p 8000:8000 heraklion-bot`.
-  Το build γίνεται από τον φάκελο `New-praktiki`, όπου υπάρχουν τα βάρη του
-  μοντέλου (`models/intent-model-234/model.safetensors`, 430 MB, **δεν είναι
-  στο git**). Το Dockerfile **δεν έχει δοκιμαστεί ακόμα**.
+Δύο παραλλαγές — στη συνάντηση αποφασίζουμε ποια ανεβαίνει:
+
+- **Α) Σκέτη εικόνα, ΧΩΡΙΣ Ollama** (φθηνό, ~2 GB, μόνο ελληνικά):
+  `docker build -t heraklion-bot .` και `docker run -p 8000:8000 heraklion-bot`.
+  Το build φέρνει τα βάρη του μοντέλου (`models/intent-model-234-v2/model.safetensors`,
+  430 MB, **δεν είναι στο git** — dataset v6 με την αναδιάρθρωση copy-signal
+  στα ληξιαρχικά). Δοκιμασμένο build + run (18/10/2026).
+- **Β) Με Ollama** (αγγλικά + διατύπωση με LLM, θέλει μνήμη για το Llama):
+  `OLLAMA_MODEL=llama3.2:3b docker compose -f docker-compose.ollama.yml up --build`.
+  Σηκώνει δύο containers (app + ollama), κατεβάζει το μοντέλο μία φορά.
+  `llama3.2:3b` ~4-6 GB, `llama3.1` 8B ~10-12 GB. Το Ollama ΔΕΝ εκτίθεται έξω.
 - **Χωρίς Docker:** Python 3.9+, `pip install -r requirements.txt`, και μετά
   `BOT_HOST=0.0.0.0 PYTHONPATH=app python app/server.py`.
 - **Πόροι:** ~2 GB μνήμη, χωρίς κάρτα γραφικών· ~20 ms ανά ερώτηση. Η
@@ -104,6 +111,9 @@ javascript:(function(){var s=document.createElement('script');s.src='https://<se
 | `BOT_FRAME_ANCESTORS` | `*` | ποιες σελίδες δείχνουν το `/chat` σε iframe (ίδια μορφή, με κενά) |
 | `BOT_LOG` | `0` | `1` = καταγραφή ερωτήσεων στο `logs/usage.jsonl`, **με προσωπικά δεδομένα** |
 | `BOT_SHOWCASE` | `1` | `/heraklion`, `/eservices` (μόνο τοπικά· **0 σε δημόσιο server**) |
+| `BOT_MODEL` | `models/intent-model-234-v2` | ποιο μοντέλο φορτώνεται (το Dockerfile το καρφώνει στο v2) |
+| `OLLAMA_URL` | `http://localhost:11434/api/generate` | στο compose με Ollama: `http://ollama:11434/api/generate` |
+| `OLLAMA_MODEL` | `llama3.1` | μοντέλο Llama για αγγλικά + διατύπωση (π.χ. `llama3.2:3b`) |
 
 ## Τι λείπει για κανονική λειτουργία με κοινό
 

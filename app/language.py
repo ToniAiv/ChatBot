@@ -29,13 +29,16 @@
 """
 from __future__ import annotations
 
+import os
 import re
 import unicodedata
 
 import requests
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-TRANSLATE_MODEL = "llama3.1"
+# Ίδιες μεταβλητές με το connector.py: στο docker-compose με Ollama δείχνουν
+# στην υπηρεσία «ollama» αντί για localhost.
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
+TRANSLATE_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1")
 
 # Διακόπτης: False → το bot συμπεριφέρεται ακριβώς όπως πριν την
 # προσθήκη αγγλικών. Υπάρχει για να μπορεί να απενεργοποιηθεί χωρίς

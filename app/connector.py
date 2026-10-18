@@ -49,18 +49,22 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # Αγκυρωμένα στη ρίζα του project, όχι στο cwd — το παλιό connector.py
 # έτρεχε μόνο αν τον καλούσες από τον φάκελο New-praktiki/.
 ROOT         = Path(__file__).resolve().parent.parent
-# Ποιο μοντέλο φορτώνεται. Από 12/10/2026 το 234 (dataset v6, +19 υπηρεσίες,
-# λιγότερα σίγουρα λάθη· βλ. scripts/compare_models.py). Επιστροφή στο παλιό:
-# BOT_MODEL=models/intent-model-218 ./run.sh — μία μεταβλητή, όχι αλλαγή κώδικα.
-DEFAULT_MODEL = "models/intent-model-234"
+# Ποιο μοντέλο φορτώνεται. Από 15/10/2026 το 234-v2 (dataset v6 με την
+# αναδιάρθρωση copy-signal στα ληξιαρχικά· βλ. commit ecea8d5 και
+# reports/retrain_backlog.md §Β). Το 234-v2 διαφέρει από το 234 ΜΟΝΟ στα βάρη
+# (model.safetensors)· τα υπόλοιπα αρχεία είναι ίδια. Επιστροφή στο παλιό:
+# BOT_MODEL=models/intent-model-234 ./run.sh — μία μεταβλητή, όχι αλλαγή κώδικα.
+DEFAULT_MODEL = "models/intent-model-234-v2"
 MODEL_DIR    = ROOT / os.environ.get("BOT_MODEL", DEFAULT_MODEL)
 JSON_PATH    = ROOT / "data" / "heraklion_eservices.json"
 TABLE_PATH   = ROOT / "mappings" / "intent_to_service.csv"
 DEPTS_PATH   = ROOT / "mappings" / "departments.csv"
 SECTIONS_PATH = ROOT / "data" / "service_sections.json"
 GROUPS_PATH  = ROOT / "mappings" / "intent_groups.csv"
-OLLAMA_URL   = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3.1"
+# Ollama: τοπικά localhost· στο docker-compose με Ollama δείχνει στην υπηρεσία
+# «ollama» (OLLAMA_URL=http://ollama:11434/api/generate). Μεταβλητή, όχι κώδικας.
+OLLAMA_URL   = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1")
 
 # ── Ρυθμίσεις ─────────────────────────────────────────────────
 MIN_BERT_CONFIDENCE = 0.80   # κάτω από αυτό → άγνωστη ερώτηση

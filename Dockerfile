@@ -1,7 +1,8 @@
-# Web έκδοση του βοηθού (app/server.py). ΔΕΝ έχει δοκιμαστεί ακόμα σε build.
+# Web έκδοση του βοηθού (app/server.py).
 #
 # Τα βάρη του μοντέλου ΔΕΝ είναι στο git (430 MB): πριν το build, το
-# models/intent-model-234/model.safetensors πρέπει να υπάρχει τοπικά.
+# models/intent-model-234-v2/model.safetensors πρέπει να υπάρχει τοπικά
+# (dataset v6 με την αναδιάρθρωση copy-signal στα ληξιαρχικά, commit ecea8d5).
 #
 #   docker build -t heraklion-bot .
 #   docker run -p 8000:8000 heraklion-bot
@@ -9,7 +10,8 @@ FROM python:3.9-slim
 
 WORKDIR /bot
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
-    BOT_HOST=0.0.0.0 BOT_PORT=8000 BOT_LOG=0 BOT_SHOWCASE=0 PYTHONPATH=/bot/app
+    BOT_HOST=0.0.0.0 BOT_PORT=8000 BOT_LOG=0 BOT_SHOWCASE=0 PYTHONPATH=/bot/app \
+    BOT_MODEL=models/intent-model-234-v2
 
 COPY requirements.txt .
 # torch μόνο για CPU: πολύ μικρότερη εικόνα, και το BERT δεν χρειάζεται GPU.
@@ -20,7 +22,7 @@ COPY app/ app/
 COPY web/ web/
 COPY data/ data/
 COPY mappings/ mappings/
-COPY models/intent-model-234/ models/intent-model-234/
+COPY models/intent-model-234-v2/ models/intent-model-234-v2/
 
 RUN useradd --create-home bot && mkdir -p logs && chown -R bot /bot
 USER bot

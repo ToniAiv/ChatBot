@@ -1,0 +1,54 @@
+# Παραλλαγή ΜΕ Ollama: ο βοηθός + τοπικό Ollama για (α) αγγλικά (μετάφραση
+# EN→EL) και (β) διατύπωση απάντησης με LLM στις υπηρεσίες χωρίς ελεγμένη
+# σελίδα. Η σκέτη εικόνα (Dockerfile, χωρίς αυτό το compose) τρέχει ΧΩΡΙΣ
+# Ollama — μόνο ελληνικά, ~2 GB. Αυτή η παραλλαγή θέλει αρκετή μνήμη για το
+# μοντέλο Llama:
+#     llama3.2:3b  → ~4-6 GB συνολικά  (προτεινόμενο για demo, φθηνό μηχάνημα)
+#     llama3.1 8B  → ~10-12 GB συνολικά (ό,τι χρησιμοποιεί ο κώδικας σήμερα)
+#
+#   OLLAMA_MODEL=llama3.2:3b docker compose -f docker-compose.ollama.yml up --build
+#
+# ΠΡΟΣΟΧΗ: στο μηχάνημα ανάπτυξης (3.2 GB RAM) το 8B ΔΕΝ τρέχει· δες
+# το memory «ollama-ram-constraint». Αυτό το compose προορίζεται για τον server.
+services:
+  ollama:
+    image: ollama/ollama            # πρότεινε καρφωμένη έκδοση αφού δοκιμαστεί, π.χ. ollama/ollama:0.5.7
+    volumes:
+      - ollama-models:/root/.ollama # τα βάρη του Llama μένουν ανάμεσα σε restarts
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    # Το Ollama ΔΕΝ εκτίθεται προς τα έξω: μόνο ο app του μιλάει στο εσωτερικό δίκτυο.
+
+  # Κατεβάζει το μοντέλο ΜΙΑ φορά μέσα στον ollama server και τερματίζει.
+  ollama-pull:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-llama3.1}"]
+    restart: "no"
+
+  app:
+    build: .                        # ίδιο Dockerfile — φέρνει ήδη το μοντέλο 234-v2 (ληξιαρχικά)
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+    environment:
+      BOT_HOST: "0.0.0.0"
+      BOT_SHOWCASE: "0"             # ΠΟΤΕ 1 σε δημόσιο server (δες server.py)
+      OLLAMA_URL: "http://ollama:11434/api/generate"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.1}"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  ollama-models:
