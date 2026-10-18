@@ -91,6 +91,7 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 ## 5. Μοντέλα και εκπαίδευση
 
 - **Σε χρήση: `intent-model-234`** (12/10/2026), εκπαιδευμένο στο `datasets/intent_dataset_v6_clean.csv`.
+- **Υποψήφιο: `intent-model-233`** (18/10), dataset του `52a76f1`. Κάλυψη 74,1% → 79,7%, προσεγγίσιμο 87,3% → 90,1%, σίγουρα λάθη 3,6% → 2,7%, greeklish +12,5. Υποχωρεί σε διαλόγους (−5/45) και στο νερό. Πλήρως: `reports/model_233_evaluation.md`. Δοκιμή: `BOT_MODEL=models/intent-model-233 ./run.sh web`.
 - **Εφεδρεία: `intent-model-218`**. Επιστροφή με `BOT_MODEL=models/intent-model-218`.
 
 **Εκπαίδευση:** γίνεται από τον χρήστη στο **Colab**, με το notebook της ομάδας.
