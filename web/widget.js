@@ -24,7 +24,7 @@
   root.innerHTML =
     '<style>' +
     ':host { all: initial; }' +
-    '.hb-btn { position: fixed; right: 20px; bottom: 20px; z-index: 2147483000;' +
+    '.hb-btn { position: fixed; right: 20px; bottom: 20px; z-index: 2147483647;' +
     '  display: flex; align-items: center; gap: 10px; padding: 12px 18px 12px 14px;' +
     '  border: 0; border-radius: 999px; background: #16324f; color: #fff; cursor: pointer;' +
     '  font: 600 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;' +
@@ -32,7 +32,7 @@
     '.hb-btn:hover { background: #1f4670; }' +
     '.hb-btn:focus-visible, .hb-close:focus-visible { outline: 3px solid #f2b705; outline-offset: 3px; }' +
     '.hb-btn svg { width: 24px; height: 24px; flex: none; }' +
-    '.hb-panel { position: fixed; right: 20px; bottom: 88px; z-index: 2147483000;' +
+    '.hb-panel { position: fixed; right: 20px; bottom: 88px; z-index: 2147483647;' +
     '  width: 400px; height: min(660px, calc(100vh - 120px)); display: none;' +
     '  flex-direction: column; border-radius: 14px; overflow: hidden; background: #f5f7fa;' +
     '  box-shadow: 0 12px 40px rgba(0, 0, 0, .28); }' +

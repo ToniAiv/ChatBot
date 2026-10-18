@@ -9,7 +9,7 @@ FROM python:3.9-slim
 
 WORKDIR /bot
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
-    BOT_HOST=0.0.0.0 BOT_PORT=8000 BOT_LOG=0 PYTHONPATH=/bot/app
+    BOT_HOST=0.0.0.0 BOT_PORT=8000 BOT_LOG=0 BOT_SHOWCASE=0 PYTHONPATH=/bot/app
 
 COPY requirements.txt .
 # torch μόνο για CPU: πολύ μικρότερη εικόνα, και το BERT δεν χρειάζεται GPU.

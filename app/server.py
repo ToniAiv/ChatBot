@@ -10,6 +10,8 @@ Web έκδοση του βοηθού: ο ίδιος βοηθός με το πα�
     /             δοκιμαστική σελίδα με το αιωρούμενο κουμπί (web/demo.html)
     /widget.js    το αιωρούμενο κουμπί· μπαίνει σε οποιαδήποτε σελίδα με ένα <script>
     /chat         η οθόνη συνομιλίας (η ίδια με του παραθύρου)
+    /heraklion    η ζωντανή αρχική του heraklion.gr με το κουμπί (μόνο τοπικά, BOT_SHOWCASE)
+    /eservices    η ζωντανή αρχική του eservices.heraklion.gr με το κουμπί (ίδια)
 
 API (JSON, header X-Session-Id σε κάθε POST):
     GET  /api/health   → {"ready": bool, "error": str|null}
@@ -27,6 +29,8 @@ API (JSON, header X-Session-Id σε κάθε POST):
     BOT_ALLOWED_ORIGINS  *           σελίδες που μπορούν να καλούν το API, χωρισμένες με κόμμα
     BOT_FRAME_ANCESTORS  *           σελίδες που μπορούν να δείχνουν το /chat σε iframe
     BOT_LOG              0           1 = καταγραφή ερωτήσεων στο logs/usage.jsonl (ΠΡΟΣΩΠΙΚΑ ΔΕΔΟΜΕΝΑ)
+    BOT_SHOWCASE         1           /heraklion και /eservices: η επίσημη σελίδα με το κουμπί, για
+                                     ΤΟΠΙΚΗ παρουσίαση. 0 σε δημόσιο server (το Dockerfile το κλείνει).
 
     python3 app/server.py          (ή ./run.sh web)
 """
@@ -55,6 +59,7 @@ FRAME_ANCESTORS = os.environ.get("BOT_FRAME_ANCESTORS", "*").strip()
 # πληκτρολογούν (ΑΦΜ, τηλέφωνα, ονόματα) και θέλει ανωνυμοποίηση πριν από
 # πραγματική χρήση (HANDOFF §8Γ).
 usage_log.ENABLED = os.environ.get("BOT_LOG", "0") == "1"
+SHOWCASE = os.environ.get("BOT_SHOWCASE", "1") == "1"
 
 MAX_BODY = 4096          # bytes ανά αίτημα
 MAX_MESSAGE = 500        # χαρακτήρες ανά μήνυμα
@@ -145,6 +150,44 @@ def _chat_page() -> bytes:
     return _CHAT_PAGE
 
 
+# ── Showcase πάνω στην επίσημη σελίδα ─────────────────────────
+# Ο browser δεν αφήνει μια δημόσια σελίδα (https://www.heraklion.gr) να
+# φορτώσει script ή να καλέσει API από το localhost (μέτρο ασφαλείας για το
+# τοπικό δίκτυο), οπότε το κουμπί δεν μπαίνει στην αληθινή σελίδα όσο ο
+# βοηθός τρέχει σε laptop. Εδώ ο server φέρνει ΖΩΝΤΑΝΑ την επίσημη σελίδα και
+# την σερβίρει από τη δική του διεύθυνση με το κουμπί από πάνω. Μόνο για
+# τοπική παρουσίαση: δεν αλλάζει τίποτα στον ιστότοπο του δήμου. Όταν ο
+# βοηθός φιλοξενηθεί σε server με HTTPS, το κουμπί μπαίνει στην αληθινή
+# σελίδα με μία γραμμή <script> (DEPLOY.md). ΠΟΤΕ σε δημόσιο server: θα
+# έδειχνε την επίσημη σελίδα του δήμου κάτω από άλλη διεύθυνση
+# (BOT_SHOWCASE=0, όπως στο Dockerfile).
+OFFICIAL = {
+    "/heraklion": "https://www.heraklion.gr/",
+    "/eservices": "https://eservices.heraklion.gr/",
+}
+_official_cache: dict[str, tuple[str, float]] = {}
+
+
+def _official_page(path: str, own_origin: str) -> bytes:
+    import requests
+    url = OFFICIAL[path]
+    cached = _official_cache.get(path)
+    if cached and time.monotonic() - cached[1] < 600:
+        html = cached[0]
+    else:
+        r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0 (HeraklionBot demo)"})
+        r.raise_for_status()
+        html = r.content.decode("utf-8", errors="replace")
+        _official_cache[path] = (html, time.monotonic())
+    # <base>: εικόνες, στυλ και σύνδεσμοι της σελίδας φορτώνουν από τον δήμο.
+    html = re.sub(r"<head[^>]*>", lambda m: m.group(0) + f'<base href="{url}">', html, count=1, flags=re.I)
+    # Το κουμπί με ΑΠΟΛΥΤΟ url: λόγω <base>, το «/widget.js» θα πήγαινε στον δήμο.
+    tag = f'<script src="{own_origin}/widget.js" defer></script>'
+    html = re.sub(r"</body>", lambda m: tag + m.group(0), html, count=1, flags=re.I) \
+        if re.search(r"</body>", html, re.I) else html + tag
+    return html.encode("utf-8")
+
+
 STATIC = {
     "/": ("demo.html", "text/html; charset=utf-8"),
     "/demo": ("demo.html", "text/html; charset=utf-8"),
@@ -199,6 +242,15 @@ class Handler(BaseHTTPRequestHandler):
             if FRAME_ANCESTORS != "*":
                 extra["Content-Security-Policy"] = f"frame-ancestors {FRAME_ANCESTORS}"
             return self._send(200, _chat_page(), "text/html; charset=utf-8", extra)
+        if path in OFFICIAL and SHOWCASE:
+            host = self.headers.get("Host") or f"{HOST}:{PORT}"
+            if not re.fullmatch(r"[A-Za-z0-9.\-]+(:\d+)?", host):
+                return self._json(400, {"error": "άκυρο Host"})
+            try:
+                return self._send(200, _official_page(path, f"http://{host}"),
+                                  "text/html; charset=utf-8")
+            except Exception as e:
+                return self._json(502, {"error": f"η επίσημη σελίδα δεν φόρτωσε: {e}"[:200]})
         if path in STATIC:
             name, ctype = STATIC[path]
             f = gui.LOGO_PATH if name is None else WEB / name
@@ -255,9 +307,11 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     threading.Thread(target=gui._load_pipeline, daemon=True).start()
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"🌐 Βοηθός στο http://{HOST}:{PORT}/  (δοκιμαστική σελίδα)")
+    print(f"🌐 Βοηθός στο http://{HOST}:{PORT}/  (δοκιμαστική σελίδα)", flush=True)
     print(f"   συνομιλία: http://{HOST}:{PORT}/chat · API: /api/chat · log: "
-          f"{'ΑΝΟΙΧΤΟ' if usage_log.ENABLED else 'κλειστό'}")
+          f"{'ΑΝΟΙΧΤΟ' if usage_log.ENABLED else 'κλειστό'}", flush=True)
+    if SHOWCASE:
+        print(f"   πάνω στην επίσημη σελίδα: http://{HOST}:{PORT}/heraklion · /eservices", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

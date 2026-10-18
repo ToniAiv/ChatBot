@@ -27,6 +27,30 @@ BOT_HOST=0.0.0.0 ./run.sh web
 
 Μετά από άλλο υπολογιστή ανοίγουν το `http://<IP-του-laptop>:8000/`.
 
+### Πάνω στην επίσημη σελίδα του δήμου (για το showcase)
+
+- **http://127.0.0.1:8000/heraklion**: η αρχική του heraklion.gr
+- **http://127.0.0.1:8000/eservices**: η αρχική του eservices.heraklion.gr
+
+Ο server φέρνει **ζωντανά** την επίσημη σελίδα και προσθέτει μόνο το κουμπί.
+Χρειάζεται internet. Τίποτα δεν αλλάζει στον ιστότοπο του δήμου: το βλέπει
+μόνο όποιος ανοίγει το laptop.
+
+Γιατί όχι κατευθείαν στο https://www.heraklion.gr με σελιδοδείκτη: ο browser
+απαγορεύει σε δημόσια σελίδα να φορτώσει οτιδήποτε από το `localhost`
+(δοκιμάστηκε 18/10: «Failed to fetch»). Το heraklion.gr δεν έχει άλλον
+περιορισμό (CSP), άρα **μόλις ο βοηθός φιλοξενηθεί σε server με HTTPS**,
+αυτός ο σελιδοδείκτης βάζει το κουμπί στην πραγματική σελίδα, μόνο στον
+browser του παρουσιαστή:
+
+```
+javascript:(function(){var s=document.createElement('script');s.src='https://<server-του-βοηθού>/widget.js';document.body.appendChild(s);})();
+```
+
+**Μόνο τοπικά.** Σε δημόσιο server οι διευθύνσεις `/heraklion` και `/eservices`
+θα έδειχναν την επίσημη σελίδα κάτω από άλλη διεύθυνση. Γι' αυτό κλείνουν με
+`BOT_SHOWCASE=0`, όπως κάνει ήδη το Dockerfile.
+
 ## 2. Για το float (αιωρούμενο κουμπί)
 
 Το `web/widget.js` είναι μια βασική εκδοχή που δουλεύει. Αλλάζει ελεύθερα
@@ -78,6 +102,7 @@ BOT_HOST=0.0.0.0 ./run.sh web
 | `BOT_ALLOWED_ORIGINS` | `*` | ποιες σελίδες καλούν το API, π.χ. `https://www.heraklion.gr,https://eservices.heraklion.gr` |
 | `BOT_FRAME_ANCESTORS` | `*` | ποιες σελίδες δείχνουν το `/chat` σε iframe (ίδια μορφή, με κενά) |
 | `BOT_LOG` | `0` | `1` = καταγραφή ερωτήσεων στο `logs/usage.jsonl`, **με προσωπικά δεδομένα** |
+| `BOT_SHOWCASE` | `1` | `/heraklion`, `/eservices` (μόνο τοπικά· **0 σε δημόσιο server**) |
 
 ## Τι λείπει για κανονική λειτουργία με κοινό
 
