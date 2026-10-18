@@ -1,0 +1,12 @@
+# Εκδόσεις όπως στο venv του project (Python 3.9). Αρκούν για τη web έκδοση
+# (app/server.py) και τα scripts. Για το desktop παράθυρο χρειάζεται επιπλέον:
+#   pywebview==6.2.1
+torch==2.8.0
+transformers==4.57.6
+tokenizers==0.22.2
+safetensors==0.7.0
+scikit-learn==1.6.1
+scipy==1.13.1
+numpy==2.0.2
+joblib==1.5.3
+requests==2.32.5

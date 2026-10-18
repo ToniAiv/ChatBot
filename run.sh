@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 # Εκκίνηση του εικονικού βοηθού. Τρέχει από οπουδήποτε.
+#   ./run.sh            παράθυρο (desktop)
+#   ./run.sh cli --query "..."
+#   ./run.sh web        web έκδοση: http://127.0.0.1:8000/ (δες DEPLOY.md)
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="$ROOT/venv/bin/python"
 
-if ! curl -s -m 3 http://localhost:11434/api/tags >/dev/null 2>&1; then
-  echo "⚠  Το Ollama δεν τρέχει. Ξεκίνα το σε άλλο terminal:  ollama serve"
-  echo "   (χωρίς αυτό ο βοηθός βρίσκει την υπηρεσία αλλά δεν διατυπώνει απάντηση)"
-  exit 1
-fi
+ollama_up() { curl -s -m 3 http://localhost:11434/api/tags >/dev/null 2>&1; }
 
 case "${1:-gui}" in
-  gui)  exec "$PY" "$ROOT/app/gui.py" ;;
-  cli)  shift; exec "$PY" "$ROOT/app/connector.py" "$@" ;;
-  *)    echo "Χρήση: ./run.sh [gui|cli --query \"...\"]"; exit 1 ;;
+  web)
+    # Η web έκδοση δουλεύει και χωρίς Ollama: χωρίς αυτό δεν απαντά στα
+    # αγγλικά, και στις 11 υπηρεσίες χωρίς ελεγμένη σελίδα δίνει το τηλέφωνο.
+    ollama_up || echo "ℹ  Το Ollama δεν τρέχει: χωρίς αγγλικά και χωρίς την εφεδρεία Llama."
+    shift; cd "$ROOT"; PYTHONPATH="$ROOT/app" exec "$PY" "$ROOT/app/server.py" "$@" ;;
+  gui|cli)
+    if ! ollama_up; then
+      echo "⚠  Το Ollama δεν τρέχει. Ξεκίνα το σε άλλο terminal:  ollama serve"
+      echo "   (χωρίς αυτό ο βοηθός βρίσκει την υπηρεσία αλλά δεν διατυπώνει απάντηση)"
+      exit 1
+    fi
+    if [ "$1" = gui ] || [ -z "${1:-}" ]; then exec "$PY" "$ROOT/app/gui.py"; fi
+    shift; exec "$PY" "$ROOT/app/connector.py" "$@" ;;
+  *)    echo "Χρήση: ./run.sh [gui|cli --query \"...\"|web]"; exit 1 ;;
 esac

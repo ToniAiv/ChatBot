@@ -1,0 +1,10 @@
+venv/
+logs/
+archive/
+datasets/
+reports/
+scripts/
+models/intent-model-218/
+**/__pycache__/
+**/.DS_Store
+*.zip

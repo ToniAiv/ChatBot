@@ -22,7 +22,9 @@ import webbrowser
 from urllib.parse import urlparse
 from pathlib import Path
 
-import webview
+# Το pywebview φορτώνεται μόνο στο main(): το app/server.py (web έκδοση)
+# εισάγει αυτό το module για την ίδια λογική συνομιλίας, και σε server χωρίς
+# γραφικό περιβάλλον το pywebview δεν χρειάζεται.
 
 import context
 import usage_log
@@ -620,17 +622,22 @@ class Api:
 # ══════════════════════════════════════════════════════════════
 # Main
 # ══════════════════════════════════════════════════════════════
-def main() -> None:
-    api = Api()
-    threading.Thread(target=_load_pipeline, daemon=True).start()
-
+def chat_html() -> str:
+    """Η σελίδα συνομιλίας με το λογότυπο. Ίδια στο παράθυρο και στο web."""
     logo_url = _logo_data_url()
     if logo_url:
         logo_tag = f'<img src="{logo_url}" alt="Δήμος Ηρακλείου">'
     else:
         logo_tag = '<div class="brand-text">ΔΗΜΟΣ ΗΡΑΚΛΕΙΟΥ</div>'
+    return HTML_TEMPLATE.replace("<!-- LOGO_PLACEHOLDER -->", logo_tag)
 
-    html = HTML_TEMPLATE.replace("<!-- LOGO_PLACEHOLDER -->", logo_tag)
+
+def main() -> None:
+    import webview
+
+    api = Api()
+    threading.Thread(target=_load_pipeline, daemon=True).start()
+    html = chat_html()
 
     webview.create_window(
         "Δήμος Ηρακλείου — Εικονικός Βοηθός",

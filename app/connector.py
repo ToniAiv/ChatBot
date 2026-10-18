@@ -388,10 +388,13 @@ JSON:"""
                 "Η υπηρεσία δεν φαίνεται να παρέχεται ηλεκτρονικά από τον Δήμο. "
                 "Παρακαλώ επικοινωνήστε στο 2813 409185."
             )
-    except requests.exceptions.ConnectionError:
-        return "❌ Σφάλμα: Το Ollama δεν τρέχει. Ξεκίνα το με: ollama serve"
     except Exception as e:
-        return f"❌ Σφάλμα: {e}"
+        # Χωρίς Ollama (π.χ. η web έκδοση σε server χωρίς LLM) ο πολίτης
+        # έβλεπε «❌ Σφάλμα: Το Ollama δεν τρέχει». Το σφάλμα πάει στο log του
+        # server, ο πολίτης παίρνει το τηλέφωνο του δήμου.
+        kind = "δεν τρέχει" if isinstance(e, requests.exceptions.ConnectionError) else str(e)[:120]
+        print(f"[!] Εφεδρεία Llama μη διαθέσιμη ({kind}) για το intent {intent}")
+        return MSG["el"]["outofscope"]
 
 
 # ══════════════════════════════════════════════════════════════
