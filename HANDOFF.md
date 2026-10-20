@@ -13,6 +13,19 @@
 
 ---
 
+## 0. Νέα κατεύθυνση (20/10/2026): tool-calling agent
+
+Το bot δεν θα δοθεί τελικά στον δήμο· στόχος είναι κάτι καλύτερο. Σχέδιο (Figma, δεξιά ροή):
+Start → **Welcome agent** (LLM) ⇄ Validator 1 (πρόθεση) → **Fetch = BERT** → Welcome ⇄ Validator 2 (έξοδος) → Finish.
+Form filling / Security / Summary: όχι ακόμα.
+
+- Πρώτο βήμα: Welcome agent με ένα εργαλείο `find_service` (BERT + βεβαιότητα, ο σημερινός κώδικας).
+- Μοντέλα Ollama για M3 24 GB (έρευνα 20/10): `gemma4:12b` (καλύτερη οικογένεια στα ελληνικά, GreekMMLU) και `qwen3:14b`. Κατέβηκαν και τα δύο.
+- **Σύγκριση:** `agent/bakeoff.py` με 50 ερωτήσεις (`agent/bakeoff_questions.csv`, γραμμένες πριν τρέξει μοντέλο).
+  `PYTHONPATH=scripts:app venv/bin/python agent/bakeoff.py gemma4:12b qwen3:14b` (~30–60 λεπτά, Ollama ανοιχτό).
+  **Δεν έχει ολοκληρωθεί.** Σταμάτησε 20/10 μετά από λίγες ερωτήσεις. Πρώτη ένδειξη: ~30–50 s ανά σύνθετη ερώτηση· το Gemma έγραψε ένα λάθος τηλέφωνο, και ο έλεγχος επινοήσεων το έπιασε.
+- Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent).
+
 ## 1. Τι είναι
 
 Πρακτική στον Δήμο Ηρακλείου, ομάδα 3 ατόμων. Ο πολίτης γράφει ελεύθερα,
