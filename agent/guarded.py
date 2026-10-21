@@ -15,6 +15,7 @@ Welcome agent «με πάτωμα»: το σημερινό bot αποφασίζ�
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --holdout   (νέο holdout: v1 / v2 / v2+thinking)
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --prompt-language   (v1: ελληνικές / αγγλικές οδηγίες)
     PYTHONPATH=scripts:app python agent/guarded.py <μοντέλο> --single           (v1 με άλλο μοντέλο, π.χ. Krikri)
+    PYTHONPATH=scripts:app python agent/guarded.py --safe                       (v1.1 σε όλα τα σετ + holdout2 με v1 και v1.1)
 """
 from __future__ import annotations
 
@@ -62,6 +63,25 @@ NEVER put phone numbers, links or emails in "text"."""
 ASK_SPLIT_EN = """Split the citizen's message into separate requests to the Municipality of Heraklion (Greece).
 Split ONLY if it asks for two or more different things (e.g. two different services or two different problems). Questions about the same topic (e.g. documents and phone number of the same service) are ONE request.
 Write each request as a self-contained sentence, using the citizen's words."""
+
+# v1.1 («safe»): οι δύο αλλαγές του reports/guarded_agent.md μετά τη σύγκριση με το Krikri
+ASK_PICK_SAFE = ASK_PICK.replace(
+    'Στο "evidence" αντέγραψε τις λέξεις του μηνύματος που δείχνουν ότι εννοεί αυτή την υπηρεσία και όχι τις άλλες.',
+    'Στο "evidence" γράψε 1 έως 3 λέξεις του μηνύματος που ξεχωρίζουν αυτή την υπηρεσία από τις άλλες (όχι όλο το μήνυμα).')
+assert ASK_PICK_SAFE != ASK_PICK
+
+TEMPLATES = {   # ζώνη Γ: το LLM αποφασίζει μόνο το είδος· το κείμενο είναι έτοιμο
+    "el": {"smalltalk": "Είμαι ο εικονικός βοηθός του Δήμου Ηρακλείου. Σας βοηθάω να βρείτε υπηρεσίες του Δήμου: "
+                        "πιστοποιητικά, βεβαιώσεις, άδειες, αιτήματα για καθαριότητα, δρόμους και φωτισμό, πληρωμές. "
+                        "Γράψτε μου τι χρειάζεστε.",
+           "out_of_scope": "Δεν βρήκα υπηρεσία του Δήμου Ηρακλείου γι' αυτό το θέμα· ίσως αφορά άλλον φορέα. "
+                           f"Αν πιστεύετε ότι αφορά τον Δήμο, καλέστε στο {C.PHONE}."},
+    "en": {"smalltalk": "I am the virtual assistant of the Municipality of Heraklion. I help you find Municipality "
+                        "services: certificates, permits, requests about cleaning, roads and lighting, payments. "
+                        "Tell me what you need.",
+           "out_of_scope": "I could not find a Municipality of Heraklion service for this; it may concern another "
+                           f"authority. If you think it concerns the Municipality, please call {C.PHONE}."},
+}
 
 PROMPTS = {
     "el": {"pick": ASK_PICK, "rewrite": ASK_REWRITE, "split": ASK_SPLIT, "message": "Μήνυμα", "options": "Επιλογές"},
@@ -134,10 +154,22 @@ def validator2(text: str) -> bool:
             and B.greek_ratio(text) >= 0.6)
 
 
-def answer(text: str, model: str, prompts: str = "el") -> dict:
+def evidence_specific(message: str, evidence: str) -> bool:
+    """v1.1: έως 3 λέξεις περιεχομένου, και όχι (σχεδόν) όλο το μήνυμα."""
+    words = [w for w in re.findall(r"\w+", evidence) if len(w) >= 4]
+    ev, msg = _stems(evidence), _stems(message)
+    return len(words) <= 3 and not (len(msg) >= 3 and len(ev) >= 0.8 * len(msg))
+
+
+def answer(text: str, model: str, prompts: str = "el", safe: bool = False) -> dict:
+    """safe=True: η v1.1 (έτοιμα κείμενα στη ζώνη Γ, αυστηρότερος έλεγχος επιλογής)."""
     P = PROMPTS[prompts]
     fl = floor(text)
-    zone, dest = zone_of(text, fl)
+    if safe:
+        info = inspect(text, fl)
+        zone, dest, lang = info["zone"], info["dest"], info["lang"]
+    else:
+        zone, dest = zone_of(text, fl)
     out = {"zone": zone, "actions": [], "llm_calls": 0, "text": fl["text"], "options": fl["options"],
            "floor_text": fl["text"]}
 
@@ -167,14 +199,34 @@ def answer(text: str, model: str, prompts: str = "el") -> dict:
                     return out
         if zone == "B":
             opts = fl["options"]
-            listing = "\n".join(f"{i}. {o['title']}" for i, o in enumerate(opts, 1))
-            r = ask(P["pick"], f"{P['message']}: {text}\n\n{P['options']}:\n{listing}", {
-                "type": "object", "required": ["choice", "evidence"],
-                "properties": {"choice": {"type": "integer", "enum": list(range(len(opts) + 1))},
-                               "evidence": {"type": "string"}}})
-            c, ev = r.get("choice"), str(r.get("evidence", ""))
+            schema = {"type": "object", "required": ["choice", "evidence"],
+                      "properties": {"choice": {"type": "integer", "enum": list(range(len(opts) + 1))},
+                                     "evidence": {"type": "string"}}}
+
+            def pick(order):
+                listing = "\n".join(f"{i}. {o['title']}" for i, o in enumerate(order, 1))
+                r = ask(ASK_PICK_SAFE if safe else P["pick"],
+                        f"{P['message']}: {text}\n\n{P['options']}:\n{listing}", schema)
+                c = r.get("choice")
+                return (order[c - 1] if isinstance(c, int) and 1 <= c <= len(order) else None), c, str(r.get("evidence", ""))
+
+            chosen, c, ev = pick(opts)
             out["actions"].append(f"pick:{c} «{ev[:40]}»")
-            if isinstance(c, int) and 1 <= c <= len(opts) and not pick_ok(text, ev, opts):
+            if safe and chosen:
+                # Αυστηρότερος έλεγχος: σύντομη, συγκεκριμένη αιτιολόγηση και ίδια επιλογή
+                # όταν οι επιλογές δοθούν με ανάποδη σειρά. Καταγράφονται χωριστά.
+                ev_ok = pick_ok(text, ev, opts) and evidence_specific(text, ev)
+                again, c2, _ = pick(list(reversed(opts)))
+                same = bool(again) and again["intent"] == chosen["intent"]
+                out["actions"] += [f"chosen:{chosen['intent']}", f"ev_ok:{int(ev_ok)}", f"order:{c2}:{int(same)}"]
+                if ev_ok and same:
+                    out.update(text=service_answer(chosen["intent"], lang),
+                               options=[o for o in opts if o is not chosen])
+                else:
+                    out["actions"].append("validator2:απόρριψη")
+            elif safe:
+                pass
+            elif isinstance(c, int) and 1 <= c <= len(opts) and not pick_ok(text, ev, opts):
                 out["actions"].append("validator2:απόρριψη")
             elif isinstance(c, int) and 1 <= c <= len(opts):
                 chosen = opts[c - 1]
@@ -188,9 +240,11 @@ def answer(text: str, model: str, prompts: str = "el") -> dict:
             out["actions"].append(f"{kind}:{new[:80]}")
             if kind == "request" and new:
                 nf = floor(new)
-                if zone_of(new, nf)[0] == "A":
+                if (inspect(new, nf)["zone"] if safe else zone_of(new, nf)[0]) == "A":
                     out["actions"].append("rewrite→A")
                     out.update(text=nf["text"], options=nf["options"])
+            elif kind in ("smalltalk", "out_of_scope") and safe:
+                out.update(text=TEMPLATES["en" if lang == "en" else "el"][kind], options=[])
             elif kind in ("smalltalk", "out_of_scope"):
                 if validator2(new):
                     tail = f" Για θέματα του Δήμου: {C.PHONE}." if kind == "out_of_scope" else ""
@@ -423,6 +477,8 @@ def evaluate_holdout(model: str):
 def changed_kind(q: dict, text: str) -> str:
     """Αλλαγμένη απάντηση: «σωστό» (όλοι οι στόχοι), «μισό» (μέρος τους, καμία
     άλλη υπηρεσία) ή «λάθος» (τουλάχιστον μία υπηρεσία εκτός στόχων)."""
+    if text in {t for d in TEMPLATES.values() for t in d.values()} and q["type"] in ("service", "department"):
+        return "ουδέτερο"      # έτοιμο κείμενο: ούτε υπηρεσία ούτε λάθος πληροφορία
     if q["type"] not in ("service", "department"):
         return "σωστό" if B.score(q, {"tool_text": "", "tool_calls": [{}], "seconds": 0, "answer": text})["correct"] else "λάθος"
     targets = B.gold_targets(q["expect"], q["type"])
@@ -444,12 +500,15 @@ def evaluate_prompt_language(model: str):
     evaluate_configs([("el", model, "el"), ("en", model, "en")], "prompt_language")
 
 
-def evaluate_configs(configs: list, out: str):
-    """Η v1 για κάθε (ετικέτα, μοντέλο, γλώσσα οδηγιών), ανά ερώτηση δίπλα δίπλα, σε όλα τα σετ."""
+def evaluate_configs(configs: list, out: str, only: tuple = ("bakeoff", "greeklish", "holdout")):
+    """Η v1 για κάθε (ετικέτα, μοντέλο, γλώσσα οδηγιών[, safe]), ανά ερώτηση δίπλα δίπλα."""
+    configs = [tuple(c) + (False,) * (4 - len(c)) for c in configs]
     labels = [c[0] for c in configs]
     sets = question_sets()
-    sets["holdout"] = [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"]}
-                       for r in csv.DictReader(open(ROOT / "agent/holdout_questions.csv", encoding="utf-8"))]
+    for name in ("holdout", "holdout2"):
+        sets[name] = [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"]}
+                      for r in csv.DictReader(open(ROOT / f"agent/{name}_questions.csv", encoding="utf-8"))]
+    sets = {k: v for k, v in sets.items() if k in only}
     fields = ["set", "prompts", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
               "floor_correct", "correct", "changed", "answer"]
     fake = {"tool_text": "", "tool_calls": [{}], "seconds": 0}
@@ -458,15 +517,15 @@ def evaluate_configs(configs: list, out: str):
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
         for name, qs in sets.items():
             aggs = {k: {"n_service": 0, "floor_correct": 0, "correct": 0, "n_other": 0, "floor_other": 0, "other": 0,
-                        "wins": [], "losses": [], "changed": {"σωστό": [], "μισό": [], "λάθος": []},
+                        "wins": [], "losses": [], "changed": {"σωστό": [], "μισό": [], "ουδέτερο": [], "λάθος": []},
                         "llm_used": 0, "seconds_llm": []} for k in labels}
             print(f"\n=== {name}", flush=True)
             for q in qs:
                 marks = []
-                for lang, model, prompts in configs:
+                for lang, model, prompts, safe in configs:
                     agg = aggs[lang]
                     t0 = time.monotonic()
-                    res = answer(q["question"], model, prompts=prompts)
+                    res = answer(q["question"], model, prompts=prompts, safe=safe)
                     sec = round(time.monotonic() - t0, 1)
                     ok_floor = B.score(q, {**fake, "answer": res["floor_text"]})["correct"]
                     ok = B.score(q, {**fake, "answer": res["text"]})["correct"]
@@ -502,6 +561,12 @@ def main():
         return evaluate_holdout(model)
     if "--prompt-language" in args:
         return evaluate_prompt_language(model)
+    if "--safe" in args:                   # v1 / v1.1 για Qwen και Krikri
+        krikri = "hf.co/ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M"
+        evaluate_configs([("qwen-v1.1", "qwen3:14b", "el", True), ("krikri-v1.1", krikri, "el", True)], "safe_old_sets")
+        return evaluate_configs([("qwen-v1", "qwen3:14b", "el", False), ("qwen-v1.1", "qwen3:14b", "el", True),
+                                 ("krikri-v1", krikri, "el", False), ("krikri-v1.1", krikri, "el", True)],
+                                "holdout2", only=("holdout2",))
     if "--single" in args:                 # π.χ. άλλο μοντέλο με τη v1 και ελληνικές οδηγίες
         tag = re.sub(r"\W+", "_", model.split("/")[-1].split(":")[0].lower())
         return evaluate_configs([(tag, model, "el")], f"model_{tag}")
