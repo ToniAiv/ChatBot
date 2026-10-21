@@ -1,0 +1,151 @@
+{
+ "configs": [
+  [
+   "llama_krikri_8b_instruct_gguf",
+   "hf.co/ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M",
+   "el"
+  ]
+ ],
+ "bakeoff": {
+  "llama_krikri_8b_instruct_gguf": {
+   "n_service": 38,
+   "floor_correct": 28,
+   "correct": 35,
+   "n_other": 12,
+   "floor_other": 11,
+   "other": 9,
+   "wins": [
+    "t08",
+    "t10",
+    "t15",
+    "t24",
+    "t28",
+    "m03",
+    "m07"
+   ],
+   "losses": [
+    "o02",
+    "o08"
+   ],
+   "changed": {
+    "σωστό": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "o07",
+     "m01",
+     "m03",
+     "m07"
+    ],
+    "μισό": [],
+    "λάθος": [
+     "t16",
+     "o02",
+     "o08"
+    ]
+   },
+   "llm_used": 19,
+   "seconds_llm": 2.2
+  }
+ },
+ "greeklish": {
+  "llama_krikri_8b_instruct_gguf": {
+   "n_service": 70,
+   "floor_correct": 41,
+   "correct": 46,
+   "n_other": 0,
+   "floor_other": 0,
+   "other": 0,
+   "wins": [
+    "g03",
+    "g13",
+    "g35",
+    "g63",
+    "g67"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "g03",
+     "g13",
+     "g35",
+     "g63",
+     "g67"
+    ],
+    "μισό": [
+     "g70"
+    ],
+    "λάθος": [
+     "g04",
+     "g06",
+     "g32",
+     "g37",
+     "g39",
+     "g48",
+     "g53",
+     "g60",
+     "g61",
+     "g64",
+     "g65"
+    ]
+   },
+   "llm_used": 23,
+   "seconds_llm": 3.4
+  }
+ },
+ "holdout": {
+  "llama_krikri_8b_instruct_gguf": {
+   "n_service": 58,
+   "floor_correct": 33,
+   "correct": 40,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 8,
+   "wins": [
+    "h04",
+    "h23",
+    "h27",
+    "h47",
+    "h49",
+    "h50",
+    "c01"
+   ],
+   "losses": [
+    "n06"
+   ],
+   "changed": {
+    "σωστό": [
+     "h04",
+     "h23",
+     "h27",
+     "h47",
+     "h49",
+     "h50",
+     "n01",
+     "n03",
+     "n05",
+     "n09",
+     "c01"
+    ],
+    "μισό": [
+     "c02",
+     "c06",
+     "c08"
+    ],
+    "λάθος": [
+     "h21",
+     "h34",
+     "h42",
+     "h45",
+     "n06",
+     "c04",
+     "c07"
+    ]
+   },
+   "llm_used": 34,
+   "seconds_llm": 4.3
+  }
+ }
+}
