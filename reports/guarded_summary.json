@@ -1,0 +1,56 @@
+{
+ "model": "qwen3:14b",
+ "bakeoff": {
+  "n_service": 38,
+  "floor_correct": 28,
+  "correct": 35,
+  "n_other": 12,
+  "floor_other": 11,
+  "other": 10,
+  "wins": [
+   "t08",
+   "t10",
+   "t15",
+   "t24",
+   "t28",
+   "m03",
+   "m07"
+  ],
+  "losses": [
+   "o02"
+  ],
+  "llm_used": 19,
+  "zones": {
+   "A": 33,
+   "B": 10,
+   "Γ": 3,
+   "smalltalk": 4
+  },
+  "seconds_llm": 12.0,
+  "seconds_no_llm": 0.0
+ },
+ "greeklish": {
+  "n_service": 70,
+  "floor_correct": 41,
+  "correct": 46,
+  "n_other": 0,
+  "floor_other": 0,
+  "other": 0,
+  "wins": [
+   "g06",
+   "g13",
+   "g32",
+   "g35",
+   "g39"
+  ],
+  "losses": [],
+  "llm_used": 23,
+  "zones": {
+   "A": 47,
+   "B": 13,
+   "Γ": 10
+  },
+  "seconds_llm": 29.1,
+  "seconds_no_llm": 4.4
+ }
+}
