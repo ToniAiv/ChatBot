@@ -1,0 +1,255 @@
+{
+ "model": "qwen3:14b",
+ "bakeoff": {
+  "el": {
+   "n_service": 38,
+   "floor_correct": 28,
+   "correct": 35,
+   "n_other": 12,
+   "floor_other": 11,
+   "other": 10,
+   "wins": [
+    "t08",
+    "t10",
+    "t15",
+    "t24",
+    "t28",
+    "m03",
+    "m07"
+   ],
+   "losses": [
+    "o02"
+   ],
+   "changed": {
+    "σωστό": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "o03",
+     "o04",
+     "o07",
+     "m01",
+     "m03",
+     "m07"
+    ],
+    "μισό": [],
+    "λάθος": [
+     "t16",
+     "o02"
+    ]
+   },
+   "llm_used": 19,
+   "seconds_llm": 15.1
+  },
+  "en": {
+   "n_service": 38,
+   "floor_correct": 28,
+   "correct": 35,
+   "n_other": 12,
+   "floor_other": 11,
+   "other": 10,
+   "wins": [
+    "t08",
+    "t10",
+    "t15",
+    "t24",
+    "t28",
+    "m03",
+    "m07"
+   ],
+   "losses": [
+    "o02"
+   ],
+   "changed": {
+    "σωστό": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "o03",
+     "o04",
+     "o07",
+     "m01",
+     "m03",
+     "m07"
+    ],
+    "μισό": [],
+    "λάθος": [
+     "t16",
+     "o02"
+    ]
+   },
+   "llm_used": 19,
+   "seconds_llm": 13.4
+  }
+ },
+ "greeklish": {
+  "el": {
+   "n_service": 70,
+   "floor_correct": 41,
+   "correct": 46,
+   "n_other": 0,
+   "floor_other": 0,
+   "other": 0,
+   "wins": [
+    "g06",
+    "g13",
+    "g32",
+    "g35",
+    "g39"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "g06",
+     "g13",
+     "g32",
+     "g35",
+     "g39"
+    ],
+    "μισό": [
+     "g70"
+    ],
+    "λάθος": [
+     "g03",
+     "g04",
+     "g05",
+     "g36",
+     "g53",
+     "g64",
+     "g67"
+    ]
+   },
+   "llm_used": 23,
+   "seconds_llm": 8.6
+  },
+  "en": {
+   "n_service": 70,
+   "floor_correct": 41,
+   "correct": 46,
+   "n_other": 0,
+   "floor_other": 0,
+   "other": 0,
+   "wins": [
+    "g06",
+    "g13",
+    "g32",
+    "g35",
+    "g67"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "g06",
+     "g13",
+     "g32",
+     "g35",
+     "g67"
+    ],
+    "μισό": [
+     "g20",
+     "g70"
+    ],
+    "λάθος": [
+     "g03",
+     "g04",
+     "g05",
+     "g36",
+     "g53",
+     "g64"
+    ]
+   },
+   "llm_used": 23,
+   "seconds_llm": 8.7
+  }
+ },
+ "holdout": {
+  "el": {
+   "n_service": 58,
+   "floor_correct": 33,
+   "correct": 39,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 9,
+   "wins": [
+    "h04",
+    "h23",
+    "h27",
+    "h49",
+    "h50",
+    "c01"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "h04",
+     "h23",
+     "h27",
+     "h49",
+     "h50",
+     "n01",
+     "n05",
+     "n09",
+     "c01"
+    ],
+    "μισό": [
+     "c06",
+     "c07",
+     "c08"
+    ],
+    "λάθος": [
+     "h21",
+     "h45",
+     "c02"
+    ]
+   },
+   "llm_used": 34,
+   "seconds_llm": 15.8
+  },
+  "en": {
+   "n_service": 58,
+   "floor_correct": 33,
+   "correct": 38,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 9,
+   "wins": [
+    "h04",
+    "h23",
+    "h27",
+    "h49",
+    "c01"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "h04",
+     "h23",
+     "h27",
+     "h49",
+     "n01",
+     "n04",
+     "n05",
+     "n09",
+     "c01"
+    ],
+    "μισό": [
+     "c06",
+     "c07",
+     "c08"
+    ],
+    "λάθος": [
+     "h34",
+     "h45",
+     "h50",
+     "c02"
+    ]
+   },
+   "llm_used": 34,
+   "seconds_llm": 16.4
+  }
+ }
+}
