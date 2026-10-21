@@ -1,0 +1,267 @@
+{
+ "configs": [
+  [
+   "qwen-v1.1",
+   "qwen3:14b",
+   "el",
+   true
+  ],
+  [
+   "krikri-v1.1",
+   "hf.co/ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M",
+   "el",
+   true
+  ]
+ ],
+ "bakeoff": {
+  "qwen-v1.1": {
+   "n_service": 38,
+   "floor_correct": 28,
+   "correct": 35,
+   "n_other": 12,
+   "floor_other": 11,
+   "other": 10,
+   "wins": [
+    "t08",
+    "t10",
+    "t15",
+    "t24",
+    "t28",
+    "m03",
+    "m07"
+   ],
+   "losses": [
+    "o02"
+   ],
+   "changed": {
+    "σωστό": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "o03",
+     "o04",
+     "o07",
+     "m01",
+     "m03",
+     "m07"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "t16",
+     "o02"
+    ]
+   },
+   "llm_used": 19,
+   "seconds_llm": 16.4
+  },
+  "krikri-v1.1": {
+   "n_service": 38,
+   "floor_correct": 28,
+   "correct": 35,
+   "n_other": 12,
+   "floor_other": 11,
+   "other": 9,
+   "wins": [
+    "t08",
+    "t10",
+    "t15",
+    "t24",
+    "t28",
+    "m03",
+    "m07"
+   ],
+   "losses": [
+    "o02",
+    "o08"
+   ],
+   "changed": {
+    "σωστό": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "o03",
+     "o07",
+     "m01",
+     "m03",
+     "m07"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "t16",
+     "o02",
+     "o08"
+    ]
+   },
+   "llm_used": 19,
+   "seconds_llm": 4.4
+  }
+ },
+ "greeklish": {
+  "qwen-v1.1": {
+   "n_service": 70,
+   "floor_correct": 41,
+   "correct": 45,
+   "n_other": 0,
+   "floor_other": 0,
+   "other": 0,
+   "wins": [
+    "g13",
+    "g32",
+    "g35",
+    "g39"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "g13",
+     "g32",
+     "g35",
+     "g39"
+    ],
+    "μισό": [
+     "g70"
+    ],
+    "ουδέτερο": [],
+    "λάθος": [
+     "g03",
+     "g04",
+     "g36",
+     "g64"
+    ]
+   },
+   "llm_used": 23,
+   "seconds_llm": 19.0
+  },
+  "krikri-v1.1": {
+   "n_service": 70,
+   "floor_correct": 41,
+   "correct": 46,
+   "n_other": 0,
+   "floor_other": 0,
+   "other": 0,
+   "wins": [
+    "g03",
+    "g13",
+    "g35",
+    "g63",
+    "g67"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "g03",
+     "g13",
+     "g35",
+     "g63",
+     "g67"
+    ],
+    "μισό": [
+     "g70"
+    ],
+    "ουδέτερο": [
+     "g37",
+     "g48",
+     "g60",
+     "g61",
+     "g64",
+     "g65"
+    ],
+    "λάθος": []
+   },
+   "llm_used": 23,
+   "seconds_llm": 10.5
+  }
+ },
+ "holdout": {
+  "qwen-v1.1": {
+   "n_service": 58,
+   "floor_correct": 33,
+   "correct": 38,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 9,
+   "wins": [
+    "h23",
+    "h27",
+    "h49",
+    "h50",
+    "c01"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "h23",
+     "h27",
+     "h49",
+     "h50",
+     "n01",
+     "n05",
+     "n09",
+     "c01"
+    ],
+    "μισό": [
+     "c06",
+     "c07",
+     "c08"
+    ],
+    "ουδέτερο": [],
+    "λάθος": [
+     "h45",
+     "c02"
+    ]
+   },
+   "llm_used": 34,
+   "seconds_llm": 23.2
+  },
+  "krikri-v1.1": {
+   "n_service": 58,
+   "floor_correct": 33,
+   "correct": 39,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 9,
+   "wins": [
+    "h04",
+    "h23",
+    "h27",
+    "h47",
+    "h49",
+    "c01"
+   ],
+   "losses": [],
+   "changed": {
+    "σωστό": [
+     "h04",
+     "h23",
+     "h27",
+     "h47",
+     "h49",
+     "n01",
+     "n03",
+     "n05",
+     "n09",
+     "c01"
+    ],
+    "μισό": [
+     "c02",
+     "c08"
+    ],
+    "ουδέτερο": [
+     "h45"
+    ],
+    "λάθος": [
+     "h21",
+     "c04"
+    ]
+   },
+   "llm_used": 34,
+   "seconds_llm": 7.8
+  }
+ }
+}

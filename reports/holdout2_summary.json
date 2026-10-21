@@ -1,0 +1,187 @@
+{
+ "configs": [
+  [
+   "qwen-v1",
+   "qwen3:14b",
+   "el",
+   false
+  ],
+  [
+   "qwen-v1.1",
+   "qwen3:14b",
+   "el",
+   true
+  ],
+  [
+   "krikri-v1",
+   "hf.co/ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M",
+   "el",
+   false
+  ],
+  [
+   "krikri-v1.1",
+   "hf.co/ilsp/Llama-Krikri-8B-Instruct-GGUF:Q4_K_M",
+   "el",
+   true
+  ]
+ ],
+ "holdout2": {
+  "qwen-v1": {
+   "n_service": 35,
+   "floor_correct": 24,
+   "correct": 29,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 8,
+   "wins": [
+    "q02",
+    "q07",
+    "q13",
+    "d01",
+    "d03"
+   ],
+   "losses": [
+    "p01"
+   ],
+   "changed": {
+    "σωστό": [
+     "q02",
+     "q07",
+     "q13",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "d01",
+     "d03"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "q22",
+     "q26",
+     "p01",
+     "d02"
+    ]
+   },
+   "llm_used": 22,
+   "seconds_llm": 20.7
+  },
+  "qwen-v1.1": {
+   "n_service": 35,
+   "floor_correct": 24,
+   "correct": 27,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 8,
+   "wins": [
+    "q02",
+    "d01",
+    "d03"
+   ],
+   "losses": [
+    "p01"
+   ],
+   "changed": {
+    "σωστό": [
+     "q02",
+     "p06",
+     "p07",
+     "p08",
+     "p09",
+     "p10",
+     "d01",
+     "d03"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "q22",
+     "q26",
+     "p01",
+     "d02"
+    ]
+   },
+   "llm_used": 22,
+   "seconds_llm": 16.0
+  },
+  "krikri-v1": {
+   "n_service": 35,
+   "floor_correct": 24,
+   "correct": 27,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 6,
+   "wins": [
+    "q02",
+    "q07",
+    "d01"
+   ],
+   "losses": [
+    "p01",
+    "p06",
+    "p08"
+   ],
+   "changed": {
+    "σωστό": [
+     "q02",
+     "q07",
+     "p03",
+     "p09",
+     "p10",
+     "d01"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "q22",
+     "q26",
+     "p01",
+     "p06",
+     "p08",
+     "d02"
+    ]
+   },
+   "llm_used": 22,
+   "seconds_llm": 5.5
+  },
+  "krikri-v1.1": {
+   "n_service": 35,
+   "floor_correct": 24,
+   "correct": 26,
+   "n_other": 10,
+   "floor_other": 9,
+   "other": 6,
+   "wins": [
+    "q07",
+    "d01"
+   ],
+   "losses": [
+    "p01",
+    "p06",
+    "p08"
+   ],
+   "changed": {
+    "σωστό": [
+     "q07",
+     "p03",
+     "p09",
+     "p10",
+     "d01"
+    ],
+    "μισό": [],
+    "ουδέτερο": [],
+    "λάθος": [
+     "q22",
+     "p01",
+     "p06",
+     "p08",
+     "d02"
+    ]
+   },
+   "llm_used": 22,
+   "seconds_llm": 5.6
+  }
+ }
+}
