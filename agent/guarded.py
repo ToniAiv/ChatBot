@@ -14,6 +14,7 @@ Welcome agent «με πάτωμα»: το σημερινό bot αποφασίζ�
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b             (σύγκριση + greeklish, v1)
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --holdout   (νέο holdout: v1 / v2 / v2+thinking)
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --prompt-language   (v1: ελληνικές / αγγλικές οδηγίες)
+    PYTHONPATH=scripts:app python agent/guarded.py <μοντέλο> --single           (v1 με άλλο μοντέλο, π.χ. Krikri)
 """
 from __future__ import annotations
 
@@ -70,12 +71,24 @@ PROMPTS = {
 MAYBE_COMPOSITE = re.compile(r"\b(και|επισης|αλλα|ακομα)\b")
 
 
+_THINKING: dict = {}
+
+
+def supports_thinking(model: str) -> bool:
+    if model not in _THINKING:
+        show = requests.post(B.OLLAMA.replace("/api/chat", "/api/show"), json={"model": model}, timeout=30).json()
+        _THINKING[model] = "thinking" in (show.get("capabilities") or [])
+    return _THINKING[model]
+
+
 def llm(model: str, system: str, user: str, schema: dict, think: bool = False, num_ctx: int = 4096) -> dict:
-    r = requests.post(B.OLLAMA, json={
+    payload = {
         "model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        "format": schema, "stream": False, "think": think,
-        "options": {"temperature": 0, "num_ctx": num_ctx, "num_predict": 2048 if think else 300}},
-        timeout=600 if think else 180)
+        "format": schema, "stream": False,
+        "options": {"temperature": 0, "num_ctx": num_ctx, "num_predict": 2048 if think else 300}}
+    if supports_thinking(model):          # στο Qwen ρητά false· αλλιώς «σκέφτεται» εξ ορισμού
+        payload["think"] = think
+    r = requests.post(B.OLLAMA, json=payload, timeout=600 if think else 180)
     r.raise_for_status()
     return json.loads(r.json()["message"]["content"])
 
@@ -115,8 +128,10 @@ def pick_ok(message: str, evidence: str, opts: list) -> bool:
 
 
 def validator2(text: str) -> bool:
-    """Κείμενο του LLM: χωρίς συνδέσμους / τηλέφωνα / email, στα ελληνικά."""
-    return bool(text.strip()) and not B.facts(text) and B.greek_ratio(text) >= 0.6
+    """Κείμενο του LLM: χωρίς συνδέσμους / τηλέφωνα / email, στα ελληνικά. Και χωρίς
+    σύντομους αριθμούς: το Krikri έγραψε «τηλ: 1135» για τα φαρμακεία."""
+    return (bool(text.strip()) and not B.facts(text) and not re.search(r"\d{3,}", text)
+            and B.greek_ratio(text) >= 0.6)
 
 
 def answer(text: str, model: str, prompts: str = "el") -> dict:
@@ -426,26 +441,32 @@ def changed_kind(q: dict, text: str) -> str:
 
 def evaluate_prompt_language(model: str):
     """v1 με ελληνικές και με αγγλικές οδηγίες, ανά ερώτηση δίπλα δίπλα, σε όλα τα σετ."""
+    evaluate_configs([("el", model, "el"), ("en", model, "en")], "prompt_language")
+
+
+def evaluate_configs(configs: list, out: str):
+    """Η v1 για κάθε (ετικέτα, μοντέλο, γλώσσα οδηγιών), ανά ερώτηση δίπλα δίπλα, σε όλα τα σετ."""
+    labels = [c[0] for c in configs]
     sets = question_sets()
     sets["holdout"] = [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"]}
                        for r in csv.DictReader(open(ROOT / "agent/holdout_questions.csv", encoding="utf-8"))]
     fields = ["set", "prompts", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
               "floor_correct", "correct", "changed", "answer"]
     fake = {"tool_text": "", "tool_calls": [{}], "seconds": 0}
-    summary = {"model": model}
-    with open(ROOT / "reports/prompt_language_answers.csv", "w", encoding="utf-8", newline="") as f:
+    summary = {"configs": configs}
+    with open(ROOT / f"reports/{out}_answers.csv", "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
         for name, qs in sets.items():
             aggs = {k: {"n_service": 0, "floor_correct": 0, "correct": 0, "n_other": 0, "floor_other": 0, "other": 0,
                         "wins": [], "losses": [], "changed": {"σωστό": [], "μισό": [], "λάθος": []},
-                        "llm_used": 0, "seconds_llm": []} for k in ("el", "en")}
+                        "llm_used": 0, "seconds_llm": []} for k in labels}
             print(f"\n=== {name}", flush=True)
             for q in qs:
                 marks = []
-                for lang in ("el", "en"):
+                for lang, model, prompts in configs:
                     agg = aggs[lang]
                     t0 = time.monotonic()
-                    res = answer(q["question"], model, prompts=lang)
+                    res = answer(q["question"], model, prompts=prompts)
                     sec = round(time.monotonic() - t0, 1)
                     ok_floor = B.score(q, {**fake, "answer": res["floor_text"]})["correct"]
                     ok = B.score(q, {**fake, "answer": res["text"]})["correct"]
@@ -470,9 +491,8 @@ def evaluate_prompt_language(model: str):
                 v = agg["seconds_llm"]; agg["seconds_llm"] = round(sum(v) / len(v), 1) if v else None
             summary[name] = aggs
             print(json.dumps(aggs, ensure_ascii=False), flush=True)
-    json.dump(summary, open(ROOT / "reports/prompt_language_summary.json", "w", encoding="utf-8"),
-              ensure_ascii=False, indent=1)
-    print("\nαποθηκεύτηκαν: reports/prompt_language_answers.csv, reports/prompt_language_summary.json")
+    json.dump(summary, open(ROOT / f"reports/{out}_summary.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(f"\nαποθηκεύτηκαν: reports/{out}_answers.csv, reports/{out}_summary.json")
 
 
 def main():
@@ -482,6 +502,9 @@ def main():
         return evaluate_holdout(model)
     if "--prompt-language" in args:
         return evaluate_prompt_language(model)
+    if "--single" in args:                 # π.χ. άλλο μοντέλο με τη v1 και ελληνικές οδηγίες
+        tag = re.sub(r"\W+", "_", model.split("/")[-1].split(":")[0].lower())
+        return evaluate_configs([(tag, model, "el")], f"model_{tag}")
     path = ROOT / "reports/guarded_answers.csv"
     fields = ["set", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
               "floor_correct", "correct", "floor_answer", "answer"]
