@@ -13,6 +13,7 @@ Welcome agent «με πάτωμα»: το σημερινό bot αποφασίζ�
 
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b             (σύγκριση + greeklish, v1)
     PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --holdout   (νέο holdout: v1 / v2 / v2+thinking)
+    PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --prompt-language   (v1: ελληνικές / αγγλικές οδηγίες)
 """
 from __future__ import annotations
 
@@ -46,6 +47,25 @@ ASK_REWRITE = """Ο πολίτης έγραψε στον εικονικό βοη
 ASK_SPLIT = """Χώρισε το μήνυμα του πολίτη σε ξεχωριστά αιτήματα προς τον Δήμο Ηρακλείου.
 Χώρισε ΜΟΝΟ αν ζητά δύο ή περισσότερα διαφορετικά πράγματα (π.χ. δύο διαφορετικές υπηρεσίες ή δύο διαφορετικά προβλήματα). Ερωτήσεις για το ίδιο θέμα (π.χ. δικαιολογητικά και τηλέφωνο της ίδιας υπηρεσίας) είναι ΕΝΑ αίτημα.
 Γράψε κάθε αίτημα ως αυτοτελή πρόταση, με τις λέξεις του πολίτη."""
+
+ASK_PICK_EN = """You are the routing assistant of the Municipality of Heraklion (Greece). A citizen wrote a message and the search found a few possible services.
+Choose the number of the service that CLEARLY matches the message. If more than one matches, if none matches, or if the message is not enough to tell them apart, answer 0.
+In "evidence", copy the words of the message that show the citizen means this service and not the others."""
+
+ASK_REWRITE_EN = """A citizen wrote to the virtual assistant of the Municipality of Heraklion (Greece), but the search did not find a service. Classify the message:
+- "request": asks for a service, certificate, permit, payment or information, or reports a problem that may concern the Municipality. In "text", rewrite the request as one simple, correct Greek sentence, the way the Municipality's website would phrase it (fix greeklish and spelling, translate if it is in another language). Do not add anything the citizen did not say.
+- "smalltalk": greeting, thanks, question about the assistant. In "text", write a short polite reply in Greek.
+- "out_of_scope": a matter of another authority (weather, tax office, passports, pharmacies, electricity providers etc.). In "text", write briefly and politely, in Greek, that it is not a matter for the Municipality.
+NEVER put phone numbers, links or emails in "text"."""
+
+ASK_SPLIT_EN = """Split the citizen's message into separate requests to the Municipality of Heraklion (Greece).
+Split ONLY if it asks for two or more different things (e.g. two different services or two different problems). Questions about the same topic (e.g. documents and phone number of the same service) are ONE request.
+Write each request as a self-contained sentence, using the citizen's words."""
+
+PROMPTS = {
+    "el": {"pick": ASK_PICK, "rewrite": ASK_REWRITE, "split": ASK_SPLIT, "message": "Μήνυμα", "options": "Επιλογές"},
+    "en": {"pick": ASK_PICK_EN, "rewrite": ASK_REWRITE_EN, "split": ASK_SPLIT_EN, "message": "Message", "options": "Options"},
+}
 
 MAYBE_COMPOSITE = re.compile(r"\b(και|επισης|αλλα|ακομα)\b")
 
@@ -99,7 +119,8 @@ def validator2(text: str) -> bool:
     return bool(text.strip()) and not B.facts(text) and B.greek_ratio(text) >= 0.6
 
 
-def answer(text: str, model: str) -> dict:
+def answer(text: str, model: str, prompts: str = "el") -> dict:
+    P = PROMPTS[prompts]
     fl = floor(text)
     zone, dest = zone_of(text, fl)
     out = {"zone": zone, "actions": [], "llm_calls": 0, "text": fl["text"], "options": fl["options"],
@@ -115,7 +136,7 @@ def answer(text: str, model: str) -> dict:
         # Σύνθετο μήνυμα: η απάντηση για όλο το μήνυμα μένει πρώτη, και
         # προστίθενται μόνο κομμάτια με σίγουρο BERT σε άλλο προορισμό.
         if MAYBE_COMPOSITE.search(C.normalize(text)) and len(text.split()) >= 6:
-            parts = ask(ASK_SPLIT, text, {"type": "object", "required": ["requests"], "properties": {
+            parts = ask(P["split"], text, {"type": "object", "required": ["requests"], "properties": {
                 "requests": {"type": "array", "items": {"type": "string"}, "maxItems": 3}}}).get("requests") or []
             out["actions"].append(f"split:{len(parts)}")
             if len(parts) >= 2:
@@ -132,7 +153,7 @@ def answer(text: str, model: str) -> dict:
         if zone == "B":
             opts = fl["options"]
             listing = "\n".join(f"{i}. {o['title']}" for i, o in enumerate(opts, 1))
-            r = ask(ASK_PICK, f"Μήνυμα: {text}\n\nΕπιλογές:\n{listing}", {
+            r = ask(P["pick"], f"{P['message']}: {text}\n\n{P['options']}:\n{listing}", {
                 "type": "object", "required": ["choice", "evidence"],
                 "properties": {"choice": {"type": "integer", "enum": list(range(len(opts) + 1))},
                                "evidence": {"type": "string"}}})
@@ -145,7 +166,7 @@ def answer(text: str, model: str) -> dict:
                 out.update(text=gui.Api().choose(chosen["intent"])["text"],
                            options=[o for o in opts if o is not chosen])   # τα υπόλοιπα μένουν κουμπιά
         elif zone == "Γ":
-            r = ask(ASK_REWRITE, text, {"type": "object", "required": ["kind", "text"], "properties": {
+            r = ask(P["rewrite"], text, {"type": "object", "required": ["kind", "text"], "properties": {
                 "kind": {"type": "string", "enum": ["request", "smalltalk", "out_of_scope"]},
                 "text": {"type": "string"}}})
             kind, new = r.get("kind"), str(r.get("text", "")).strip()
@@ -384,11 +405,83 @@ def evaluate_holdout(model: str):
     print(json.dumps(summary["first_button"]), "\nαποθηκεύτηκαν: reports/holdout_answers.csv, reports/holdout_summary.json")
 
 
+def changed_kind(q: dict, text: str) -> str:
+    """Αλλαγμένη απάντηση: «σωστό» (όλοι οι στόχοι), «μισό» (μέρος τους, καμία
+    άλλη υπηρεσία) ή «λάθος» (τουλάχιστον μία υπηρεσία εκτός στόχων)."""
+    if q["type"] not in ("service", "department"):
+        return "σωστό" if B.score(q, {"tool_text": "", "tool_calls": [{}], "seconds": 0, "answer": text})["correct"] else "λάθος"
+    targets = B.gold_targets(q["expect"], q["type"])
+    hits = sum(B.hit(text, t) for t in targets)
+    gold_titles = set()
+    for g in [x for x in q["expect"].split("|") if x]:
+        c = B.CLASSES.get(B.key(g))
+        if c is not None:
+            cd = B.card(c, 1.0)
+            gold_titles.add(C.normalize(cd.get("title") or cd.get("name") or ""))
+    extra = [t for t in re.findall(r"«([^»]+)»", text) if C.normalize(t) not in gold_titles]
+    if targets and hits == len(targets):
+        return "σωστό"
+    return "μισό" if hits and not extra else "λάθος"
+
+
+def evaluate_prompt_language(model: str):
+    """v1 με ελληνικές και με αγγλικές οδηγίες, ανά ερώτηση δίπλα δίπλα, σε όλα τα σετ."""
+    sets = question_sets()
+    sets["holdout"] = [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"]}
+                       for r in csv.DictReader(open(ROOT / "agent/holdout_questions.csv", encoding="utf-8"))]
+    fields = ["set", "prompts", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
+              "floor_correct", "correct", "changed", "answer"]
+    fake = {"tool_text": "", "tool_calls": [{}], "seconds": 0}
+    summary = {"model": model}
+    with open(ROOT / "reports/prompt_language_answers.csv", "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
+        for name, qs in sets.items():
+            aggs = {k: {"n_service": 0, "floor_correct": 0, "correct": 0, "n_other": 0, "floor_other": 0, "other": 0,
+                        "wins": [], "losses": [], "changed": {"σωστό": [], "μισό": [], "λάθος": []},
+                        "llm_used": 0, "seconds_llm": []} for k in ("el", "en")}
+            print(f"\n=== {name}", flush=True)
+            for q in qs:
+                marks = []
+                for lang in ("el", "en"):
+                    agg = aggs[lang]
+                    t0 = time.monotonic()
+                    res = answer(q["question"], model, prompts=lang)
+                    sec = round(time.monotonic() - t0, 1)
+                    ok_floor = B.score(q, {**fake, "answer": res["floor_text"]})["correct"]
+                    ok = B.score(q, {**fake, "answer": res["text"]})["correct"]
+                    svc = q["type"] in ("service", "department", "clarify")
+                    agg["n_service" if svc else "n_other"] += 1
+                    agg["floor_correct" if svc else "floor_other"] += ok_floor
+                    agg["correct" if svc else "other"] += ok
+                    if ok and not ok_floor: agg["wins"].append(q["id"])
+                    if ok_floor and not ok: agg["losses"].append(q["id"])
+                    kind = changed_kind(q, res["text"]) if res["text"] != res["floor_text"] else ""
+                    if kind: agg["changed"][kind].append(q["id"])
+                    if res["llm_calls"]:
+                        agg["llm_used"] += 1; agg["seconds_llm"].append(sec)
+                    marks.append(f"{lang}:{kind or ('✓' if ok else '✗')}")
+                    w.writerow({"set": name, "prompts": lang, "id": q["id"], "type": q["type"], "question": q["question"],
+                                "expect": q["expect"], "zone": res["zone"], "actions": " | ".join(res["actions"]),
+                                "llm_calls": res["llm_calls"], "seconds": sec, "floor_correct": ok_floor,
+                                "correct": ok, "changed": kind, "answer": res["text"]})
+                f.flush()
+                print(f"  {q['id']:4} {res['zone']:9} {'  '.join(marks)}  {q['question'][:45]}", flush=True)
+            for agg in aggs.values():
+                v = agg["seconds_llm"]; agg["seconds_llm"] = round(sum(v) / len(v), 1) if v else None
+            summary[name] = aggs
+            print(json.dumps(aggs, ensure_ascii=False), flush=True)
+    json.dump(summary, open(ROOT / "reports/prompt_language_summary.json", "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    print("\nαποθηκεύτηκαν: reports/prompt_language_answers.csv, reports/prompt_language_summary.json")
+
+
 def main():
     args = sys.argv[1:]
     model = ([a for a in args if not a.startswith("--")] or ["qwen3:14b"])[0]
     if "--holdout" in args:
         return evaluate_holdout(model)
+    if "--prompt-language" in args:
+        return evaluate_prompt_language(model)
     path = ROOT / "reports/guarded_answers.csv"
     fields = ["set", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
               "floor_correct", "correct", "floor_answer", "answer"]
