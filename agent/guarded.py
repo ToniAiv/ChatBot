@@ -11,7 +11,8 @@ Welcome agent «με πάτωμα»: το σημερινό bot αποφασίζ�
   Validator 2 (κώδικας): το LLM δεν γράφει ποτέ σύνδεσμο ή τηλέφωνο. Όπου γράφει
     δικό του κείμενο (χαιρετισμοί, εκτός θέματος), απορρίπτεται αν έχει.
 
-    PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b
+    PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b             (σύγκριση + greeklish, v1)
+    PYTHONPATH=scripts:app python agent/guarded.py qwen3:14b --holdout   (νέο holdout: v1 / v2 / v2+thinking)
 """
 from __future__ import annotations
 
@@ -49,11 +50,12 @@ ASK_SPLIT = """Χώρισε το μήνυμα του πολίτη σε ξεχω�
 MAYBE_COMPOSITE = re.compile(r"\b(και|επισης|αλλα|ακομα)\b")
 
 
-def llm(model: str, system: str, user: str, schema: dict) -> dict:
+def llm(model: str, system: str, user: str, schema: dict, think: bool = False, num_ctx: int = 4096) -> dict:
     r = requests.post(B.OLLAMA, json={
         "model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        "format": schema, "stream": False, "think": False,
-        "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300}}, timeout=180)
+        "format": schema, "stream": False, "think": think,
+        "options": {"temperature": 0, "num_ctx": num_ctx, "num_predict": 2048 if think else 300}},
+        timeout=600 if think else 180)
     r.raise_for_status()
     return json.loads(r.json()["message"]["content"])
 
@@ -165,6 +167,152 @@ def answer(text: str, model: str) -> dict:
     return out
 
 
+# ── v2: οι αλλαγές του reports/guarded_agent.md («Πού είναι αδύναμες οι οδηγίες») ──
+# περιγραφές στις επιλογές, ουδέτερη σειρά, παραδείγματα, λεξιλόγιο τίτλων στην
+# αναδιατύπωση, ελληνική εκδοχή του μηνύματος, απάντηση στη γλώσσα του πολίτη,
+# και προαιρετικά thinking.
+ASK_PICK_V2 = """Είσαι ο βοηθός δρομολόγησης του Δήμου Ηρακλείου. Ο πολίτης έγραψε ένα μήνυμα και η αναζήτηση βρήκε μερικές πιθανές υπηρεσίες, η καθεμία με μια σύντομη περιγραφή. Η σειρά τους δεν σημαίνει τίποτα.
+Διάλεξε τον αριθμό της υπηρεσίας που κάνει ΑΚΡΙΒΩΣ αυτό που ζητά ο πολίτης. Διάβασε τις περιγραφές: υπηρεσίες με παρόμοιο τίτλο μπορεί να κάνουν διαφορετικά πράγματα.
+Απάντησε 0 αν ταιριάζουν περισσότερες από μία, αν δεν ταιριάζει καμία, ή αν το μήνυμα δεν αρκεί για να ξεχωρίσεις.
+Στο "evidence" αντέγραψε τις λέξεις του μηνύματος που δείχνουν ότι εννοεί αυτή την υπηρεσία και όχι τις άλλες.
+
+Παραδείγματα (φανταστικές υπηρεσίες, μόνο για τη μορφή):
+
+Μήνυμα: το πεζοδρόμιο μπροστά στο σπίτι μου έχει σπάσει και σκοντάφτουν οι περαστικοί
+Επιλογές:
+1. Άδεια κατασκευής πεζοδρομίου — Για ιδιοκτήτες που θέλουν να κατασκευάσουν νέο πεζοδρόμιο.
+2. Άδεια τραπεζοκαθισμάτων — Για καταστήματα που θέλουν τραπέζια στο πεζοδρόμιο.
+3. Αναφορά φθοράς πεζοδρομίου — Δηλώστε σπασμένες πλάκες ή λακκούβες σε πεζοδρόμιο.
+Απάντηση: {"choice": 3, "evidence": "έχει σπάσει"}
+
+Μήνυμα: θέλω μια βεβαίωση
+Επιλογές:
+1. Βεβαίωση μη οφειλής — Βεβαιώνει ότι δεν υπάρχουν χρέη προς τον Δήμο.
+2. Βεβαίωση μόνιμης κατοικίας — Βεβαιώνει τη διεύθυνση κατοικίας του δημότη.
+3. Βεβαίωση χρήσης γης — Βεβαιώνει τις επιτρεπόμενες χρήσεις ενός ακινήτου.
+Απάντηση: {"choice": 0, "evidence": ""}"""
+
+ASK_REWRITE_V2 = ASK_REWRITE + """
+Το "text" γράφεται ΠΑΝΤΑ στα ελληνικά, ακόμα κι αν ο πολίτης έγραψε σε άλλη γλώσσα.
+Για "request": αν κάποιος από τους παρακάτω τίτλους υπηρεσιών ή τμημάτων του Δήμου ταιριάζει στο αίτημα, γράψε το αίτημα με τις λέξεις αυτού του τίτλου (π.χ. «registry office» → «ληξιαρχείο»).
+
+Υπηρεσίες:
+{services}
+
+Τμήματα:
+{departments}"""
+
+
+def _vocabulary() -> str:
+    services = sorted({v["title"] for v in C.SECTIONS.values() if v.get("title") and "Καλώς" not in v["title"]})
+    depts = sorted({d.get("name", "") for d in bot.depts.values() if d.get("name")})
+    return ASK_REWRITE_V2.format(services="\n".join(f"- {t}" for t in services),
+                                 departments="\n".join(f"- {t}" for t in depts))
+
+
+def describe(o: dict) -> str:
+    """Μία γραμμή για την επιλογή: η «Περιγραφή» της σελίδας ή το τμήμα."""
+    if o.get("kind") == "phone" or o["intent"] in bot.ns:
+        d = bot.ns.get(o["intent"]) or {}
+        return f"Τηλεφωνική επικοινωνία με το τμήμα «{d.get('name', '')}»."
+    cand, _src = C.find_candidates(o["intent"], bot.vec, bot.mat, bot.valid, bot.table)
+    url = cand[0][1]["url"] if cand else ""
+    return B._trim((C.SECTIONS.get(url) or {}).get("sections", {}).get("Περιγραφή", ""), 220)
+
+
+def inspect(text: str, fl: dict) -> dict:
+    """Validator 1 (όπως το zone_of) + η ελληνική εκδοχή και η γλώσσα του bot."""
+    if C.smalltalk_answer(text, bot.vec, bot.mat, bot.valid, bot.table, bot.ns):
+        return {"zone": "smalltalk", "dest": None, "greek": text, "lang": "el"}
+    gq, lang = C.resolve_query(text)
+    intents = C.detect_intent(gq, bot.tok, bot.mdl, bot.le)
+    code = C.department_override(gq, intents)
+    if code:
+        return {"zone": "A", "dest": ("dept", code), "greek": gq, "lang": lang}
+    if C.destination_confidence(intents, bot.table, bot.ns) >= C.MIN_BERT_CONFIDENCE:
+        dest = C.destination_key(intents[0][0], bot.table, bot.ns) or ("intent", intents[0][0])
+        return {"zone": "A", "dest": dest, "greek": gq, "lang": lang}
+    return {"zone": "B" if fl["options"] else "Γ", "dest": None, "greek": gq, "lang": lang}
+
+
+def service_answer(intent: str, lang: str) -> str:
+    """Η απάντηση του bot για μια υπηρεσία, στη γλώσσα του πολίτη (το choose() είναι μόνο ελληνικά)."""
+    if intent in bot.ns:
+        return C.department_answer(bot.ns[intent], lang)
+    cand, src = C.find_candidates(intent, bot.vec, bot.mat, bot.valid, bot.table)
+    return C.compose_answer("", intent, cand, src, lang) if cand else gui.Api().choose(intent)["text"]
+
+
+def answer_v2(text: str, model: str, think: bool = False) -> dict:
+    fl = floor(text)
+    info = inspect(text, fl)
+    zone, dest, greek, lang = info["zone"], info["dest"], info["greek"], info["lang"]
+    out = {"zone": zone, "actions": [], "llm_calls": 0, "text": fl["text"], "options": fl["options"],
+           "floor_text": fl["text"]}
+
+    def ask(system, user, schema, use_think=think, num_ctx=8192):   # ίδιο num_ctx παντού: αλλιώς το Ollama ξαναφορτώνει το μοντέλο
+        out["llm_calls"] += 1
+        return llm(model, system, user, schema, use_think, num_ctx)
+
+    if zone == "smalltalk":
+        return out
+    shown = text if C.normalize(greek) == C.normalize(text) else f"{text}\n(στα ελληνικά: {greek})"
+    try:
+        if MAYBE_COMPOSITE.search(C.normalize(greek)) and len(text.split()) >= 6:   # ίδιο με v1
+            parts = ask(ASK_SPLIT, text, {"type": "object", "required": ["requests"], "properties": {
+                "requests": {"type": "array", "items": {"type": "string"}, "maxItems": 3}}},
+                use_think=False).get("requests") or []
+            out["actions"].append(f"split:{len(parts)}")
+            if len(parts) >= 2:
+                found = {dest: fl["text"]} if zone == "A" else {}
+                for p in parts:
+                    pf = floor(p)
+                    pi = inspect(p, pf)
+                    if pi["zone"] == "A" and pi["dest"] not in found:
+                        found[pi["dest"]] = pf["text"]
+                if len(found) >= 2 or (zone != "A" and found):
+                    out["actions"].append(f"composite:{len(found)}")
+                    out.update(text="\n\n".join(found.values()), options=[])
+                    return out
+        if zone == "B":
+            opts = sorted(fl["options"], key=lambda o: C.normalize(o["title"]))   # ουδέτερη σειρά
+            listing = "\n".join(f"{i}. {o['title']} — {describe(o)}" for i, o in enumerate(opts, 1))
+            r = ask(ASK_PICK_V2, f"Μήνυμα: {shown}\nΕπιλογές:\n{listing}", {
+                "type": "object", "required": ["choice", "evidence"],
+                "properties": {"choice": {"type": "integer", "enum": list(range(len(opts) + 1))},
+                               "evidence": {"type": "string"}}})
+            c, ev = r.get("choice"), str(r.get("evidence", ""))
+            out["actions"].append(f"pick:{c} «{ev[:40]}»")
+            if isinstance(c, int) and 1 <= c <= len(opts):
+                if pick_ok(f"{text} {greek}", ev, opts):
+                    chosen = opts[c - 1]
+                    out.update(text=service_answer(chosen["intent"], lang),
+                               options=[o for o in fl["options"] if o["intent"] != chosen["intent"]])
+                else:
+                    out["actions"].append("validator2:απόρριψη")
+        elif zone == "Γ":
+            r = ask(_vocabulary(), f"Μήνυμα: {shown}\n\n(Το text στα ελληνικά.)", {"type": "object", "required": ["kind", "text"],
+                "properties": {"kind": {"type": "string", "enum": ["request", "smalltalk", "out_of_scope"]},
+                               "text": {"type": "string"}}})
+            kind, new = r.get("kind"), str(r.get("text", "")).strip()
+            out["actions"].append(f"{kind}:{new[:80]}")
+            if kind == "request" and new:
+                nf = floor(new)
+                if inspect(new, nf)["zone"] == "A":
+                    out["actions"].append("rewrite→A")
+                    out.update(text=nf["text"], options=nf["options"])
+            elif kind in ("smalltalk", "out_of_scope"):
+                if validator2(new):
+                    tail = f" Για θέματα του Δήμου: {C.PHONE}." if kind == "out_of_scope" else ""
+                    out.update(text=new + tail, options=[])
+                else:
+                    out["actions"].append("validator2:απόρριψη")
+    except Exception as e:                     # οτιδήποτε στραβό → το σημερινό bot
+        out["actions"].append(f"σφάλμα:{str(e)[:80]}")
+        out.update(text=fl["text"], options=fl["options"])
+    return out
+
+
 # ── αξιολόγηση ───────────────────────────────────────────────
 def question_sets() -> dict:
     sets = {"bakeoff": [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"]}
@@ -175,8 +323,72 @@ def question_sets() -> dict:
     return sets
 
 
+def evaluate_holdout(model: str):
+    """v1 / v2 / v2+thinking στο agent/holdout_questions.csv (γράφτηκε πριν τρέξει μοντέλο)."""
+    qs = [{"id": r["id"], "type": r["type"], "question": r["text"], "expect": r["expect"], "lang": r["lang"]}
+          for r in csv.DictReader(open(ROOT / "agent/holdout_questions.csv", encoding="utf-8"))]
+    configs = [("v1", lambda t: answer(t, model)), ("v2", lambda t: answer_v2(t, model)),
+               ("v2+think", lambda t: answer_v2(t, model, think=True))]
+    fields = ["config", "id", "type", "lang", "question", "expect", "zone", "actions", "llm_calls", "seconds",
+              "floor_correct", "correct", "confident_error", "floor_answer", "answer"]
+    fake = {"tool_text": "", "tool_calls": [{}], "seconds": 0}
+    summary = {"model": model, "first_button": {"n": 0, "correct": 0}}
+    with open(ROOT / "reports/holdout_answers.csv", "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
+        for name, fn in configs:
+            agg = {"n_service": 0, "floor_correct": 0, "correct": 0, "n_other": 0, "floor_other": 0, "other": 0,
+                   "wins": [], "losses": [], "confident_errors": [], "pick_right": 0, "pick_wrong": 0,
+                   "rewrite_right": 0, "rewrite_wrong": 0, "llm_used": 0, "seconds_llm": []}
+            print(f"\n=== {name}", flush=True)
+            for q in qs:
+                t0 = time.monotonic()
+                res = fn(q["question"])
+                sec = round(time.monotonic() - t0, 1)
+                ok_floor = B.score(q, {**fake, "answer": res["floor_text"]})["correct"]
+                ok = B.score(q, {**fake, "answer": res["text"]})["correct"]
+                svc = q["type"] in ("service", "department", "clarify")
+                changed = res["text"] != res["floor_text"]
+                # βέβαιο λάθος που δεν υπήρχε: η απάντηση άλλαξε, είναι λάθος, και δίνει
+                # σύνδεσμο/τηλέφωνο (ή, στα εκτός θέματος, οτιδήποτε λάθος)
+                conf_err = changed and not ok and (bool(B.facts(res["text"])) if svc else True)
+                agg["n_service" if svc else "n_other"] += 1
+                agg["floor_correct" if svc else "floor_other"] += ok_floor
+                agg["correct" if svc else "other"] += ok
+                if ok and not ok_floor: agg["wins"].append(q["id"])
+                if ok_floor and not ok: agg["losses"].append(q["id"])
+                if conf_err: agg["confident_errors"].append(q["id"])
+                acts = " | ".join(res["actions"])
+                if changed and "pick:" in acts and "composite" not in acts:
+                    agg["pick_right" if ok else "pick_wrong"] += 1
+                if "rewrite→A" in acts:
+                    agg["rewrite_right" if ok else "rewrite_wrong"] += 1
+                if res["llm_calls"]:
+                    agg["llm_used"] += 1; agg["seconds_llm"].append(sec)
+                if name == "v1" and res["zone"] == "B" and svc and res["options"] is not None:
+                    fl_opts = floor(q["question"])["options"]
+                    if fl_opts:
+                        first = service_answer(fl_opts[0]["intent"], "el")
+                        summary["first_button"]["n"] += 1
+                        summary["first_button"]["correct"] += B.score(q, {**fake, "answer": first})["correct"]
+                mark = "+" if ok and not ok_floor else ("-" if ok_floor and not ok else ("!" if conf_err else ("✓" if ok else "✗")))
+                print(f"  {mark} {q['id']} {res['zone']:9} {sec:5.1f}s {acts[:90]}  {q['question'][:40]}", flush=True)
+                w.writerow({"config": name, "id": q["id"], "type": q["type"], "lang": q["lang"],
+                            "question": q["question"], "expect": q["expect"], "zone": res["zone"], "actions": acts,
+                            "llm_calls": res["llm_calls"], "seconds": sec, "floor_correct": ok_floor, "correct": ok,
+                            "confident_error": conf_err, "floor_answer": res["floor_text"], "answer": res["text"]})
+                f.flush()
+            v = agg["seconds_llm"]; agg["seconds_llm"] = round(sum(v) / len(v), 1) if v else None
+            summary[name] = agg
+            print(json.dumps(agg, ensure_ascii=False), flush=True)
+    json.dump(summary, open(ROOT / "reports/holdout_summary.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps(summary["first_button"]), "\nαποθηκεύτηκαν: reports/holdout_answers.csv, reports/holdout_summary.json")
+
+
 def main():
-    model = (sys.argv[1:] or ["qwen3:14b"])[0]
+    args = sys.argv[1:]
+    model = ([a for a in args if not a.startswith("--")] or ["qwen3:14b"])[0]
+    if "--holdout" in args:
+        return evaluate_holdout(model)
     path = ROOT / "reports/guarded_answers.csv"
     fields = ["set", "id", "type", "question", "expect", "zone", "actions", "llm_calls", "seconds",
               "floor_correct", "correct", "floor_answer", "answer"]
