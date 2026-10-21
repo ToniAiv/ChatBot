@@ -22,8 +22,10 @@ Form filling / Security / Summary: όχι ακόμα.
 - Πρώτο βήμα: Welcome agent με ένα εργαλείο `find_service` (BERT + βεβαιότητα, ο σημερινός κώδικας).
 - Μοντέλα Ollama για M3 24 GB (έρευνα 20/10): `gemma4:12b` (καλύτερη οικογένεια στα ελληνικά, GreekMMLU) και `qwen3:14b`. Κατέβηκαν και τα δύο.
 - **Σύγκριση:** `agent/bakeoff.py` με 50 ερωτήσεις (`agent/bakeoff_questions.csv`, γραμμένες πριν τρέξει μοντέλο).
-  `PYTHONPATH=scripts:app venv/bin/python agent/bakeoff.py gemma4:12b qwen3:14b` (~30–60 λεπτά, Ollama ανοιχτό).
-  **Δεν έχει ολοκληρωθεί.** Σταμάτησε 20/10 μετά από λίγες ερωτήσεις. Πρώτη ένδειξη: ~30–50 s ανά σύνθετη ερώτηση· το Gemma έγραψε ένα λάθος τηλέφωνο, και ο έλεγχος επινοήσεων το έπιασε.
+  `PYTHONPATH=scripts:app venv/bin/python agent/bakeoff.py gemma4:12b qwen3:14b` (~70 λεπτά, Ollama ανοιχτό· συνεχίζει αν διακοπεί, `--rescore` = ξαναβαθμολόγηση χωρίς LLM).
+  **Αποτέλεσμα 21/10** (`reports/llm_bakeoff.md`): σωστός προορισμός σε 38 ερωτήσεις υπηρεσίας: BERT μόνο του **28**, qwen3:14b 27 (~57 s/ερώτηση), gemma4:12b 24 (~23 s, 1 λάθος τηλέφωνο).
+  Όταν το LLM αποφασίζει μόνο του, άλλοτε δεν ψάχνει καθόλου και άλλοτε αναδιατυπώνει την ερώτηση και χαλάει το BERT.
+  → Το BERT πρέπει να τρέχει πάντα, από τον κώδικα, στο αρχικό κείμενο (Validator 1), και ο Validator 2 να ελέγχει τηλέφωνα/συνδέσμους στον κώδικα.
 - Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent).
 
 ## 1. Τι είναι

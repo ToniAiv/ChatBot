@@ -1,0 +1,36 @@
+{
+ "gemma4:12b": {
+  "n": 50,
+  "correct_service": 24,
+  "n_service": 38,
+  "correct_other": 11,
+  "n_other": 12,
+  "tool_when_needed": 32,
+  "tool_when_not_needed": 1,
+  "fabrications": 1,
+  "not_greek": 1,
+  "bad_calls": 0,
+  "tool_as_text": 0,
+  "seconds": 1144.8,
+  "tps": 10.7
+ },
+ "qwen3:14b": {
+  "n": 50,
+  "correct_service": 27,
+  "n_service": 38,
+  "correct_other": 11,
+  "n_other": 12,
+  "tool_when_needed": 36,
+  "tool_when_not_needed": 1,
+  "fabrications": 0,
+  "not_greek": 0,
+  "bad_calls": 0,
+  "tool_as_text": 0,
+  "seconds": 2847.4,
+  "tps": 5.7
+ },
+ "bert_alone": {
+  "correct_service": 28,
+  "n_service": 38
+ }
+}

@@ -11,6 +11,10 @@ find_service: το BERT μας (Fetch) με τον έλεγχο βεβαιότη
   - χρόνο ανά ερώτηση
 
     PYTHONPATH=scripts:app python agent/bakeoff.py gemma4:12b qwen3:14b
+
+Κάθε απάντηση γράφεται αμέσως στο reports/llm_bakeoff_answers.csv. Αν
+διακοπεί, το ίδιο command συνεχίζει από εκεί που έμεινε· --fresh = από την αρχή,
+--rescore = ξαναβαθμολόγηση των αποθηκευμένων απαντήσεων χωρίς LLM.
 """
 from __future__ import annotations
 
@@ -28,6 +32,7 @@ from regression import Bot, key
 OLLAMA = "http://localhost:11434/api/chat"
 FALLBACK_PHONE = "2813 409185"
 MAX_STEPS = 3
+MAX_TOKENS = 600   # χωρίς όριο, μια απάντηση έγραφε για 10 λεπτά
 
 SYSTEM = f"""Είσαι ο εικονικός βοηθός του Δήμου Ηρακλείου. Απαντάς ΠΑΝΤΑ στα ελληνικά, σύντομα (2-5 προτάσεις).
 
@@ -105,7 +110,7 @@ def run_agent(model: str, question: str) -> dict:
     for _step in range(MAX_STEPS):
         r = requests.post(OLLAMA, json={
             "model": model, "messages": messages, "tools": TOOLS, "stream": False, "think": False,
-            "options": {"temperature": 0, "num_ctx": 8192}}, timeout=600)
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": MAX_TOKENS}}, timeout=180)
         r.raise_for_status()
         j = r.json()
         gen_tokens += j.get("eval_count", 0); gen_ns += j.get("eval_duration", 0)
@@ -158,9 +163,22 @@ def facts(text: str) -> set:
     return out
 
 
+PHONE_LIST = re.compile(r"(\d[\d\s-]{8,}\d)((?:\s*(?:,|και|ή)\s*\d{2,6}(?!\d))+)")
+
+
+def expand_phones(text: str) -> str:
+    """«2813-409302,303» / «2813-409136, 409449» → και 2813409303 / 2813409449
+    (σύντομη γραφή των σελίδων του δήμου)."""
+    out = []
+    for full, rest in PHONE_LIST.findall(text):
+        base = digits(full)
+        out += [base[:-len(t)] + t for t in re.findall(r"\d+", rest)]
+    return " ".join(out)
+
+
 def grounded_ok(answer: str, tool_text: str) -> tuple:
     allowed_text = tool_text + " " + FALLBACK_PHONE
-    allowed_digits = digits(allowed_text)
+    allowed_digits = digits(allowed_text) + " " + expand_phones(allowed_text)
     bad = []
     for f in facts(answer):
         if f.isdigit():
@@ -172,6 +190,7 @@ def grounded_ok(answer: str, tool_text: str) -> tuple:
 
 
 def greek_ratio(s: str) -> float:
+    s = EMAIL.sub(" ", URL.sub(" ", s))
     letters = [c for c in s if c.isalpha()]
     if not letters:
         return 0.0
@@ -217,7 +236,8 @@ def score(q: dict, res: dict) -> dict:
         targets = gold_targets(q["expect"], "service")
         shown = sum(hit(ans, t) for t in targets)
         names = sum(1 for g in q["expect"].split("|") if g)
-        s["correct"] = called and ("?" in ans or ";" in ans) and (shown >= 2 or "μεταδημότευση" in ans.lower())
+        asks = "?" in ans or ";" in ans or bool(re.search(r"διευκριν|ποια από|ποιο από", ans.lower()))
+        s["correct"] = called and asks and (shown >= 2 or "μεταδημότευση" in ans.lower())
         s["partial"] = s["correct"]
     else:  # smalltalk / out_of_scope: χωρίς σύνδεσμο υπηρεσίας
         s["correct"] = "eservices.heraklion.gr/e-services" not in ans and bool(ans.strip())
@@ -225,51 +245,117 @@ def score(q: dict, res: dict) -> dict:
     return s
 
 
-def main():
-    models = sys.argv[1:]
-    questions = list(csv.DictReader(open(ROOT / "agent/bakeoff_questions.csv", encoding="utf-8")))
-    rows, summary = [], {}
-    for m in models:
-        print(f"\n=== {m}", flush=True)
-        agg = {"n": 0, "correct_service": 0, "n_service": 0, "correct_other": 0, "n_other": 0,
-               "tool_when_needed": 0, "tool_when_not_needed": 0, "fabrications": 0, "not_greek": 0,
-               "bad_calls": 0, "tool_as_text": 0, "seconds": 0.0, "tps": []}
-        for q in questions:
-            try:
-                res = run_agent(m, q["text"])
-            except Exception as e:
-                res = {"answer": f"(σφάλμα: {e})", "tool_calls": [], "tool_text": "", "bad_calls": 0,
-                       "tool_as_text": False, "seconds": 0.0, "tok_per_s": None}
-            sc = score(q, res)
-            needs_tool = q["type"] in ("service", "department", "clarify")
-            agg["n"] += 1
-            if needs_tool:
-                agg["n_service"] += 1; agg["correct_service"] += sc["correct"]
-                agg["tool_when_needed"] += sc["called"]
-            else:
-                agg["n_other"] += 1; agg["correct_other"] += sc["correct"]
-                agg["tool_when_not_needed"] += sc["called"]
-            agg["fabrications"] += not sc["grounded"]
-            agg["not_greek"] += not sc["greek"]
-            agg["bad_calls"] += res["bad_calls"]; agg["tool_as_text"] += res["tool_as_text"]
-            agg["seconds"] += res["seconds"]
-            if res["tok_per_s"]:
-                agg["tps"].append(res["tok_per_s"])
-            mark = "✓" if sc["correct"] else ("~" if sc.get("partial") else "✗")
-            print(f"  {mark} {q['id']} {res['seconds']:5.1f}s tool={len(res['tool_calls'])}"
-                  f"{' ΕΠΙΝΟΗΣΗ:' + sc['fabricated'] if not sc['grounded'] else ''}"
-                  f"{' ΟΧΙ-ΕΛΛΗΝΙΚΑ' if not sc['greek'] else ''}  {q['text'][:50]}", flush=True)
-            rows.append({"model": m, "id": q["id"], "type": q["type"], "question": q["text"],
-                         "expect": q["expect"], "correct": sc["correct"], "tool_calls": json.dumps(res["tool_calls"], ensure_ascii=False),
-                         "fabricated": sc["fabricated"], "greek": sc["greek"], "seconds": res["seconds"],
-                         "answer": res["answer"]})
+FIELDS = ["model", "id", "type", "question", "expect", "correct", "partial", "called", "grounded",
+          "fabricated", "greek", "bad_calls", "tool_as_text", "seconds", "tok_per_s", "tool_calls", "answer",
+          "tool_text"]
+
+
+def summarize(rows: list) -> dict:
+    summary = {}
+    for r in rows:
+        b = lambda k: r[k] == "True"
+        agg = summary.setdefault(r["model"], {
+            "n": 0, "correct_service": 0, "n_service": 0, "correct_other": 0, "n_other": 0,
+            "tool_when_needed": 0, "tool_when_not_needed": 0, "fabrications": 0, "not_greek": 0,
+            "bad_calls": 0, "tool_as_text": 0, "seconds": 0.0, "tps": []})
+        agg["n"] += 1
+        if r["type"] in ("service", "department", "clarify"):
+            agg["n_service"] += 1; agg["correct_service"] += b("correct"); agg["tool_when_needed"] += b("called")
+        else:
+            agg["n_other"] += 1; agg["correct_other"] += b("correct"); agg["tool_when_not_needed"] += b("called")
+        agg["fabrications"] += not b("grounded")
+        agg["not_greek"] += not b("greek")
+        agg["bad_calls"] += int(r["bad_calls"]); agg["tool_as_text"] += b("tool_as_text")
+        agg["seconds"] += float(r["seconds"])
+        if r["tok_per_s"]:
+            agg["tps"].append(float(r["tok_per_s"]))
+    for agg in summary.values():
+        agg["seconds"] = round(agg["seconds"], 1)
         agg["tps"] = round(sum(agg["tps"]) / len(agg["tps"]), 1) if agg["tps"] else None
-        summary[m] = agg
-        print(json.dumps(agg, ensure_ascii=False), flush=True)
-    out = ROOT / "reports"
-    with open(out / "llm_bakeoff_answers.csv", "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
-    json.dump(summary, open(out / "llm_bakeoff_summary.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    return summary
+
+
+def main():
+    args = sys.argv[1:]
+    fresh = "--fresh" in args
+    models = [a for a in args if not a.startswith("--")]
+    questions = list(csv.DictReader(open(ROOT / "agent/bakeoff_questions.csv", encoding="utf-8")))
+    answers = ROOT / "reports/llm_bakeoff_answers.csv"
+    if "--rescore" in args:
+        rescore(answers); return
+    if fresh and answers.exists():
+        answers.unlink()
+    done = set()
+    if answers.exists():
+        done = {(r["model"], r["id"]) for r in csv.DictReader(open(answers, encoding="utf-8"))}
+    new_file = not answers.exists()
+    with open(answers, "a", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS)
+        if new_file:
+            w.writeheader()
+        for m in models:
+            print(f"\n=== {m}", flush=True)
+            for q in questions:
+                if (m, q["id"]) in done:
+                    continue
+                try:
+                    res = run_agent(m, q["text"])
+                except Exception as e:
+                    res = {"answer": f"(σφάλμα: {e})", "tool_calls": [], "tool_text": "", "bad_calls": 0,
+                           "tool_as_text": False, "seconds": 0.0, "tok_per_s": None}
+                sc = score(q, res)
+                mark = "✓" if sc["correct"] else ("~" if sc.get("partial") else "✗")
+                print(f"  {mark} {q['id']} {res['seconds']:5.1f}s tool={len(res['tool_calls'])}"
+                      f"{' ΕΠΙΝΟΗΣΗ:' + sc['fabricated'] if not sc['grounded'] else ''}"
+                      f"{' ΟΧΙ-ΕΛΛΗΝΙΚΑ' if not sc['greek'] else ''}  {q['text'][:50]}", flush=True)
+                w.writerow({"model": m, "id": q["id"], "type": q["type"], "question": q["text"],
+                            "expect": q["expect"], "correct": sc["correct"], "partial": sc["partial"],
+                            "called": sc["called"], "grounded": sc["grounded"], "fabricated": sc["fabricated"],
+                            "greek": sc["greek"], "bad_calls": res["bad_calls"], "tool_as_text": res["tool_as_text"],
+                            "seconds": res["seconds"], "tok_per_s": res["tok_per_s"] or "",
+                            "tool_calls": json.dumps(res["tool_calls"], ensure_ascii=False),
+                            "answer": res["answer"], "tool_text": res["tool_text"]})
+                f.flush()
+    rescore(answers)
+
+
+def bert_alone(q: dict) -> Optional[bool]:
+    """Το σημερινό bot χωρίς LLM: σωστό μόνο αν το BERT είναι βέβαιο και δείχνει τον σωστό προορισμό
+    (στις clarify: αν ζητά διευκρίνιση). None στις ερωτήσεις χωρίς υπηρεσία."""
+    if q["type"] not in ("service", "department", "clarify"):
+        return None
+    r = find_service(q["question"])
+    if q["type"] == "clarify":
+        return r["status"] == "ambiguous"
+    if r["status"] != "confident":
+        return False
+    text = json.dumps(r, ensure_ascii=False)
+    hits = [hit(text, t) for t in gold_targets(q["expect"], q["type"])]
+    return all(hits) if q["type"] == "service" and len(hits) > 1 else any(hits)  # όπως στο score()
+
+
+def rescore(answers: Path):
+    """Ξαναβαθμολογεί όλες τις αποθηκευμένες απαντήσεις με τους τρέχοντες ελέγχους (χωρίς LLM)."""
+    rows = list(csv.DictReader(open(answers, encoding="utf-8")))
+    alone = {}
+    for r in rows:
+        q = {"type": r["type"], "expect": r["expect"], "question": r["question"]}
+        res = {"answer": r["answer"], "tool_text": r.get("tool_text", ""), "seconds": float(r["seconds"]),
+               "tool_calls": json.loads(r["tool_calls"] or "[]")}
+        sc = score(q, res)
+        r.update({k: sc[k] for k in ("correct", "partial", "called", "grounded", "fabricated", "greek")})
+        if r["id"] not in alone:
+            alone[r["id"]] = bert_alone(q)
+        r["bert_alone"] = "" if alone[r["id"]] is None else alone[r["id"]]
+    with open(answers, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS + ["bert_alone"]); w.writeheader(); w.writerows(rows)
+    rows = list(csv.DictReader(open(answers, encoding="utf-8")))
+    summary = summarize(rows)
+    need = [v for v in alone.values() if v is not None]
+    summary["bert_alone"] = {"correct_service": sum(need), "n_service": len(need)}
+    print(json.dumps(summary, ensure_ascii=False, indent=1))
+    json.dump(summary, open(ROOT / "reports/llm_bakeoff_summary.json", "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
     print("\nαποθηκεύτηκαν: reports/llm_bakeoff_answers.csv, reports/llm_bakeoff_summary.json")
 
 
