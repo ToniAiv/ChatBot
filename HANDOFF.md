@@ -52,6 +52,7 @@ Form filling / Security / Summary: όχι ακόμα.
   - Νέο σετ (followup2): ερωτήσεις συνέχειας 3 → **10/14**. Πρώτο σετ: 0 → 15/25.
   - 0 αλλαγές στους 63 παλιούς διαλόγους, `regression.py` ίδιο.
   - **Κλείνει με `BOT_SERVICE_MEMORY=0`. Αναιρείται με `git revert 4a5b08f`.**
+  - **100 τυχαίοι διάλογοι** (`agent/followup100_questions.csv`): σύνολο 32 → **62/100**, 0 αλλαγές θέματος χειρότερες. Ηλεκτρονικά 9/9, δικαιολογητικά 6/6, greeklish 7/7. «Ποιος» 0/8 και «διαδικασία» 0/11, γιατί δεν υπάρχουν ως κατηγορίες στο `aspects.py` → επόμενη βελτίωση.
 - Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent).
 
 ## 1. Τι είναι
