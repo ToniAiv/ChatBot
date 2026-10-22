@@ -33,7 +33,8 @@ EVAL_FILES = sorted((DATASETS / "tests").glob("*.csv")) + [
                            "aspects_eval.csv", "dialogue_eval.csv", "dialogue_holdout.csv",
                            "department_eval.csv", "department_holdout.csv",
                            "pooling_holdout.csv", "family_holdout.csv")] + [
-    ROOT / "agent" / n for n in ("bakeoff_questions.csv", "holdout_questions.csv", "holdout2_questions.csv")]
+    ROOT / "agent" / n for n in ("bakeoff_questions.csv", "holdout_questions.csv", "holdout2_questions.csv",
+                                    "followup_questions.csv")]
 
 
 def notebook_label(x: str) -> str:
