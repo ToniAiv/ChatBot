@@ -1,0 +1,251 @@
+{
+ "holdout": {
+  "n": 51,
+  "rank": {
+   "bert": [
+    37,
+    44
+   ],
+   "knn": [
+    37,
+    44
+   ],
+   "pages": [
+    17,
+    24
+   ],
+   "lex": [
+    8,
+    14
+   ],
+   "rrf_bk": [
+    37,
+    46
+   ],
+   "rrf_bkp": [
+    39,
+    44
+   ],
+   "rrf_all": [
+    26,
+    45
+   ],
+   "knn_raw_en": [
+    7,
+    8
+   ]
+  },
+  "n_en": 10,
+  "rules": {
+   "today": {
+    "sure": 36,
+    "sure_ok": 31,
+    "buttons_ok": 10,
+    "oos_sure": 1
+   },
+   "veto": {
+    "sure": 36,
+    "sure_ok": 31,
+    "buttons_ok": 11,
+    "oos_sure": 1
+   },
+   "boost": {
+    "sure": 37,
+    "sure_ok": 32,
+    "buttons_ok": 10,
+    "oos_sure": 1
+   },
+   "both": {
+    "sure": 37,
+    "sure_ok": 32,
+    "buttons_ok": 10,
+    "oos_sure": 1
+   }
+  },
+  "n_oos": 10,
+  "by_lang": {
+   "el": {
+    "n": 31,
+    "bert": 26,
+    "knn": 28,
+    "rrf_bk": 28
+   },
+   "greeklish": {
+    "n": 10,
+    "bert": 5,
+    "knn": 3,
+    "rrf_bk": 4
+   },
+   "en": {
+    "n": 10,
+    "bert": 6,
+    "knn": 6,
+    "rrf_bk": 5
+   }
+  }
+ },
+ "holdout2": {
+  "n": 31,
+  "rank": {
+   "bert": [
+    28,
+    30
+   ],
+   "knn": [
+    26,
+    29
+   ],
+   "pages": [
+    9,
+    13
+   ],
+   "lex": [
+    5,
+    11
+   ],
+   "rrf_bk": [
+    28,
+    29
+   ],
+   "rrf_bkp": [
+    19,
+    30
+   ],
+   "rrf_all": [
+    15,
+    27
+   ],
+   "knn_raw_en": [
+    3,
+    3
+   ]
+  },
+  "n_en": 5,
+  "rules": {
+   "today": {
+    "sure": 24,
+    "sure_ok": 24,
+    "buttons_ok": 6,
+    "oos_sure": 1
+   },
+   "veto": {
+    "sure": 24,
+    "sure_ok": 24,
+    "buttons_ok": 6,
+    "oos_sure": 1
+   },
+   "boost": {
+    "sure": 24,
+    "sure_ok": 24,
+    "buttons_ok": 6,
+    "oos_sure": 1
+   },
+   "both": {
+    "sure": 24,
+    "sure_ok": 24,
+    "buttons_ok": 6,
+    "oos_sure": 1
+   }
+  },
+  "n_oos": 10,
+  "by_lang": {
+   "el": {
+    "n": 21,
+    "bert": 20,
+    "knn": 19,
+    "rrf_bk": 20
+   },
+   "greeklish": {
+    "n": 5,
+    "bert": 4,
+    "knn": 4,
+    "rrf_bk": 5
+   },
+   "en": {
+    "n": 5,
+    "bert": 4,
+    "knn": 3,
+    "rrf_bk": 3
+   }
+  }
+ },
+ "greeklish_eval": {
+  "n": 66,
+  "rank": {
+   "bert": [
+    48,
+    59
+   ],
+   "knn": [
+    48,
+    58
+   ],
+   "pages": [
+    34,
+    42
+   ],
+   "lex": [
+    29,
+    37
+   ],
+   "rrf_bk": [
+    47,
+    61
+   ],
+   "rrf_bkp": [
+    45,
+    60
+   ],
+   "rrf_all": [
+    45,
+    59
+   ],
+   "knn_raw_en": [
+    19,
+    24
+   ]
+  },
+  "n_en": 28,
+  "rules": {
+   "today": {
+    "sure": 45,
+    "sure_ok": 40,
+    "buttons_ok": 14,
+    "oos_sure": 0
+   },
+   "veto": {
+    "sure": 45,
+    "sure_ok": 40,
+    "buttons_ok": 16,
+    "oos_sure": 0
+   },
+   "boost": {
+    "sure": 45,
+    "sure_ok": 40,
+    "buttons_ok": 16,
+    "oos_sure": 0
+   },
+   "both": {
+    "sure": 45,
+    "sure_ok": 40,
+    "buttons_ok": 16,
+    "oos_sure": 0
+   }
+  },
+  "n_oos": 0,
+  "by_lang": {
+   "greeklish": {
+    "n": 38,
+    "bert": 30,
+    "knn": 27,
+    "rrf_bk": 30
+   },
+   "en": {
+    "n": 28,
+    "bert": 18,
+    "knn": 21,
+    "rrf_bk": 17
+   }
+  }
+ }
+}
