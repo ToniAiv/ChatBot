@@ -25,6 +25,11 @@ import gui
 import usage_log
 from regression import key
 import aspects
+import aspect_embed
+
+_SCORES: dict = {}
+_raw_scores = aspect_embed.scores
+aspect_embed.scores = lambda t: dict(_SCORES.setdefault(t, _raw_scores(t)))   # ίδιο μήνυμα → ίδια ομοιότητα, μία κλήση
 
 # Οι κατηγορίες ερωτήσεων ΠΡΙΝ από το commit 680fe05 («ποιος», «διαδικασία»…),
 # για σύγκριση: φορτώνονται από το git.
@@ -56,8 +61,9 @@ def target(intent: str) -> dict:
     return {"url": url, "phone": "", "text": " ".join([rec.get("title", "")] + list((rec.get("sections") or {}).values()))}
 
 
-def converse(m1: str, m2: str, m1_intent: str, memory: bool, cats: str = "νέες") -> tuple:
+def converse(m1: str, m2: str, m1_intent: str, memory: bool, cats: str = "νέες", embed: bool = False) -> tuple:
     context.SERVICE_MEMORY = memory
+    aspect_embed.ENABLED = embed
     gui.detect_aspect = C.detect_aspect = ASPECTS[cats]
     api = gui.Api()
     first = api.chat(m1)
@@ -96,16 +102,18 @@ def score(q: dict, first: str, text: str) -> bool:
 
 def followups() -> dict:
     out, rows = {}, []
-    configs = [("σήμερα", False, "παλιές"), ("με, παλιές κατηγορίες", True, "παλιές"), ("με, νέες κατηγορίες", True, "νέες")]
-    for name in ("followup_questions", "followup2_questions", "followup100_questions", "followup100b_questions"):
+    configs = [("σήμερα", False, "παλιές", False), ("με, παλιές κατηγορίες", True, "παλιές", False),
+               ("με, νέες κατηγορίες", True, "νέες", False), ("με, νέες + embeddings", True, "νέες", True)]
+    for name in ("followup_questions", "followup2_questions", "followup100_questions", "followup100c_questions",
+                 "followup100b_questions", "followup100d_questions"):
         qs = list(csv.DictReader(open(ROOT / f"agent/{name}.csv", encoding="utf-8")))
         res = {}
         for q in qs:
             kind = q["type"] if q["type"] != "followup" else ("followup" if q["facts"] != "-" else "δεν αναφέρεται")
             m1_intent = q.get("m1_intent") or (q["expect"] if q["type"] == "followup" else "")
             marks = []
-            for label, memory, cats in configs:
-                first, text = converse(q["m1"], q["m2"], m1_intent, memory, cats)
+            for label, memory, cats, embed in configs:
+                first, text = converse(q["m1"], q["m2"], m1_intent, memory, cats, embed)
                 ok = score(q, first, text)
                 r = res.setdefault(label, {})
                 r.setdefault(kind, [0, 0])
@@ -127,7 +135,7 @@ def dialogues() -> list:
     for f in ("dialogue_eval.csv", "dialogue_holdout.csv"):
         for i, r in enumerate(csv.DictReader(open(ROOT / "datasets" / f, encoding="utf-8"))):
             _, off = converse(r["m1"], r["m2"], "", False, "παλιές")
-            _, on = converse(r["m1"], r["m2"], "", True, "νέες")
+            _, on = converse(r["m1"], r["m2"], "", True, "νέες", True)
             if off != on:
                 changed.append({"set": f, "i": i, "m1": r["m1"], "m2": r["m2"], "expect": r["expect"],
                                 "without": off[:200], "with": on[:200]})
@@ -137,8 +145,65 @@ def dialogues() -> list:
     return changed
 
 
+DEV = ("followup100c_questions", "followup100_questions")      # ρύθμιση· τα 100b / 100d μόνο στο τέλος
+
+
+def tune():
+    """MIN_SIM / MARGIN του aspect_embed ΜΟΝΟ στα σετ ρύθμισης: οι περισσότεροι σωστοί
+    διάλογοι, χωρίς χειρότερες αλλαγές θέματος / εκτός θέματος από τους κανόνες μόνους."""
+    qs = [q for n in DEV for q in csv.DictReader(open(ROOT / f"agent/{n}.csv", encoding="utf-8"))]
+
+    def run(embed, min_sim=None, margin=None):
+        aspect_embed.MIN_SIM = min_sim if min_sim is not None else aspect_embed.MIN_SIM
+        aspect_embed.MARGIN = margin if margin is not None else aspect_embed.MARGIN
+        ok = guard = 0
+        for q in qs:
+            m1i = q.get("m1_intent") or (q["expect"] if q["type"] == "followup" else "")
+            first, text = converse(q["m1"], q["m2"], m1i, True, "νέες", embed)
+            c = score(q, first, text)
+            ok += c
+            guard += c and q["type"] in ("switch", "oos")
+        return ok, guard
+
+    base_ok, base_guard = run(False)
+    print(f"κανόνες μόνοι: {base_ok}/{len(qs)} σωστοί (αλλαγές θέματος/εκτός θέματος σωστές: {base_guard})")
+    best = None
+    for min_sim in (0.50, 0.55, 0.60, 0.65, 0.70, 0.75):
+        for margin in (0.0, 0.02, 0.04, 0.06, 0.08):
+            ok, guard = run(True, min_sim, margin)
+            print(f"  MIN_SIM={min_sim} MARGIN={margin}: {ok} (φύλαξη {guard})", flush=True)
+            # σε ισοβαθμία το αυστηρότερο όριο (λιγότερο ρίσκο σε άγνωστες διατυπώσεις)
+            if guard >= base_guard and (best is None or ok > best[0] or (ok == best[0] and min_sim > best[1])):
+                best = (ok, min_sim, margin)
+    print(f"επιλογή: MIN_SIM={best[1]} MARGIN={best[2]} → {best[0]}/{len(qs)}")
+
+
+def aspect_accuracy() -> dict:
+    """Στα σετ του LLM κάθε ερώτηση συνέχειας έχει γραμμένο το είδος της (note): πόσες φορές οι
+    κανόνες, και οι κανόνες + embeddings, βρίσκουν το σωστό είδος, λάθος είδος, ή κανένα.
+    (Η βαθμολόγηση «-» μετρά σωστή κάθε τίμια παραπομπή, ακόμα και με λάθος είδος.)"""
+    out = {}
+    aspect_embed.ENABLED = True
+    for name in ("followup100c_questions", "followup100b_questions", "followup100d_questions"):
+        res = {"κανόνες": {"σωστό": 0, "λάθος": 0, "κανένα": 0}, "κανόνες + embeddings": {"σωστό": 0, "λάθος": 0, "κανένα": 0}}
+        for q in csv.DictReader(open(ROOT / f"agent/{name}.csv", encoding="utf-8")):
+            if q["type"] != "followup":
+                continue
+            gold = q["note"].split()[0]
+            greek, _lang = C.resolve_query(q["m2"])
+            rule = aspects.detect_aspect(greek)
+            both = rule or aspect_embed.classify(greek)
+            for label, got in (("κανόνες", rule), ("κανόνες + embeddings", both)):
+                res[label]["σωστό" if got == gold else ("κανένα" if got is None else "λάθος")] += 1
+        out[name] = res
+        print(name, json.dumps(res, ensure_ascii=False), flush=True)
+    return out
+
+
 def main():
-    summary = {"followups": followups(), "dialogue_changes": dialogues()}
+    if "--tune" in sys.argv:
+        return tune()
+    summary = {"followups": followups(), "aspect_accuracy": aspect_accuracy(), "dialogue_changes": dialogues()}
     json.dump(summary, open(ROOT / "reports/service_memory_summary.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("\nαποθηκεύτηκαν: reports/service_memory_summary.json, reports/service_memory_answers.csv")
 
