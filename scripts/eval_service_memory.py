@@ -68,12 +68,20 @@ def converse(m1: str, m2: str, m1_intent: str, memory: bool, cats: str = "νέε
     return first["text"], api.chat(m2)["text"]
 
 
+def found(fact: str, text: str) -> bool:
+    """Σκέτος αριθμός («40», «100»): ως ολόκληρος αριθμός, όχι μέσα σε τηλέφωνο
+    (το «40» ταίριαζε στο 2813-409397)."""
+    if re.fullmatch(r"\d+(,\d+)?", fact.strip()):
+        return re.search(rf"(?<![\d,.]){re.escape(fact.strip())}(?![\d,])", text) is not None
+    return _n(fact) in _n(text)
+
+
 def score(q: dict, first: str, text: str) -> bool:
     if q["type"] == "followup":
         page = target(q["expect"])
         if q["facts"] != "-":
             groups = [g for g in q["facts"].split("|") if g]
-            hit = sum(any(_n(a) in _n(text) for a in g.split("/")) for g in groups)
+            hit = sum(any(found(a, text) for a in g.split("/")) for g in groups)
             return hit / len(groups) >= 0.5
         pd = re.sub(r"\D", "", page["text"])
         invented = [x for x in re.findall(r"\d[\d.,]*", text)
@@ -88,7 +96,7 @@ def score(q: dict, first: str, text: str) -> bool:
 
 def followups() -> dict:
     out, rows = {}, []
-    configs = [("χωρίς", False, "νέες"), ("με, παλιές κατηγορίες", True, "παλιές"), ("με, νέες κατηγορίες", True, "νέες")]
+    configs = [("σήμερα", False, "παλιές"), ("με, παλιές κατηγορίες", True, "παλιές"), ("με, νέες κατηγορίες", True, "νέες")]
     for name in ("followup_questions", "followup2_questions", "followup100_questions", "followup100b_questions"):
         qs = list(csv.DictReader(open(ROOT / f"agent/{name}.csv", encoding="utf-8")))
         res = {}
