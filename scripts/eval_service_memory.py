@@ -14,7 +14,7 @@
 """
 from __future__ import annotations
 
-import csv, json, re, sys
+import csv, json, re, subprocess, sys, types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,6 +24,14 @@ import context
 import gui
 import usage_log
 from regression import key
+import aspects
+
+# Οι κατηγορίες ερωτήσεων ΠΡΙΝ από το commit 680fe05 («ποιος», «διαδικασία»…),
+# για σύγκριση: φορτώνονται από το git.
+_OLD = types.ModuleType("aspects_old")
+exec(subprocess.run(["git", "show", "680fe05^:app/aspects.py"], cwd=ROOT, capture_output=True, text=True,
+                    check=True).stdout, _OLD.__dict__)
+ASPECTS = {"νέες": aspects.detect_aspect, "παλιές": _OLD.detect_aspect}
 
 usage_log.ENABLED = False                 # ερωτήσεις δοκιμής, όχι πολιτών
 gui._load_pipeline()
@@ -48,8 +56,9 @@ def target(intent: str) -> dict:
     return {"url": url, "phone": "", "text": " ".join([rec.get("title", "")] + list((rec.get("sections") or {}).values()))}
 
 
-def converse(m1: str, m2: str, m1_intent: str, memory: bool) -> tuple:
+def converse(m1: str, m2: str, m1_intent: str, memory: bool, cats: str = "νέες") -> tuple:
     context.SERVICE_MEMORY = memory
+    gui.detect_aspect = C.detect_aspect = ASPECTS[cats]
     api = gui.Api()
     first = api.chat(m1)
     if first["options"] and m1_intent:          # ο «πολίτης» πατά το κουμπί της υπηρεσίας του Μ1
@@ -79,23 +88,24 @@ def score(q: dict, first: str, text: str) -> bool:
 
 def followups() -> dict:
     out, rows = {}, []
-    for name in ("followup_questions", "followup2_questions", "followup100_questions"):
+    configs = [("χωρίς", False, "νέες"), ("με, παλιές κατηγορίες", True, "παλιές"), ("με, νέες κατηγορίες", True, "νέες")]
+    for name in ("followup_questions", "followup2_questions", "followup100_questions", "followup100b_questions"):
         qs = list(csv.DictReader(open(ROOT / f"agent/{name}.csv", encoding="utf-8")))
         res = {}
         for q in qs:
             kind = q["type"] if q["type"] != "followup" else ("followup" if q["facts"] != "-" else "δεν αναφέρεται")
             m1_intent = q.get("m1_intent") or (q["expect"] if q["type"] == "followup" else "")
             marks = []
-            for memory in (False, True):
-                first, text = converse(q["m1"], q["m2"], m1_intent, memory)
+            for label, memory, cats in configs:
+                first, text = converse(q["m1"], q["m2"], m1_intent, memory, cats)
                 ok = score(q, first, text)
-                r = res.setdefault(("με" if memory else "χωρίς"), {})
+                r = res.setdefault(label, {})
                 r.setdefault(kind, [0, 0])
                 r[kind][0] += ok; r[kind][1] += 1
                 marks.append("✓" if ok else "✗")
-                rows.append({"set": name, "id": q["id"], "type": kind, "note": q.get("note", ""), "memory": memory,
+                rows.append({"set": name, "id": q["id"], "type": kind, "note": q.get("note", ""), "config": label,
                              "m1": q["m1"], "m2": q["m2"], "correct": ok, "answer": text})
-            print(f"  {q['id']} χωρίς:{marks[0]} με:{marks[1]}  {q['m2'][:50]}", flush=True)
+            print(f"  {q['id']} {' '.join(marks)}  {q['m2'][:50]}", flush=True)
         out[name] = res
         print(name, json.dumps(res, ensure_ascii=False), flush=True)
     with open(ROOT / "reports/service_memory_answers.csv", "w", encoding="utf-8", newline="") as f:
@@ -104,11 +114,12 @@ def followups() -> dict:
 
 
 def dialogues() -> list:
+    """Σήμερα (χωρίς μνήμη, παλιές κατηγορίες) έναντι όλων των αλλαγών (μνήμη + νέες κατηγορίες)."""
     changed = []
     for f in ("dialogue_eval.csv", "dialogue_holdout.csv"):
         for i, r in enumerate(csv.DictReader(open(ROOT / "datasets" / f, encoding="utf-8"))):
-            _, off = converse(r["m1"], r["m2"], "", False)
-            _, on = converse(r["m1"], r["m2"], "", True)
+            _, off = converse(r["m1"], r["m2"], "", False, "παλιές")
+            _, on = converse(r["m1"], r["m2"], "", True, "νέες")
             if off != on:
                 changed.append({"set": f, "i": i, "m1": r["m1"], "m2": r["m2"], "expect": r["expect"],
                                 "without": off[:200], "with": on[:200]})
