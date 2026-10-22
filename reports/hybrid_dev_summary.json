@@ -1,0 +1,75 @@
+{
+ "dev": {
+  "n": 2520,
+  "rank": {
+   "bert": [
+    2243,
+    2428
+   ],
+   "knn": [
+    2078,
+    2373
+   ],
+   "pages": [
+    1261,
+    1549
+   ],
+   "lex": [
+    1032,
+    1369
+   ],
+   "rrf_bk": [
+    2255,
+    2450
+   ],
+   "rrf_bkp": [
+    2053,
+    2430
+   ],
+   "rrf_all": [
+    1778,
+    2296
+   ],
+   "knn_raw_en": [
+    0,
+    0
+   ]
+  },
+  "n_en": 0,
+  "rules": {
+   "today": {
+    "sure": 2031,
+    "sure_ok": 1953,
+    "buttons_ok": 420,
+    "oos_sure": 0
+   },
+   "veto": {
+    "sure": 2016,
+    "sure_ok": 1947,
+    "buttons_ok": 450,
+    "oos_sure": 0
+   },
+   "boost": {
+    "sure": 2100,
+    "sure_ok": 2020,
+    "buttons_ok": 366,
+    "oos_sure": 0
+   },
+   "both": {
+    "sure": 2085,
+    "sure_ok": 2014,
+    "buttons_ok": 381,
+    "oos_sure": 0
+   }
+  },
+  "n_oos": 0,
+  "by_lang": {
+   "el": {
+    "n": 2520,
+    "bert": 2243,
+    "knn": 2078,
+    "rrf_bk": 2255
+   }
+  }
+ }
+}
