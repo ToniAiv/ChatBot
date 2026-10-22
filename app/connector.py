@@ -427,6 +427,9 @@ MSG = {
         "online_yes": "Ναι, η υπηρεσία «{title}» γίνεται ηλεκτρονικά:",
         "online_gov": "Εναλλακτικά, υπάρχει και μέσω gov.gr.",
         "online_no": "Όχι. Η υπηρεσία «{title}» παρέχεται μόνο με φυσική παρουσία στα γραφεία του Δήμου.",
+        "time_head": "Για «{title}», προθεσμίες:",
+        "who_head": "Για «{title}»:",
+        "process_head": "Για «{title}» η σελίδα της υπηρεσίας γράφει:",
         "source":    "Πηγή:",
         "suggest_none": "Αν κανένα δεν ταιριάζει, διατυπώστε το διαφορετικά.",
         "clarify":   f"Δεν είμαι σίγουρος ότι κατάλαβα. Μπορείτε να μου πείτε λίγα περισσότερα, π.χ. για ποια υπηρεσία ή τι ακριβώς συμβαίνει; Αν προτιμάτε, καλέστε στο {PHONE}.",
@@ -450,6 +453,9 @@ MSG = {
         "online_yes": "Yes, «{title}» can be done online:",
         "online_gov": "It is also available through gov.gr.",
         "online_no": "No. «{title}» is only available in person at the Municipality's offices.",
+        "time_head": "For «{title}», deadlines (in Greek, as listed by the Municipality):",
+        "who_head": "For «{title}» (in Greek, as listed by the Municipality):",
+        "process_head": "For «{title}» the service page says (in Greek):",
         "source":    "Source:",
         "suggest_none": "If none of these fit, please rephrase your question.",
         "clarify":   f"I'm not sure I understood. Could you tell me a bit more, e.g. which service or what exactly is happening? You can also call {PHONE}.",
@@ -789,7 +795,7 @@ def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | Non
     δίνει τον σύνδεσμο όπως πριν. Το κόστος (cost) και ο χρόνος (time)
     δεν έχουν σταθερή ενότητα στις σελίδες, οπότε πέφτουν πάντα εκεί.
     """
-    if not aspect or aspect in ("cost", "time"):
+    if not aspect or aspect == "cost":
         return None
     page = SECTIONS.get(rec.get("url", ""))
     if not page:
@@ -807,6 +813,24 @@ def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | Non
         if not body:
             return None
         return f"{m['contact_head'].format(title=title)}\n{body}\n\n{m['source']} {url}"
+
+    # Προθεσμία / ποιος: μόνο όπου η σελίδα έχει τέτοια ενότητα (π.χ. δήλωση
+    # γέννησης, γάμου). Διαδικασία: η «Περιγραφή», μαζί με την επικοινωνία.
+    if aspect == "time":
+        body = next((t for h, t in sec.items() if h.lower().startswith("προθεσμ")), None)
+        return f"{m['time_head'].format(title=title)}\n{body}\n\n{m['source']} {url}" if body else None
+
+    if aspect == "who":
+        body = next((t for h, t in sec.items() if re.match(r"(υπόχρεοι|δικαιούχοι)", h, re.I)), None)
+        return f"{m['who_head'].format(title=title)}\n{body}\n\n{m['source']} {url}" if body else None
+
+    if aspect == "process":
+        body = sec.get("Περιγραφή")
+        if not body:
+            return None
+        contact = sec.get("Στοιχεία επικοινωνίας")
+        out = f"{m['process_head'].format(title=title)}\n{body}"
+        return f"{out}\n\n{contact}\n\n{m['source']} {url}" if contact else f"{out}\n\n{m['source']} {url}"
 
     if aspect == "online":
         # 31 σελίδες βρίσκονται στην πύλη e-services αλλά η υπηρεσία γίνεται
