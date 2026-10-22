@@ -48,12 +48,12 @@ def target(intent: str) -> dict:
     return {"url": url, "phone": "", "text": " ".join([rec.get("title", "")] + list((rec.get("sections") or {}).values()))}
 
 
-def converse(m1: str, m2: str, expect: str, memory: bool) -> tuple:
+def converse(m1: str, m2: str, m1_intent: str, memory: bool) -> tuple:
     context.SERVICE_MEMORY = memory
     api = gui.Api()
     first = api.chat(m1)
-    if first["options"] and expect:
-        c = CLASSES.get(key(expect))
+    if first["options"] and m1_intent:          # ο «πολίτης» πατά το κουμπί της υπηρεσίας του Μ1
+        c = CLASSES.get(key(m1_intent))
         if any(o["intent"] == c for o in first["options"]):
             first = api.choose(c)
     return first["text"], api.chat(m2)["text"]
@@ -79,21 +79,22 @@ def score(q: dict, first: str, text: str) -> bool:
 
 def followups() -> dict:
     out, rows = {}, []
-    for name in ("followup_questions", "followup2_questions"):
+    for name in ("followup_questions", "followup2_questions", "followup100_questions"):
         qs = list(csv.DictReader(open(ROOT / f"agent/{name}.csv", encoding="utf-8")))
         res = {}
         for q in qs:
             kind = q["type"] if q["type"] != "followup" else ("followup" if q["facts"] != "-" else "δεν αναφέρεται")
+            m1_intent = q.get("m1_intent") or (q["expect"] if q["type"] == "followup" else "")
             marks = []
             for memory in (False, True):
-                first, text = converse(q["m1"], q["m2"], q["expect"], memory)
+                first, text = converse(q["m1"], q["m2"], m1_intent, memory)
                 ok = score(q, first, text)
                 r = res.setdefault(("με" if memory else "χωρίς"), {})
                 r.setdefault(kind, [0, 0])
                 r[kind][0] += ok; r[kind][1] += 1
                 marks.append("✓" if ok else "✗")
-                rows.append({"set": name, "id": q["id"], "type": kind, "memory": memory, "m1": q["m1"], "m2": q["m2"],
-                             "correct": ok, "answer": text})
+                rows.append({"set": name, "id": q["id"], "type": kind, "note": q.get("note", ""), "memory": memory,
+                             "m1": q["m1"], "m2": q["m2"], "correct": ok, "answer": text})
             print(f"  {q['id']} χωρίς:{marks[0]} με:{marks[1]}  {q['m2'][:50]}", flush=True)
         out[name] = res
         print(name, json.dumps(res, ensure_ascii=False), flush=True)
