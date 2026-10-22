@@ -431,6 +431,7 @@ MSG = {
         "suggest_none": "Αν κανένα δεν ταιριάζει, διατυπώστε το διαφορετικά.",
         "clarify":   f"Δεν είμαι σίγουρος ότι κατάλαβα. Μπορείτε να μου πείτε λίγα περισσότερα, π.χ. για ποια υπηρεσία ή τι ακριβώς συμβαίνει; Αν προτιμάτε, καλέστε στο {PHONE}.",
         "clarify_aspect": "Για ποια υπηρεσία ρωτάτε; Γράψτε π.χ. «βεβαίωση κατοικίας» ή «άδεια παιδότοπου».",
+        "memory_page": "Για «{title}» η σελίδα της υπηρεσίας δεν έχει ξεχωριστή απάντηση σε αυτό. Δείτε τη σελίδα ή επικοινωνήστε με το τμήμα:",
         "tr_fail":   f"Η μετάφραση δεν είναι διαθέσιμη αυτή τη στιγμή. Παρακαλώ επικοινωνήστε στο {PHONE}.",
     },
     "en": {
@@ -453,6 +454,7 @@ MSG = {
         "suggest_none": "If none of these fit, please rephrase your question.",
         "clarify":   f"I'm not sure I understood. Could you tell me a bit more, e.g. which service or what exactly is happening? You can also call {PHONE}.",
         "clarify_aspect": "Which service are you asking about? For example «residence certificate».",
+        "memory_page": "For «{title}» the service page has no specific answer to this. See the page or contact the department:",
         "tr_fail":   f"Translation is unavailable right now. Please contact the Municipality at {PHONE}.",
     },
 }
@@ -821,6 +823,25 @@ def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | Non
         return out
 
     return None
+
+
+def service_memory_answer(mem: dict, aspect: str, lang: str = "el") -> str:
+    """
+    Ερώτηση συνέχειας για την υπηρεσία της μνήμης (context.Service): «τι χαρτιά
+    θέλει;», «γίνεται ηλεκτρονικά;». Χωρίς μοντέλο: η ενότητα της σελίδας αυτούσια
+    (content_answer). Για κόστος / χρόνο ή όταν λείπει η ενότητα, τίμια
+    παραπομπή στη σελίδα και στο τμήμα. Ποτέ «δεν υπάρχει»: η πληροφορία μπορεί να
+    είναι μέσα στο κείμενο της σελίδας.
+    """
+    if mem["kind"] == "dept":
+        return department_answer(mem["dept"], lang, contact=True)
+    rec = mem["rec"]
+    content = content_answer(rec, aspect, lang)
+    if content:
+        return content
+    contact = ((SECTIONS.get(rec.get("url", "")) or {}).get("sections") or {}).get("Στοιχεία επικοινωνίας")
+    out = f"{MSG[lang]['memory_page'].format(title=rec['title'])}\n{rec['url']}"
+    return f"{out}\n\n{contact}" if contact else out
 
 
 def compose_answer(query: str, intent: str, candidates: list, source: str,

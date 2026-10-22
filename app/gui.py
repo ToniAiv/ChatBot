@@ -28,8 +28,11 @@ from pathlib import Path
 
 import context
 import usage_log
+from aspects import detect_aspect
 from connector import (
+    ROUTING_INTENTS,
     TranslationUnavailable,
+    service_memory_answer,
     carried_aspect,
     combine_with_context,
     department_override,
@@ -428,10 +431,12 @@ class Api:
         # Με «_»: το pywebview δεν εκθέτει στη σελίδα ιδιότητες που
         # ξεκινούν με κάτω παύλα, οπότε το JS δεν μπορεί να αλλάξει τη μνήμη.
         self._ctx = context.Pending()
+        self._svc = context.Service()     # η υπηρεσία της συζήτησης (context.Service)
 
     def reset(self) -> bool:
-        """Κουμπί «Νέα συζήτηση»: ξεχνάει το εκκρεμές μήνυμα (context.py)."""
+        """Κουμπί «Νέα συζήτηση»: ξεχνάει το εκκρεμές μήνυμα και την υπηρεσία (context.py)."""
         self._ctx.clear()
+        self._svc.clear()
         return True
 
     def is_ready(self) -> bool:
@@ -462,6 +467,7 @@ class Api:
                 dept = _STATE["no_service"][intent]
                 usage_log.log(f"[επιλογή] {intent}", "el", "", intent, None,
                               "chosen_phone", dept.get("name", ""))
+                self._svc.remember_department(dept)
                 return self._reply(department_answer(dept))
             candidates, source = find_candidates(
                 intent, _STATE["vectorizer"], _STATE["tfidf_matrix"],
@@ -470,6 +476,8 @@ class Api:
                 return self._reply(MSG["el"]["outofscope"])
             usage_log.log(f"[επιλογή] {intent}", "el", "", intent, None,
                           "chosen_link", candidates[0][1]["title"])
+            if source == "table":
+                self._svc.remember_service(candidates[0][1])
             return self._reply(compose_answer("", intent, candidates, source))
         except Exception as e:
             return self._reply(f"Σφάλμα: {e}")
@@ -559,9 +567,24 @@ class Api:
             if dept:
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "phone_dept" + ctx_tag, code, ms)
+                self._svc.remember_department(dept)
                 return self._reply(department_answer(dept, lang, contact=True), lang=lang)
 
+            # Ερώτηση συνέχειας για την υπηρεσία που ήδη συζητάμε («τι χαρτιά θέλει;»).
+            # Το BERT πάντα πρώτο: αν δείχνει σίγουρα ΑΛΛΗ συγκεκριμένη υπηρεσία, είναι
+            # νέο θέμα. Τα intents δρομολόγησης («τηλέφωνό τους;» → επικοινωνία) δεν
+            # μετράνε ως νέο θέμα (context.Service, reports/service_memory.md).
+            memory = self._svc.get()
+            asked = detect_aspect(current_greek)
+            specific = confidence >= MIN_BERT_CONFIDENCE and top_intent not in ROUTING_INTENTS
+            if memory and asked and not specific and not used_ctx:
+                title = memory["rec"]["title"] if memory["kind"] == "svc" else memory["dept"].get("name", "")
+                usage_log.log(query, lang, greek_query, top_intent, top_score,
+                              "service_memory", f"{asked}: {title}", ms)
+                return self._reply(service_memory_answer(memory, asked, lang), lang=lang)
+
             if confidence < MIN_BERT_CONFIDENCE:
+                self._svc.clear()          # δεν καταλάβαμε: το θέμα μπορεί να άλλαξε
                 opts, msg, outcome = [], MSG[lang]["suggest"], "suggest"
                 # Οικογένεια υπηρεσιών («Μεταδημότευση»: όλα τα είδη) πριν από
                 # τις 3 ανάμεικτες επιλογές (connector.family_suggestions).
@@ -597,6 +620,8 @@ class Api:
                 dept = _STATE["no_service"][top_intent]
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "phone" + ctx_tag, dept.get("name", ""), ms)
+                if top_intent not in ROUTING_INTENTS:   # τηλεφωνικό κέντρο: η μνήμη μένει ως έχει
+                    self._svc.remember_department(dept)
                 return self._reply(department_answer(dept, lang), lang=lang)
 
             candidates, source = find_candidates(
@@ -607,10 +632,17 @@ class Api:
             if not candidates or candidates[0][0] < MIN_TFIDF_SCORE:
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "refuse_out_of_scope", "", ms)
+                self._svc.clear()
                 return self._reply(MSG[lang]["outofscope"], lang=lang)
 
             answer = compose_answer(current_greek, top_intent, candidates, source, lang,
                                     aspect=aspect)
+            if top_intent in ROUTING_INTENTS:
+                pass                       # γενική σελίδα: η μνήμη μένει ως έχει
+            elif source == "table":
+                self._svc.remember_service(candidates[0][1])
+            else:
+                self._svc.clear()
             usage_log.log(query, lang, greek_query, top_intent, top_score,
                           "link" + ctx_tag, f"{source}: {candidates[0][1]['title']}",
                           (time.monotonic() - t0) * 1000)

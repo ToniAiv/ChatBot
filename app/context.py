@@ -46,3 +46,48 @@ class Pending:
 
     def clear(self) -> None:
         self._p = None
+
+
+# ══════════════════════════════════════════════════════════════
+# Μνήμη ΥΠΗΡΕΣΙΑΣ
+# ══════════════════════════════════════════════════════════════
+# ΓΙΑΤΙ: το Pending θυμάται μόνο ό,τι ΔΕΝ καταλάβαμε. Μετά από σίγουρη
+# απάντηση το bot ξεχνούσε την υπηρεσία: «θέλω βεβαίωση κατοικίας» →
+# σύνδεσμος, «τι χαρτιά θέλει;» → «Για ποια υπηρεσία ρωτάτε;» (0/25 στο
+# agent/followup_questions.csv, reports/service_memory.md).
+# ΤΙ ΚΡΑΤΑΜΕ: την υπηρεσία (ή το τμήμα) της τελευταίας σίγουρης απάντησης, ή
+# του κουμπιού που πάτησε ο πολίτης.
+# ΠΩΣ ΧΡΗΣΙΜΟΠΟΙΕΙΤΑΙ: gui.Api.chat → connector.service_memory_answer, μόνο όταν
+# το μήνυμα ρωτά κάτι συγκεκριμένο (aspects.py) και το BERT δεν δείχνει άλλη
+# συγκεκριμένη υπηρεσία. Χωρίς μοντέλο: το κείμενο της σελίδας αυτούσιο.
+# ΣΒΗΝΕΙ: με νέα σίγουρη υπηρεσία (αντικαθίσταται), με απάντηση που δεν είναι
+# σίγουρη (το θέμα άλλαξε χωρίς να το καταλάβουμε), με «Νέα συζήτηση», ή μετά
+# από SERVICE_TTL_SECONDS.
+# ΔΙΑΚΟΠΤΗΣ: BOT_SERVICE_MEMORY=0 ./run.sh. Κλειστό, το bot συμπεριφέρεται ακριβώς
+# όπως πριν.
+SERVICE_MEMORY = os.environ.get("BOT_SERVICE_MEMORY", "1").strip().lower() not in ("0", "false", "off", "no")
+SERVICE_TTL_SECONDS = 600
+
+
+class Service:
+    """Η υπηρεσία της συζήτησης. Ένα αντικείμενο ανά παράθυρο / session."""
+
+    def __init__(self):
+        self._s = None
+
+    def remember_service(self, rec: dict) -> None:
+        if SERVICE_MEMORY and rec and rec.get("url"):
+            self._s = {"kind": "svc", "rec": rec, "t": time.monotonic()}
+
+    def remember_department(self, dept: dict) -> None:
+        if SERVICE_MEMORY and dept:
+            self._s = {"kind": "dept", "dept": dept, "t": time.monotonic()}
+
+    def get(self) -> dict | None:
+        """Χωρίς να τη σβήνει: ισχύει για όσες ερωτήσεις συνέχειας χρειαστεί."""
+        if not SERVICE_MEMORY or not self._s or time.monotonic() - self._s["t"] > SERVICE_TTL_SECONDS:
+            return None
+        return self._s
+
+    def clear(self) -> None:
+        self._s = None
