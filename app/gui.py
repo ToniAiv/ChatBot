@@ -26,6 +26,7 @@ from pathlib import Path
 # εισάγει αυτό το module για την ίδια λογική συνομιλίας, και σε server χωρίς
 # γραφικό περιβάλλον το pywebview δεν χρειάζεται.
 
+import aspect_embed
 import context
 import usage_log
 from aspects import detect_aspect
@@ -577,6 +578,8 @@ class Api:
             memory = self._svc.get()
             asked = detect_aspect(current_greek)
             specific = confidence >= MIN_BERT_CONFIDENCE and top_intent not in ROUTING_INTENTS
+            if memory and not asked and not specific and not used_ctx:
+                asked = aspect_embed.classify(current_greek)    # εφεδρεία των κανόνων, μόνο εδώ
             if memory and asked and not specific and not used_ctx:
                 title = memory["rec"]["title"] if memory["kind"] == "svc" else memory["dept"].get("name", "")
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
