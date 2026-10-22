@@ -1,0 +1,53 @@
+{
+ "σήμερα": {
+  "n": {
+   "followup": 25,
+   "δεν αναφέρεται": 5,
+   "switch": 6,
+   "oos": 4
+  },
+  "correct": {
+   "followup": 0,
+   "δεν αναφέρεται": 0,
+   "switch": 6,
+   "oos": 3
+  },
+  "llm_s": null,
+  "validator_rejects": 0,
+  "not_stated": 0
+ },
+ "qwen": {
+  "n": {
+   "followup": 25,
+   "δεν αναφέρεται": 5,
+   "switch": 6,
+   "oos": 4
+  },
+  "correct": {
+   "followup": 12,
+   "δεν αναφέρεται": 5,
+   "switch": 6,
+   "oos": 3
+  },
+  "llm_s": 53.8,
+  "validator_rejects": 0,
+  "not_stated": 7
+ },
+ "krikri": {
+  "n": {
+   "followup": 25,
+   "δεν αναφέρεται": 5,
+   "switch": 6,
+   "oos": 4
+  },
+  "correct": {
+   "followup": 13,
+   "δεν αναφέρεται": 5,
+   "switch": 6,
+   "oos": 3
+  },
+  "llm_s": 15.2,
+  "validator_rejects": 7,
+  "not_stated": 7
+ }
+}
