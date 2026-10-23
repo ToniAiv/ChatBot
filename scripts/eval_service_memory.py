@@ -145,6 +145,71 @@ def dialogues() -> list:
     return changed
 
 
+# ── τρία μηνύματα: τι γίνεται όταν το μεσαίο ΔΕΝ γίνεται κατανοητό (context.KEEP_ON_UNCLEAR) ──
+UNCLEAR = ["θα με ειδοποιήσουν;", "υπάρχει κάτι άλλο που πρέπει να ξέρω;", "είναι εύκολο;",
+           "χρειάζεται να περιμένω πολύ;", "και αν δεν το βρω;", "είναι ανοιχτά το Σάββατο;", "το κάνουν γρήγορα;"]
+M0 = ["θέλω βεβαίωση μόνιμης κατοικίας", "θέλω να δηλώσω τη γέννηση του παιδιού μου",
+      "θέλω αντίγραφο ληξιαρχικής πράξης γάμου", "θέλω διαγραφή οφειλής από τον δήμο",
+      "θέλω σήμα στάθμευσης μόνιμου κατοίκου στο κέντρο", "θέλω αίτηση για κλάδεμα δέντρων σε κοινόχρηστο χώρο"]
+
+
+def talk(msgs: list, memory: bool, keep: bool, embed: bool, m0_intent: str = "") -> list:
+    context.SERVICE_MEMORY, context.KEEP_ON_UNCLEAR, aspect_embed.ENABLED = memory, keep, embed
+    gui.detect_aspect = C.detect_aspect = ASPECTS["νέες"]
+    api, out = gui.Api(), []
+    for i, m in enumerate(msgs):
+        r = api.chat(m)
+        if i == 0 and r["options"] and m0_intent:
+            c = CLASSES.get(key(m0_intent))
+            if any(o["intent"] == c for o in r["options"]):
+                r = api.choose(c)
+        out.append(r["text"])
+    return out
+
+
+def three_turns() -> dict:
+    """Όφελος: υπηρεσία → μη κατανοητή ερώτηση → «ποιο είναι το τηλέφωνο;» (πρέπει: τηλέφωνο/email
+    της υπηρεσίας). Κίνδυνος: υπηρεσία → οι 63 διάλογοι του dialogue_eval/holdout (το Μ2 πρέπει
+    να δώσει τον αναμενόμενο προορισμό· «none» = κανένας σύνδεσμος υπηρεσίας)."""
+    from make_followup100 import gold
+    configs = [("χωρίς μνήμη", False, True), ("μνήμη, σβήνει (πριν)", True, False), ("μνήμη, μένει (τώρα)", True, True)]
+    res = {}
+    benefit = [q for q in csv.DictReader(open(ROOT / "agent/followup100c_questions.csv", encoding="utf-8"))][:60]
+    for embed in (False, True):
+        mode = "κανόνες + embeddings" if embed else "μόνο κανόνες"
+        for label, memory, keep in configs:
+            ok = n = 0
+            for i, q in enumerate(benefit):
+                t = target(q["m1_intent"])
+                url = t["url"]
+                facts = gold("contact", url, C.SECTIONS.get(url) or {}) if url else "-"
+                if facts == "-":
+                    continue
+                texts = talk([q["m1"], UNCLEAR[i % len(UNCLEAR)], "ποιο είναι το τηλέφωνο;"], memory, keep, embed, q["m1_intent"])
+                n += 1
+                ok += any(found(a, texts[-1]) for a in facts.split("/"))
+            res.setdefault("όφελος", {}).setdefault(mode, {})[label] = [ok, n]
+            print(f"  όφελος | {mode} | {label}: {ok}/{n}", flush=True)
+            ok = n = 0
+            for f in ("dialogue_eval.csv", "dialogue_holdout.csv"):
+                for i, r in enumerate(csv.DictReader(open(ROOT / "datasets" / f, encoding="utf-8"))):
+                    exp = [e for e in r["expect"].split("|") if e and e != "none"]
+                    if exp and not all(key(e) in CLASSES for e in exp):
+                        continue
+                    texts = talk([M0[i % len(M0)], r["m1"], r["m2"]], memory, keep, embed)
+                    last = texts[-1]
+                    if exp:
+                        ts = [target(e) for e in exp]
+                        good = any((t["url"] and t["url"] in last) or (t["phone"] and t["phone"][-6:] in re.sub(r"\D", "", last))
+                                   for t in ts)
+                    else:
+                        good = "eservices.heraklion.gr/e-services/" not in last
+                    n += 1; ok += good
+            res.setdefault("κίνδυνος", {}).setdefault(mode, {})[label] = [ok, n]
+            print(f"  κίνδυνος | {mode} | {label}: {ok}/{n}", flush=True)
+    return res
+
+
 DEV = ("followup100c_questions", "followup100_questions")      # ρύθμιση· τα 100b / 100d μόνο στο τέλος
 
 
@@ -203,6 +268,10 @@ def aspect_accuracy() -> dict:
 def main():
     if "--tune" in sys.argv:
         return tune()
+    if "--three" in sys.argv:
+        out = three_turns()
+        json.dump(out, open(ROOT / "reports/service_memory_three_turns.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        return out
     summary = {"followups": followups(), "aspect_accuracy": aspect_accuracy(), "dialogue_changes": dialogues()}
     json.dump(summary, open(ROOT / "reports/service_memory_summary.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("\nαποθηκεύτηκαν: reports/service_memory_summary.json, reports/service_memory_answers.csv")
