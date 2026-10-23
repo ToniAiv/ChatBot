@@ -816,13 +816,15 @@ def content_answer(rec: dict, aspect: str | None, lang: str = "el") -> str | Non
 
     # Προθεσμία / ποιος: μόνο όπου η σελίδα έχει τέτοια ενότητα (π.χ. δήλωση
     # γέννησης, γάμου). Διαδικασία: η «Περιγραφή», μαζί με την επικοινωνία.
+    # Ο τίτλος της ενότητας μπαίνει κι αυτός: συχνά κρατά την ίδια την απάντηση
+    # («Προθεσμία Δήλωσης: 10 ημερολογιακές ημέρες από τον τοκετό»).
     if aspect == "time":
-        body = next((t for h, t in sec.items() if h.lower().startswith("προθεσμ")), None)
-        return f"{m['time_head'].format(title=title)}\n{body}\n\n{m['source']} {url}" if body else None
+        h = next((h for h in sec if h.lower().startswith("προθεσμ")), None)
+        return f"{m['time_head'].format(title=title)}\n{h}\n{sec[h]}\n\n{m['source']} {url}" if h else None
 
     if aspect == "who":
-        body = next((t for h, t in sec.items() if re.match(r"(υπόχρεοι|δικαιούχοι)", h, re.I)), None)
-        return f"{m['who_head'].format(title=title)}\n{body}\n\n{m['source']} {url}" if body else None
+        h = next((h for h in sec if re.match(r"(υπόχρεοι|δικαιούχοι)", h, re.I)), None)
+        return f"{m['who_head'].format(title=title)}\n{h}\n{sec[h]}\n\n{m['source']} {url}" if h else None
 
     if aspect == "process":
         body = sec.get("Περιγραφή")

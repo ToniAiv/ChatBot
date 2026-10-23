@@ -16,7 +16,9 @@
 καλύτερη πτυχή ξεπερνά το MIN_SIM και το «καμία» κατά MARGIN.
 
 ΕΞΑΡΤΗΣΗ: το bge-m3 μέσω Ollama. Αν δεν απαντά, επιστρέφει None (μόνο οι κανόνες)
-και ξαναδοκιμάζει μετά από 60 s.
+και ξαναδοκιμάζει μετά από 60 s. Το warm() φορτώνει μοντέλο και παραδείγματα στην
+εκκίνηση: στη δοκιμή του web demo (23/10) το πρώτο «κρύο» αίτημα ξεπέρασε το
+όριο των 5 s και τα embeddings έμεναν κλειστά για 60 s.
 ΔΙΑΚΟΠΤΗΣ: BOT_ASPECT_EMBED=0.
 """
 from __future__ import annotations
@@ -85,8 +87,10 @@ _vecs = None              # (πίνακας, ετικέτες)
 _down_until = 0.0
 
 
-def _embed(texts: list) -> np.ndarray:
-    r = requests.post(URL, json={"model": MODEL, "input": texts}, timeout=5)
+def _embed(texts: list, timeout: float = 5) -> np.ndarray:
+    # keep_alive: το Ollama ξεφορτώνει μοντέλα μετά από 5 λεπτά αδράνειας· το
+    # bge-m3 είναι μικρό (1,2 GB) και κάθε κρύα φόρτωση κοστίζει δευτερόλεπτα.
+    r = requests.post(URL, json={"model": MODEL, "input": texts, "keep_alive": "24h"}, timeout=timeout)
     r.raise_for_status()
     m = np.asarray(r.json()["embeddings"], dtype=np.float32)
     return m / np.linalg.norm(m, axis=1, keepdims=True)
@@ -96,8 +100,22 @@ def _prototypes():
     global _vecs
     if _vecs is None:
         labels = [a for a, ps in PROTOTYPES.items() for _ in ps]
-        _vecs = (_embed([p for ps in PROTOTYPES.values() for p in ps]), np.array(labels))
+        _vecs = (_embed([p for ps in PROTOTYPES.values() for p in ps], timeout=60), np.array(labels))
     return _vecs
+
+
+def warm() -> bool:
+    """Στην εκκίνηση του server (gui._load_pipeline): φορτώνει το μοντέλο και τα παραδείγματα."""
+    global _down_until
+    if not ENABLED:
+        return False
+    try:
+        _prototypes()
+        return True
+    except Exception as e:
+        _down_until = time.monotonic() + 60
+        print(f"ℹ  Embeddings κατηγορίας εκτός (μόνο κανόνες): {str(e)[:80]}")
+        return False
 
 
 def scores(text: str) -> dict:

@@ -401,6 +401,9 @@ def _load_pipeline() -> None:
             "valid_kb":      valid_kb,
             "ready":         True,
         })
+        # Μετά το «ready»: το bot απαντά ήδη, και τα embeddings κατηγορίας
+        # φορτώνονται στο παρασκήνιο (χωρίς Ollama μένουν μόνο οι κανόνες).
+        threading.Thread(target=aspect_embed.warm, daemon=True).start()
     except Exception as e:
         _STATE["error"] = str(e)
         print(f"[!] Σφάλμα φόρτωσης μοντέλου: {e}")
