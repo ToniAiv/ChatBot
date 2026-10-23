@@ -32,6 +32,7 @@ import usage_log
 from aspects import detect_aspect
 from connector import (
     ROUTING_INTENTS,
+    destination_key,
     TranslationUnavailable,
     service_memory_answer,
     carried_aspect,
@@ -590,7 +591,8 @@ class Api:
                 return self._reply(service_memory_answer(memory, asked, lang), lang=lang)
 
             if confidence < MIN_BERT_CONFIDENCE:
-                self._svc.clear()          # δεν καταλάβαμε: το θέμα μπορεί να άλλαξε
+                if not context.KEEP_ON_UNCLEAR:
+                    self._svc.clear()      # όπως πριν: δεν καταλάβαμε → ίσως άλλαξε το θέμα
                 opts, msg, outcome = [], MSG[lang]["suggest"], "suggest"
                 # Οικογένεια υπηρεσιών («Μεταδημότευση»: όλα τα είδη) πριν από
                 # τις 3 ανάμεικτες επιλογές (connector.family_suggestions).
@@ -607,6 +609,14 @@ class Api:
                         _STATE["valid_kb"], _STATE["service_table"],
                         _STATE["no_service"])
                 self._ctx.remember(current_greek, aspect)
+                if opts and memory:
+                    # Κουμπιά για ΑΛΛΕΣ υπηρεσίες: πιθανότατα νέο θέμα, η μνήμη σβήνει.
+                    # Αν ανάμεσά τους είναι η υπηρεσία της μνήμης, μένει.
+                    here = (("svc", memory["rec"]["url"]) if memory["kind"] == "svc"
+                            else ("dept", memory["dept"].get("code")))
+                    if not any(destination_key(o["intent"], _STATE["service_table"], _STATE["no_service"]) == here
+                               for o in opts):
+                        self._svc.clear()
                 if opts:
                     usage_log.log(query, lang, greek_query, top_intent, top_score,
                                   outcome, " | ".join(o["title"][:40] for o in opts), ms)
