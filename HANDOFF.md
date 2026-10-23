@@ -62,6 +62,9 @@ Form filling / Security / Summary: όχι ακόμα.
   - Με αυστηρή βαθμολόγηση (σωστό και είδος ερώτησης): 30 → 54 και 26 → 55 από 70.
   - Λάθος είδος ερώτησης σε ~1 στις 5 (σωστή υπηρεσία, άλλη ενότητα).
   - 0 αλλαγές στους 63 παλιούς διαλόγους, `regression.py` ίδιο. Θέλει Ollama + `bge-m3` στον server.
+- **Δοκιμή στο web demo** (23/10, `reports/service_memory.md`): μνήμη ανά επισκέπτη, «Νέα συζήτηση», κλικ σε κουμπί, αγγλικά, χωρίς Ollama: όλα ✓.
+  Διορθώθηκαν δύο λάθη (5d0e4d8): εκκίνηση των embeddings στον server (warm-up) και ο τίτλος της ενότητας στην προθεσμία.
+  Το `DEPLOY.md` γράφει για το `bge-m3` και τους νέους διακόπτες.
 - Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent).
 
 ## 1. Τι είναι

@@ -12,8 +12,9 @@ ollama_up() { curl -s -m 3 http://localhost:11434/api/tags >/dev/null 2>&1; }
 case "${1:-gui}" in
   web)
     # Η web έκδοση δουλεύει και χωρίς Ollama: χωρίς αυτό δεν απαντά στα
-    # αγγλικά, και στις 11 υπηρεσίες χωρίς ελεγμένη σελίδα δίνει το τηλέφωνο.
-    ollama_up || echo "ℹ  Το Ollama δεν τρέχει: χωρίς αγγλικά και χωρίς την εφεδρεία Llama."
+    # αγγλικά, στις 11 υπηρεσίες χωρίς ελεγμένη σελίδα δίνει το τηλέφωνο, και οι
+    # ερωτήσεις συνέχειας αναγνωρίζονται μόνο με κανόνες (όχι με embeddings).
+    ollama_up || echo "ℹ  Το Ollama δεν τρέχει: χωρίς αγγλικά, χωρίς την εφεδρεία Llama, χωρίς embeddings (bge-m3)."
     shift; cd "$ROOT"; PYTHONPATH="$ROOT/app" exec "$PY" "$ROOT/app/server.py" "$@" ;;
   gui|cli)
     if ! ollama_up; then

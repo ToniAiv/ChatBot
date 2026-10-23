@@ -114,7 +114,7 @@ def warm() -> bool:
         return True
     except Exception as e:
         _down_until = time.monotonic() + 60
-        print(f"ℹ  Embeddings κατηγορίας εκτός (μόνο κανόνες): {str(e)[:80]}")
+        print(f"ℹ  Embeddings κατηγορίας εκτός (μόνο κανόνες): {str(e)[:80]}", flush=True)
         return False
 
 
