@@ -13,7 +13,7 @@ __pycache__/
 *.zip
 
 # Ενδιάμεσο αρχείο της αποτυχημένης προσπάθειας με qwen — δες
-# scripts/llm_prefill_table.py
+# archive/scripts/llm_prefill_table.py
 mappings/.llm_prefill.checkpoint.json
 logs/
 

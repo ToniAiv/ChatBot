@@ -116,24 +116,26 @@ Form filling / Security / Summary: όχι ακόμα.
 - **Έγγραφα που έμειναν πίσω (βρέθηκε 25/10):**
   - `reports/dataset_changes_for_team.md` και `reports/retrain_backlog.md`: δείχνουν ακόμα εκκρεμή τον ΚΟΚ και τις ληξιαρχικές πράξεις, που έγιναν (§8Α), και μιλούν για το 234. Να ενημερωθούν πριν σταλούν στην ομάδα.
   - `README.md`: σταματά στις 18/10. Δεν περιγράφει τη μνήμη υπηρεσίας, τα embeddings, το `server.py` και τον φάκελο `agent/`.
-- **Καθάρισμα αρχείων (έλεγχος 25/10).** Δεν σβήστηκε τίποτα· περιμένει απόφαση του χρήστη.
-  - **Χώρος στον δίσκο, χωρίς επίπτωση στον κώδικα:**
-    - βάρη του `intent-model-218` (433 MB, εκτός git). Τα χρησιμοποιούν μόνο τα παλιά scripts του Αυγούστου (`MODEL_218` στο `paths.py`). Εφεδρεία είναι το 234.
-    - `nomic-embed-text` στο Ollama (274 MB). Δεν το χρησιμοποιεί κανένα αρχείο.
-    - worktree προηγούμενης συνεδρίας `.claude/worktrees/handoff-backlog-review-9b83d5` (128 MB, branch `claude-work`, ίδιο commit με το `main`).
-  - **`logs/usage.jsonl`** (258 γραμμές, ως 12/10): προσωπικά δεδομένα. Αν δεν χρειάζεται, σβήσιμο· αλλιώς ανωνυμοποίηση.
-  - **Ιστορικά αρχεία μέσα στο git** (μεταφορά στο `archive/`, όχι διαγραφή):
-    - 14 scripts του Αυγούστου για τον πίνακα και την ταξινομία: `apply_claude_mapping`, `build_intent_map`, `build_new_taxonomy`, `build_service_table`, `check_dataset_quality`, `clean_dataset`, `enrich_kb`, `eval_intent`, `llm_map_review`, `llm_prefill_table`, `merge_dataset`, `parse_pdf_mapping`, `rename_greeklish_labels`, `validate_taxonomy`. Κανένα τρέχον αρχείο δεν τα καλεί.
-    - 9 αρχεία του `mappings/` που τα διαβάζουν μόνο αυτά τα scripts: `bridge_review.csv`, `intent_map*.csv/.txt/.json`, `pdf_intents.csv`, `pdf_services.csv`, `proposed_taxonomy.csv`.
-    - `datasets/dataset_new/` (13 αρχεία) και `datasets/Expanded_Intent_Dataset_2.csv`: το υλικό του Αυγούστου, που περιέχεται πλέον στο v6.
-    - `data/heraklion_eservices_checkpoint.json` (2,9 MB): checkpoint του crawler. Δεν το διαβάζει κανένα αρχείο.
+- ✅ **Καθάρισμα αρχείων (25/10, με απόφαση του χρήστη).**
+  - **Στο `archive/`, με `git mv`** (τίποτα δεν σβήστηκε από το git):
+    - 14 scripts του Αυγούστου για τον πίνακα και την ταξινομία → `archive/scripts/`: `apply_claude_mapping`, `build_intent_map`, `build_new_taxonomy`, `build_service_table`, `check_dataset_quality`, `clean_dataset`, `enrich_kb`, `eval_intent`, `llm_map_review`, `llm_prefill_table`, `merge_dataset`, `parse_pdf_mapping`, `rename_greeklish_labels`, `validate_taxonomy`. Δεν τρέχουν πια ως έχουν, γιατί διαβάζουν τις παλιές θέσεις.
+    - 9 αρχεία που διάβαζαν μόνο αυτά τα scripts → `archive/mappings/`: `bridge_review.csv`, `intent_map*.csv/.txt/.json`, `pdf_intents.csv`, `pdf_services.csv`, `proposed_taxonomy.csv`.
+    - `datasets/dataset_new/` (13 αρχεία) και `Expanded_Intent_Dataset_2.csv` → `archive/datasets/`: το υλικό του Αυγούστου, που περιέχεται πλέον στο v6.
+    - `heraklion_eservices_checkpoint.json` (2,9 MB, checkpoint του crawler) → `archive/data/`.
+    - Το `archive/` δεν μπαίνει στο Docker image (`.dockerignore`).
+    - Regression μετά τη μεταφορά: όλες οι μετρήσεις ίδιες με το baseline, επίδειξη 15/15.
+  - **Στον Κάδο του Mac** (σβήνονται οριστικά όταν ο χρήστης τον αδειάσει):
+    - τα βάρη του `intent-model-218` (452 MB). Τα μικρά αρχεία του μένουν στο git, αλλά το μοντέλο δεν φορτώνεται πια. Εφεδρεία είναι το 234.
+    - το `logs/usage.jsonl` (258 μηνύματα ως 12/10, προσωπικά δεδομένα)
+    - το worktree της συνεδρίας «Praktiki I» (`handoff-backlog-review-9b83d5`), μαζί με το `cache/` (91 MB) της υβριδικής αναζήτησης, που ξαναφτιάχνεται. Το branch `claude-work` σβήστηκε (ήταν ήδη μέσα στο `main`).
+  - **Εκκρεμεί από τον χρήστη:** `ollama rm nomic-embed-text` (274 MB). Δεν το χρησιμοποιεί κανένα αρχείο του project, αλλά κατέβηκε πριν από αυτό.
   - **Μένουν, αν και φαίνονται παλιά:**
     - `datasets/Expanded_Intent_Dataset_3.csv`: από εδώ παίρνει λεξιλόγιο το `spellfix.py` (όχι από το v6).
     - `data/heraklion_eservices_htmlstore.json.gz`: πηγή των ενοτήτων.
     - τα `reports/*_answers.csv`: τεκμήρια των αναφορών.
     - `agent/welcome.py`: πείραμα που σταμάτησε, αλλά τεκμηριωμένο.
 - **Κλειδί OpenAI** (`sk-proj-AFIx…`) σε `bot_test.env` του παλιού private repo ManosAmanak/Praktiki (4 αρχεία, 5 commits). Το ToniAiv/ChatBot είναι καθαρό. Πρέπει να το ακυρώσει ο κάτοχος του λογαριασμού OpenAI. Ποτέ να μη χρησιμοποιηθεί.
-- **Ollama σε αυτό το laptop:** `bge-m3`, `llama3.1`, `qwen3:14b`, `nomic-embed-text`. Τα gemma4, qwen2.5, mistral και Krikri σβήστηκαν. Το `qwen3:14b` το χρησιμοποιούν μόνο τα πειράματα του `agent/`· το `nomic-embed-text` κανένα αρχείο.
+- **Ollama σε αυτό το laptop:** `bge-m3`, `llama3.1`, `qwen3:14b`, `nomic-embed-text`. Τα gemma4, qwen2.5, mistral και Krikri σβήστηκαν. Το `qwen3:14b` το χρησιμοποιούν μόνο τα πειράματα του `agent/`· το `nomic-embed-text` κανένα αρχείο (θα σβηστεί, βλ. καθάρισμα).
 - Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent). Η τρέχουσα έκδοση του Pydantic AI (2.61) θέλει Python ≥ 3.11· το venv είναι 3.9.6.
 
 ## 1. Τι είναι
@@ -176,6 +178,12 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 αποτύχει ερώτηση επίδειξης. Τρέχει και τους 11 ελέγχους JavaScript του
 παραθύρου.
 
+**Από 18/10 βγάζει πάντα exit 1**, για μία γνωστή αποτυχία περιεχομένου:
+«ποιο είναι το τηλέφωνο για πιστοποιητικό οικογενειακής κατάστασης» →
+`επικοινωνία` (0,77), όχι τα στοιχεία της υπηρεσίας
+(`reports/model_233_evaluation.md` §2). Το baseline την περιέχει ήδη
+(περιεχόμενο 5/6). Νέο πρόβλημα είναι μόνο ό,τι άλλο εμφανιστεί.
+
 ## 3. Ροή μιας ερώτησης
 
 Η ροή βρίσκεται στο `app/gui.py` (`Api.chat`) και στο `app/connector.py`.
@@ -205,19 +213,19 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 | `app/` | `connector.py` (pipeline, μηνύματα MSG, κατώφλια) · `gui.py` (παράθυρο + JS) · `smalltalk.py` · `context.py` · `acronyms.py` · `greeklish.py` · `language.py` · `spellfix.py` · `aspects.py` · `aspect_embed.py` (είδος ερώτησης με embeddings, 22/10) · `departments.py` · `usage_log.py` · **`server.py`** (web έκδοση, 18/10) |
 | `agent/` | `bakeoff.py` (σύγκριση LLM) · `guarded.py` (agent «με πάτωμα») · `welcome.py` (συνομιλητής, σταμάτησε) · σετ ερωτήσεων `*_questions.csv`, γραμμένα πριν τρέξει μοντέλο (§0) |
 | `web/` | `widget.js` (αιωρούμενο κουμπί, μπαίνει σε οποιαδήποτε σελίδα). Οδηγίες για float και hosting: **`DEPLOY.md`** |
-| `mappings/` | `intent_to_service.csv` (237 γραμμές: 52 verified / 125 auto / 11 proposed / 49 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · τα υπόλοιπα είναι ιστορικά |
+| `mappings/` | `intent_to_service.csv` (237 γραμμές: 52 verified / 125 auto / 11 proposed / 49 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · `intent_groups.csv` (οικογένειες). Τα ιστορικά πήγαν στο `archive/mappings/` (25/10) |
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |
-| `datasets/` | `intent_dataset_v6_clean.csv` (**αυτό εκπαιδεύει**: 23.202 προτάσεις, 233 intents από 18/10, συν το `721ef64` της 19/10 που δεν έχει εκπαιδευτεί, βλ. §5· το μοντέλο 234 εκπαιδεύτηκε με την εκδοχή των 23.304 / 234) · `source/` (το αρχείο της ομάδας αυτούσιο) · `Expanded_Intent_Dataset_3.csv` (παλιό, 218) · `tests/` · σετ αξιολόγησης (§6) |
-| `models/` | `intent-model-233/` (**σε χρήση**, 18/10) · `intent-model-234/` (εφεδρεία) · `intent-model-218/`. Τα βάρη (`*.safetensors`, 430 MB) είναι εκτός git και υπάρχουν **μόνο** σε αυτούς τους φακέλους· τα υπόλοιπα αρχεία είναι στο git. Το `intent-model-102-old` αφαιρέθηκε 13/10 (μένει στο ιστορικό του git χωρίς βάρη) |
-| `scripts/` | `regression.py` · `compare_models.py` · `prepare_dataset.py` · `precheck_table.py` · `eval_*.py` (και `eval_service_memory.py`) · `test_gui_js.py` · `typos.py` · `extract_sections.py` · `check_urls.py` · `hybrid_search.py` · `make_followup100*.py`. Τα 14 scripts του Αυγούστου για πίνακα και ταξινομία είναι ιστορικά (Εκκρεμότητες 25/10, καθάρισμα) |
+| `datasets/` | `intent_dataset_v6_clean.csv` (**αυτό εκπαιδεύει**: 23.202 προτάσεις, 233 intents από 18/10, συν το `721ef64` της 19/10 που δεν έχει εκπαιδευτεί, βλ. §5· το μοντέλο 234 εκπαιδεύτηκε με την εκδοχή των 23.304 / 234) · `source/` (το αρχείο της ομάδας αυτούσιο) · `Expanded_Intent_Dataset_3.csv` (παλιό, 218· από εδώ παίρνει λεξιλόγιο το `spellfix.py`) · `tests/` · σετ αξιολόγησης (§6) |
+| `models/` | `intent-model-233/` (**σε χρήση**, 18/10) · `intent-model-234/` (εφεδρεία) · `intent-model-218/` (μόνο τα μικρά αρχεία· τα βάρη του στον Κάδο από 25/10). Τα βάρη (`*.safetensors`, 430 MB) είναι εκτός git και υπάρχουν **μόνο** σε αυτούς τους φακέλους· τα υπόλοιπα αρχεία είναι στο git. Το `intent-model-102-old` αφαιρέθηκε 13/10 (μένει στο ιστορικό του git χωρίς βάρη) |
+| `scripts/` | `regression.py` · `compare_models.py` · `prepare_dataset.py` · `precheck_table.py` · `eval_*.py` (και `eval_service_memory.py`) · `test_gui_js.py` · `typos.py` · `extract_sections.py` · `check_urls.py` · `hybrid_search.py` · `make_followup100*.py`. Τα 14 scripts του Αυγούστου για πίνακα και ταξινομία πήγαν στο `archive/scripts/` (25/10) |
 | `reports/` | `retrain_backlog.md` (**όλες οι εκκρεμότητες dataset**) · `model_233_evaluation.md` · αναφορές του agent: `llm_bakeoff.md`, `guarded_agent.md`, `hybrid_search.md`, `welcome_agent.md`, `service_memory.md` · `table_precheck.md` / `.csv` (ύποπτες γραμμές πίνακα) · `model_comparison.json` · `url_check.txt` · `eval_results.txt` |
-| `archive/` | `prakt_train_0.ipynb` (παλιό αντίγραφο του notebook εκπαίδευσης· τα διορθωμένα κελιά είναι στο Παράρτημα) |
+| `archive/` | `prakt_train_0.ipynb` (παλιό αντίγραφο του notebook εκπαίδευσης· τα διορθωμένα κελιά είναι στο Παράρτημα) · ο crawler · από 25/10 τα scripts, mappings και datasets του Αυγούστου (`archive/scripts`, `archive/mappings`, `archive/datasets`, `archive/data`). Τα scripts δεν τρέχουν ως έχουν: διαβάζουν τις παλιές θέσεις |
 
 ## 5. Μοντέλα και εκπαίδευση
 
 - **Σε χρήση: `intent-model-233`** (18/10/2026, απόφαση χρήστη), dataset του `52a76f1` (23.202 προτάσεις, 233 intents). Έναντι του 234: κάλυψη 74,1% → 79,7%, προσεγγίσιμο 87,3% → 90,1%, σίγουρα λάθη 3,6% → 2,7%, greeklish +12,5. Υποχωρεί στους διαλόγους (−5/45) και στο νερό (ύδρευση → αρδευτικά). Πλήρως: `reports/model_233_evaluation.md`.
 - **Εφεδρεία: `intent-model-234`** (12/10). Επιστροφή με `BOT_MODEL=models/intent-model-234`. Η γραμμή `τέλος_0_5` του πίνακα μένει γι' αυτό.
-- Παλαιότερο: `intent-model-218`.
+- Παλαιότερο: `intent-model-218`. Χωρίς βάρη από 25/10 (στον Κάδο), άρα δεν φορτώνεται.
 - **Το dataset στο `main` δεν είναι ακριβώς αυτό που εκπαίδευσε το 233.** Είναι του `52a76f1` συν το `721ef64` (19/10): 40 προτάσεις «κατ' οίκον» → «στο σπίτι», στην εργοθεραπεία και στην οικογενειακή βοήθεια. Ίδιο πλήθος προτάσεων και intents. Η αλλαγή αυτή δεν έχει εκπαιδευτεί.
 
 **Εκπαίδευση:** γίνεται από τον χρήστη στο **Colab**, με το notebook της ομάδας.

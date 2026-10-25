@@ -157,7 +157,7 @@ def build_tfidf_index(knowledge_base: list):
 # παρέχεται από τον Δήμο" ακόμα κι όταν το BERT έχει αναγνωρίσει σωστά.
 # Τον Αύγ 2026 ήταν έτσι 29 από τα 218 labels (13% της ταξινομίας,
 # σιωπηλά νεκρό). Μετονομάστηκαν σε ελληνικά με το
-# scripts/rename_greeklish_labels.py — αν προστεθεί ποτέ νέο label,
+# archive/scripts/rename_greeklish_labels.py — αν προστεθεί ποτέ νέο label,
 # πρέπει να είναι ελληνικό, άτονο, πεζό, με κάτω παύλες.
 
 
