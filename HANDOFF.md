@@ -38,7 +38,7 @@
 | Ασφαλές; (Security) | Κανένας ειδικός έλεγχος. Το bot απαντά μόνο με έτοιμα κείμενα. Στον guarded agent το LLM δεν γράφει ποτέ τηλέφωνο ή σύνδεσμο | `general_eval`: χειραγώγηση 5, προσωπικά στοιχεία 2 (λίγα για benchmark) |
 | Μέσα στις δυνατότητες; (Validator 1) | Βεβαιότητα του BERT και «Δεν κατάλαβα». Λείπει intent «εκτός αρμοδιότητας» (§8Α) | `general_eval`: εκτός αρμοδιότητας 10· `pooling_holdout`: 13/14 χωρίς σίγουρη απάντηση |
 | Classification | BERT 233 + ακρωνύμια, greeklish, ορθογραφία, βεβαιότητα προορισμού (§3) | regression (§6): top-1 86,2%, ακρίβεια όταν απαντά 96,6% |
-| Σίγουρη απάντηση; («?????») | Οικογένειες, «Μήπως εννοείτε;», διευκρίνιση με μνήμη (`BOT_MEMORY_KEEP_UNCLEAR`) | `family_holdout`· guarded agent: η επιλογή του LLM από τα κουμπιά σωστή 58–68% |
+| Σίγουρη απάντηση; («?????») | Ίδιος προορισμός → απάντηση· οικογένειες, «Μήπως εννοείτε;»· αλλιώς διευκρίνιση, με το ασαφές μήνυμα στη μνήμη (`context.py`) | `family_holdout`· guarded agent: η επιλογή του LLM από τα κουμπιά σωστή 58–68% |
 | Welcome (σύνθεση) | Έτοιμα κείμενα + ενότητα σελίδας (`aspects.py`, `aspect_embed.py`) | followup100b / 100d: 26 → 87, 33 → 89 |
 | Συνεκτική; (Validator 2) | Μόνο στον guarded agent: απόρριψη κειμένου του LLM με τηλέφωνο, σύνδεσμο ή email | — |
 | Τελειώσαμε; | Μνήμη υπηρεσίας, κουμπί «Νέα συζήτηση», «ευχαριστώ» στο `smalltalk.py` | διάλογοι τριών μηνυμάτων: 58/58 με embeddings |
@@ -134,7 +134,7 @@ Form filling / Security / Summary: όχι ακόμα.
     - `agent/welcome.py`: πείραμα που σταμάτησε, αλλά τεκμηριωμένο.
 - **Κλειδί OpenAI** (`sk-proj-AFIx…`) σε `bot_test.env` του παλιού private repo ManosAmanak/Praktiki (4 αρχεία, 5 commits). Το ToniAiv/ChatBot είναι καθαρό. Πρέπει να το ακυρώσει ο κάτοχος του λογαριασμού OpenAI. Ποτέ να μη χρησιμοποιηθεί.
 - **Ollama σε αυτό το laptop:** `bge-m3`, `llama3.1`, `qwen3:14b`, `nomic-embed-text`. Τα gemma4, qwen2.5, mistral και Krikri σβήστηκαν. Το `qwen3:14b` το χρησιμοποιούν μόνο τα πειράματα του `agent/`· το `nomic-embed-text` κανένα αρχείο.
-- Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent).
+- Διάβασμα για το meeting: HF Agents Course (Unit 1) και Pydantic AI (Agent, tools, output validators, multi-agent). Η τρέχουσα έκδοση του Pydantic AI (2.61) θέλει Python ≥ 3.11· το venv είναι 3.9.6.
 
 ## 1. Τι είναι
 
