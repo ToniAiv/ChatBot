@@ -534,7 +534,7 @@ class Api:
                 usage_log.log(query, st["lang"], "", None, None, "smalltalk", st["kind"])
                 return self._reply(
                     st["text"],
-                    [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
+                    [{"intent": o["intent"], "title": o["title"], "kind": o["kind"], "url": o.get("url", "")}
                      for o in st["options"]], st["lang"])
 
             pending = self._ctx.take()     # μνήμη ενός μηνύματος (context.py)
@@ -622,7 +622,7 @@ class Api:
                                   outcome, " | ".join(o["title"][:40] for o in opts), ms)
                     return self._reply(
                         msg,
-                        [{"intent": o["intent"], "title": o["title"], "kind": o["kind"]}
+                        [{"intent": o["intent"], "title": o["title"], "kind": o["kind"], "url": o.get("url", "")}
                          for o in opts], lang)
                 usage_log.log(query, lang, greek_query, top_intent, top_score,
                               "refuse_low_confidence", "", ms)
