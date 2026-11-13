@@ -149,13 +149,26 @@ def run_security(names: list) -> None:
 
 
 # ── 2. Validator μόνος του ────────────────────────────────────
+_TABLE = {r["intent"]: r for r in csv.DictReader(open(ROOT / "mappings" / "intent_to_service.csv", encoding="utf-8"))}
+
+
+def _gold(intent: str, kind: str) -> set:
+    """Τα αποδεκτά «ίχνη» ενός intent. Για τις «proposed» αντιστοιχίσεις του πίνακα κρατά
+    τη σελίδα του πίνακα: το bot δεν τις χρησιμοποιεί και βρίσκει σελίδα με TF-IDF, σε 8
+    περιπτώσεις λάθος (π.χ. «κίτρινη διαγράμμιση» → «Διαγραφή οφειλής»). Βλ. 6η μέτρηση."""
+    r = _TABLE.get(intent)
+    if kind == "service" and r and r.get("status") == "proposed" and r.get("url"):
+        return {r["url"]}
+    return set().union(*B.gold_targets(intent, kind))
+
+
 def targets_of(q: dict) -> list:
     """Ένα σύνολο αποδεκτών «ιχνών» ανά αίτημα (expect: a|b). Το a/b σημαίνει
     «δεκτό το a ή το b», για δύο σελίδες που καλύπτουν το ίδιο θέμα."""
     if q["type"] not in SERVICE_TYPES:
         return []
     kind = "department" if q["type"] == "department" else "service"
-    return [set().union(*B.gold_targets(part.replace("/", "|"), kind))
+    return [set().union(*(_gold(i, kind) for i in part.split("/") if i))
             for part in q["expect"].split("|") if part]
 
 

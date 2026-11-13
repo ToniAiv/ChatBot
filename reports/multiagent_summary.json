@@ -3463,6 +3463,762 @@
     "seconds_mean": 2.5,
     "seconds_median": 1.2,
     "llm_calls_mean": 1.2
+   },
+   "holdout6/service": {
+    "n": 60,
+    "bot_correct": 31,
+    "correct": 36,
+    "partial": 36,
+    "bot_correct_or_button": 46,
+    "correct_or_button": 48,
+    "wins": [
+     "d01",
+     "p22",
+     "p23",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d10",
+     "d11",
+     "d16",
+     "p36",
+     "p48",
+     "p58"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04",
+     "p20",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 8,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 19,
+    "final_fail": 2,
+    "seconds_mean": 9.1,
+    "seconds_median": 8.4,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/other": {
+    "n": 6,
+    "bot_correct": 6,
+    "correct": 5,
+    "partial": 5,
+    "bot_correct_or_button": 6,
+    "correct_or_button": 5,
+    "wins": [],
+    "losses": [
+     "o03"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "o03"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 4,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 6.3,
+    "seconds_median": 5.2,
+    "llm_calls_mean": 2.5
+   },
+   "holdout6/service_el": {
+    "n": 36,
+    "bot_correct": 18,
+    "correct": 24,
+    "partial": 24,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 30,
+    "wins": [
+     "d01",
+     "p22",
+     "p37",
+     "p46",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d11",
+     "d16",
+     "p36"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 4,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 11,
+    "final_fail": 2,
+    "seconds_mean": 8.3,
+    "seconds_median": 7.7,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/service_en": {
+    "n": 12,
+    "bot_correct": 7,
+    "correct": 8,
+    "partial": 8,
+    "bot_correct_or_button": 10,
+    "correct_or_button": 9,
+    "wins": [
+     "p35",
+     "p40",
+     "p50"
+    ],
+    "losses": [
+     "d05",
+     "d10"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "p20",
+     "p45"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 2,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 0,
+    "seconds_mean": 13.5,
+    "seconds_median": 13.1,
+    "llm_calls_mean": 3.5
+   },
+   "holdout6/service_greeklish": {
+    "n": 12,
+    "bot_correct": 6,
+    "correct": 4,
+    "partial": 4,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 9,
+    "wins": [
+     "p23"
+    ],
+    "losses": [
+     "d08",
+     "p48",
+     "p58"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "p38",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 2,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 0,
+    "seconds_mean": 7.0,
+    "seconds_median": 6.5,
+    "llm_calls_mean": 4
+   },
+   "holdout6/departments": {
+    "n": 18,
+    "bot_correct": 10,
+    "correct": 6,
+    "partial": 6,
+    "bot_correct_or_button": 13,
+    "correct_or_button": 12,
+    "wins": [
+     "d01"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d10",
+     "d11",
+     "d16"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "d04"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 2,
+    "seconds_mean": 6.8,
+    "seconds_median": 5.7,
+    "llm_calls_mean": 3.6
+   },
+   "holdout6/pages": {
+    "n": 42,
+    "bot_correct": 21,
+    "correct": 30,
+    "partial": 30,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 36,
+    "wins": [
+     "p22",
+     "p23",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "p36",
+     "p48",
+     "p58"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "p20",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 8,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 17,
+    "final_fail": 0,
+    "seconds_mean": 10.1,
+    "seconds_median": 9.0,
+    "llm_calls_mean": 3.8
+   }
+  },
+  "tev1-en-clean": {
+   "holdout6/service": {
+    "n": 60,
+    "bot_correct": 31,
+    "correct": 41,
+    "partial": 41,
+    "bot_correct_or_button": 46,
+    "correct_or_button": 47,
+    "wins": [
+     "d01",
+     "d03",
+     "d18",
+     "p23",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d11",
+     "d16"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04",
+     "d05",
+     "p19",
+     "p20",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 7,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 20,
+    "final_fail": 2,
+    "seconds_mean": 10.5,
+    "seconds_median": 10.4,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/other": {
+    "n": 6,
+    "bot_correct": 6,
+    "correct": 6,
+    "partial": 6,
+    "bot_correct_or_button": 6,
+    "correct_or_button": 6,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 5,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 6.1,
+    "seconds_median": 4.8,
+    "llm_calls_mean": 2.3
+   },
+   "holdout6/service_el": {
+    "n": 36,
+    "bot_correct": 18,
+    "correct": 24,
+    "partial": 24,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 29,
+    "wins": [
+     "d01",
+     "p37",
+     "p46",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d11",
+     "d16"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04",
+     "p19"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 4,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 10,
+    "final_fail": 2,
+    "seconds_mean": 9.7,
+    "seconds_median": 9.6,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/service_en": {
+    "n": 12,
+    "bot_correct": 7,
+    "correct": 9,
+    "partial": 9,
+    "bot_correct_or_button": 10,
+    "correct_or_button": 9,
+    "wins": [
+     "p35",
+     "p40",
+     "p50"
+    ],
+    "losses": [
+     "d05"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "d05",
+     "p20",
+     "p45"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 0,
+    "seconds_mean": 15.9,
+    "seconds_median": 15.7,
+    "llm_calls_mean": 3.5
+   },
+   "holdout6/service_greeklish": {
+    "n": 12,
+    "bot_correct": 6,
+    "correct": 8,
+    "partial": 8,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 9,
+    "wins": [
+     "d03",
+     "d18",
+     "p23"
+    ],
+    "losses": [
+     "d08"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "p38",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 2,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 6,
+    "final_fail": 0,
+    "seconds_mean": 7.5,
+    "seconds_median": 6.8,
+    "llm_calls_mean": 4
+   },
+   "holdout6/departments": {
+    "n": 18,
+    "bot_correct": 10,
+    "correct": 9,
+    "partial": 9,
+    "bot_correct_or_button": 13,
+    "correct_or_button": 12,
+    "wins": [
+     "d01",
+     "d03",
+     "d18"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d11",
+     "d16"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "d04",
+     "d05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 2,
+    "seconds_mean": 9.7,
+    "seconds_median": 9.5,
+    "llm_calls_mean": 3.6
+   },
+   "holdout6/pages": {
+    "n": 42,
+    "bot_correct": 21,
+    "correct": 32,
+    "partial": 32,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 35,
+    "wins": [
+     "p23",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "p19",
+     "p20",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 7,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 16,
+    "final_fail": 0,
+    "seconds_mean": 10.8,
+    "seconds_median": 11.1,
+    "llm_calls_mean": 3.8
+   }
+  },
+  "tev1-en-clean-hint": {
+   "holdout6/service": {
+    "n": 60,
+    "bot_correct": 31,
+    "correct": 44,
+    "partial": 44,
+    "bot_correct_or_button": 46,
+    "correct_or_button": 47,
+    "wins": [
+     "d01",
+     "d03",
+     "d14",
+     "d18",
+     "p23",
+     "p24",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d11"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04",
+     "d05",
+     "p19",
+     "p20",
+     "p22",
+     "p27",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 9,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 24,
+    "final_fail": 3,
+    "seconds_mean": 9.8,
+    "seconds_median": 9.9,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/other": {
+    "n": 6,
+    "bot_correct": 6,
+    "correct": 6,
+    "partial": 6,
+    "bot_correct_or_button": 6,
+    "correct_or_button": 6,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 5,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 6.2,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 2.3
+   },
+   "holdout6/service_el": {
+    "n": 36,
+    "bot_correct": 18,
+    "correct": 27,
+    "partial": 27,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 29,
+    "wins": [
+     "d01",
+     "d14",
+     "p24",
+     "p37",
+     "p46",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [
+     "d11"
+    ],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "d04",
+     "p19",
+     "p22",
+     "p27"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 5,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 14,
+    "final_fail": 3,
+    "seconds_mean": 8.8,
+    "seconds_median": 9.3,
+    "llm_calls_mean": 3.7
+   },
+   "holdout6/service_en": {
+    "n": 12,
+    "bot_correct": 7,
+    "correct": 9,
+    "partial": 9,
+    "bot_correct_or_button": 10,
+    "correct_or_button": 9,
+    "wins": [
+     "p35",
+     "p40",
+     "p50"
+    ],
+    "losses": [
+     "d05"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "d05",
+     "p20",
+     "p45"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 0,
+    "seconds_mean": 15.0,
+    "seconds_median": 14.9,
+    "llm_calls_mean": 3.5
+   },
+   "holdout6/service_greeklish": {
+    "n": 12,
+    "bot_correct": 6,
+    "correct": 8,
+    "partial": 8,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 9,
+    "wins": [
+     "d03",
+     "d18",
+     "p23"
+    ],
+    "losses": [
+     "d08"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "p38",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 3,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 6,
+    "final_fail": 0,
+    "seconds_mean": 7.5,
+    "seconds_median": 6.4,
+    "llm_calls_mean": 4.1
+   },
+   "holdout6/departments": {
+    "n": 18,
+    "bot_correct": 10,
+    "correct": 11,
+    "partial": 11,
+    "bot_correct_or_button": 13,
+    "correct_or_button": 13,
+    "wins": [
+     "d01",
+     "d03",
+     "d14",
+     "d18"
+    ],
+    "losses": [
+     "d05",
+     "d08",
+     "d11"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "d04",
+     "d05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 5,
+    "final_fail": 2,
+    "seconds_mean": 9.3,
+    "seconds_median": 9.3,
+    "llm_calls_mean": 3.6
+   },
+   "holdout6/pages": {
+    "n": 42,
+    "bot_correct": 21,
+    "correct": 33,
+    "partial": 33,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 34,
+    "wins": [
+     "p23",
+     "p24",
+     "p35",
+     "p37",
+     "p40",
+     "p46",
+     "p50",
+     "p51",
+     "p52",
+     "p54",
+     "p56",
+     "p59"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "p27"
+    ],
+    "sure_wrong": [
+     "p19",
+     "p20",
+     "p22",
+     "p27",
+     "p38",
+     "p45",
+     "p53"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 8,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 19,
+    "final_fail": 1,
+    "seconds_mean": 10.0,
+    "seconds_median": 10.8,
+    "llm_calls_mean": 3.8
    }
   }
  }

@@ -56,8 +56,14 @@
   - Ετικέτα «χειραγώγηση» σε κομμάτια greeklish αιτημάτων: 9 στα 49 χωρίς μεταγραφή, **0 στα 46** με μεταγραφή. Οι απόπειρες χειραγώγησης σε greeklish κόβονται και οι 6.
   - Συνολικά 58 ερωτήσεις υπηρεσίας: bot **32**, multi-agent 26 (με τα κουμπιά 42 και 43). **Όχι ισάξιο στο holdout5.**
   - Αιτία των ήττων: σε όλες τις 11 το BERT ήταν σίγουρο και σωστό, και ο Validator (`choose`) το απέρριψε ή το άλλαξε. Συχνά ο προορισμός ήταν τμήμα με τηλέφωνο (Πολεοδομία, Τεχνική Υπηρεσία).
-- **Και τα πέντε holdout είναι πια «ειδωμένα» για το multi-agent:** η επόμενη αλλαγή θέλει νέο σετ, ιδανικά με μηνύματα από ανθρώπους.
-- **Νέα σετ**, γραμμένα πριν τρέξει μοντέλο: `multiagent/sets/security_questions.csv` (52), `compound_questions.csv` (16), `agent/holdout3_questions.csv` (78), `agent/holdout4_questions.csv` (74) και `agent/holdout5_questions.csv` (70). Εξαιρούνται από την εκπαίδευση (`prepare_dataset.py`).
+- **6η μέτρηση: τι βλέπει ο Validator για κάθε υπηρεσία** (`MA_VALIDATOR_TEXT=clean`, `MA_VALIDATOR_HINT=1`, **κλειστά**: δεν πέρασαν τον κανόνα).
+  - Καθαρές περιγραφές, χωρίς τις τυποποιημένες φράσεις που είχαν 154 από τις 162 σελίδες. Τα τμήματα γράφουν τι εξυπηρετούν. Το «καμία» είναι αυστηρό. Με το `HINT` ο Validator μαθαίνει και την πρώτη επιλογή του BERT.
+  - Νέο σετ `agent/holdout6_questions.csv` (66: 18 τμήματα, 42 σελίδες). 60 ερωτήσεις υπηρεσίας: bot **31**, προεπιλογή 36, `clean` 41, `clean-hint` **44**· σίγουρα λάθη **1**, 5, 7, 9.
+  - Τα τμήματα διορθώθηκαν (6 → 9 → 11, το bot 10). Ανέβηκαν όμως και τα σίγουρα λάθη, άρα ο κανόνας (το πολύ +1) δεν επέτρεψε αλλαγή προεπιλογής.
+  - **Απόφαση για την ομάδα:** πόσο «κοστίζει» μια λάθος απάντηση απέναντι σε ένα «Μήπως εννοείτε;». Με κόστος 1 το `clean-hint` είναι το καλύτερο, με κόστος 2 οι ρυθμίσεις ισοπαλούν.
+  - **Σφάλμα του bot:** για 8 υπηρεσίες με «proposed» αντιστοίχιση στο `mappings/intent_to_service.csv`, το bot αγνοεί τη σελίδα του πίνακα και δίνει λάθος σελίδα με TF-IDF (π.χ. «κίτρινη διαγράμμιση» → «Διαγραφή οφειλής», «άδεια παραγωγού αγρότη» → γάμος αλλοδαπών). Η βαθμολόγηση του `multiagent/evaluate.py` διορθώθηκε. **Το bot δεν διορθώθηκε.**
+- **Και τα έξι holdout είναι πια «ειδωμένα» για το multi-agent:** η επόμενη αλλαγή θέλει νέο σετ, ιδανικά με μηνύματα από ανθρώπους.
+- **Νέα σετ**, γραμμένα πριν τρέξει μοντέλο: `multiagent/sets/security_questions.csv` (52), `compound_questions.csv` (16), `agent/holdout3_questions.csv` (78), `agent/holdout4_questions.csv` (74), `agent/holdout5_questions.csv` (70) και `agent/holdout6_questions.csv` (66). Εξαιρούνται από την εκπαίδευση (`prepare_dataset.py`).
 
 ### Νέο σχήμα (Figma, 25/10): αντικαταστάθηκε από το σχήμα της 10/11
 Δύο εκδοχές της ίδιας ροής:
@@ -146,9 +152,11 @@ Form filling / Security / Summary: όχι ακόμα.
 - ✅ **Multi-agent: holdout3, «επείγον» με απάντηση, χωρισμός σε όλες τις γλώσσες, `qwen3:14b` ως Validator** (13/11, §0). Το κατώφλι του Validator ελέγχθηκε και μένει 0,5.
 - ✅ **Multi-agent: ανάλυση όλων των λαθών και Validator με τις 5 πρώτες του BERT** (13/11, holdout4, §0).
 - ✅ **Multi-agent: greeklish σε ελληνικά για Security και Validator** (13/11, holdout5, §0).
+- ✅ **Multi-agent: καθαρές περιγραφές για τον Validator** (13/11, holdout6, §0). Μετρήθηκαν, αλλά δεν έγιναν προεπιλογή: περισσότερες σωστές, αλλά και περισσότερα σίγουρα λάθη.
+- **Bot: 8 «proposed» αντιστοιχίσεις δίνουν λάθος σελίδα** (`mappings/intent_to_service.csv`, 6η μέτρηση της `reports/multiagent.md`). Θέλει έλεγχο από άνθρωπο και διόρθωση.
 - **Multi-agent, επόμενα βήματα (περιμένουν απόφαση):**
-  1. **Σίγουρο BERT:** η πρώτη του μένει, εκτός αν ο Validator διαλέξει άλλη με υψηλή πιθανότητα (π.χ. 0,7). Στα holdout4–5 οι λάθος αλλαγές είχαν 0,50–0,58 και οι σωστές 0,75–0,93, και στο holdout5 ο Validator απέρριψε 9 σωστές σίγουρες απαντήσεις.
-  2. **Τμήματα με τηλέφωνο:** περιγραφή που να λέει τι εξυπηρετεί το τμήμα, ώστε ο Validator να τα αναγνωρίζει ως υπηρεσία.
+  1. **Απόφαση της ομάδας:** πόσο «κοστίζει» μια λάθος απάντηση απέναντι σε ένα «Μήπως εννοείτε;». Από αυτό εξαρτάται ποια ρύθμιση είναι καλύτερη.
+  2. **`clean-hint` με κατώφλι 0,7 για τις επιλογές του Validator,** σε νέο σετ. Στο holdout6 θα έδινε περίπου +7 σωστές με +1 σίγουρο λάθος, αλλά αυτό είναι υπολογισμός από το ίδιο σετ.
   3. Χωρισμός μόνο όταν υπάρχει λέξη σύνδεσης (και, επίσης, and, also, kai), όχι σε κάθε τελεία.
   4. Ο έλεγχος λέξεων του Validator για LLM να δέχεται παράφραση, ή να φύγει, πριν δοκιμαστεί ξανά μεγαλύτερο μοντέλο (π.χ. σε cloud).
   5. Αναδιατύπωση και τελικός Validator: τίποτα σε πέντε μετρήσεις. Είναι μέρος του σχήματος της ομάδας, άρα θέλει απόφαση της ομάδας.
@@ -274,7 +282,7 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 |---|---|
 | `app/` | `connector.py` (pipeline, μηνύματα MSG, κατώφλια) · `gui.py` (παράθυρο + JS) · `smalltalk.py` · `context.py` · `acronyms.py` · `greeklish.py` · `language.py` · `spellfix.py` · `aspects.py` · `aspect_embed.py` (είδος ερώτησης με embeddings, 22/10) · `departments.py` · `usage_log.py` · **`server.py`** (web έκδοση, 18/10) |
 | `agent/` | `bakeoff.py` (σύγκριση LLM) · `guarded.py` (agent «με πάτωμα») · `welcome.py` (συνομιλητής, σταμάτησε) · σετ ερωτήσεων `*_questions.csv`, γραμμένα πριν τρέξει μοντέλο (§0) |
-| `multiagent/` | το multi-agent σύστημα της 13/11 (§0): `pipeline.py` (ροή) · `welcome.py` · `security.py` · `validator.py` · `classifier.py` (το BERT του bot) · `config.py` (μοντέλο ανά ρόλο, `MA_SCOPE`, `MA_DECISION_LANG`, `MA_EMERGENCY`, `MA_SPLIT_LANGS`, `MA_VALIDATOR_MODE`, `MA_GREEKLISH`) · `cli.py` · `evaluate.py` · `sets/` |
+| `multiagent/` | το multi-agent σύστημα της 13/11 (§0): `pipeline.py` (ροή) · `welcome.py` · `security.py` · `validator.py` · `classifier.py` (το BERT του bot) · `config.py` (μοντέλο ανά ρόλο, `MA_SCOPE`, `MA_DECISION_LANG`, `MA_EMERGENCY`, `MA_SPLIT_LANGS`, `MA_VALIDATOR_MODE`, `MA_GREEKLISH`, `MA_VALIDATOR_TEXT`, `MA_VALIDATOR_HINT`) · `cli.py` · `evaluate.py` · `sets/` |
 | `web/` | `widget.js` (αιωρούμενο κουμπί, μπαίνει σε οποιαδήποτε σελίδα). Οδηγίες για float και hosting: **`DEPLOY.md`** |
 | `mappings/` | `intent_to_service.csv` (237 γραμμές: 52 verified / 125 auto / 11 proposed / 49 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · `intent_groups.csv` (οικογένειες). Τα ιστορικά πήγαν στο `archive/mappings/` (25/10) |
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |
