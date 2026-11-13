@@ -35,7 +35,8 @@ def main() -> None:
     settings = config.load(args.profile)
     classifier.load()
     print("\nΜοντέλα: " + ", ".join(f"{r}={settings.model(r)}" for r in config.ROLES)
-          + f"\n«Εκτός αρμοδιότητας»: {settings.scope} BERT · ερωτήσεις decision model: {settings.decision_lang}\n")
+          + f"\n«Εκτός αρμοδιότητας»: {settings.scope} BERT · ερωτήσεις decision model: {settings.decision_lang}"
+          + f" · «επείγον»: {settings.emergency} · χωρισμός: {settings.split_langs}\n")
     session = Session()
     if args.once:
         show(pipeline.run(args.once, session, settings))

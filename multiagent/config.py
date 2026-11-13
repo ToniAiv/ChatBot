@@ -71,11 +71,13 @@ class Settings:
     # «Επείγον» από τον Security:
     #   block   μόνο το κείμενο για το 112, χωρίς ταξινόμηση
     #   answer  το κείμενο για το 112 και, αν BERT και Validator βρουν υπηρεσία, η απάντησή της
-    emergency: str = "block"
     # Ο έλεγχος «μήπως έχει δύο αιτήματα» πριν από το μοντέλο του χωρισμού:
     #   el   μόνο ελληνικές λέξεις (και, επίσης…)· τα αγγλικά και τα greeklish δεν χωρίζονται
     #   all  και αγγλικές λέξεις και greeklish (and, also, kai, episis…)
-    split_langs: str = "el"
+    # Προεπιλογές answer και all από τους κανόνες της 3ης μέτρησης (holdout3): ίδιο
+    # σκορ με block / el, 2 σύνθετα μισά σωστά επιπλέον (reports/multiagent.md).
+    emergency: str = "answer"
+    split_langs: str = "all"
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
