@@ -1,0 +1,79 @@
+id,text,type,expect,lang,note
+s01,βαφτίσαμε το μωρό την Κυριακή· πρέπει να το δηλώσουμε κάπου στον δήμο;,service,δηλωση_βαπτισης,el,τυχαίο δείγμα seed 47 από τις 116 υπηρεσίες που δεν υπάρχουν σε άλλο σετ
+s02,ειμαι αγροτης και θελω να πουλαω τα λαχανικα μου σε λαικες και παζαρια. τι αδεια βγαζω;,service,αδεια_παραγωγου_αγροτη,el,
+s03,ti xartia xreiazontai gia na kataxwrithei to asanser ths polykatoikias?,service,δικαιολογητικα_ανελκυστηρων,greeklish,
+s04,πλήρωσα δύο φορές το ίδιο πρόστιμο στον δήμο. πώς παίρνω πίσω τα χρήματα;,service,επιστροφη_χρηματων,el,
+s05,My first name is misspelled in the municipal registry. How can I get it corrected?,service,διορθωση_ονοματοσ,en,
+s06,μπορω να πληρωσω τις οφειλες μου στον δημο με καρτα απο το σπιτι;,service,ηλεκτρονικες_πληρωμες_οφειλων,el,
+s07,έχω ένα θέμα με τον ΚΟΚ που δεν είναι κλήση. πού κάνω αίτηση;,service,γενικη_αιτηση_κοκ,el,
+s08,thelw na poulaw rouxa se bazaar kai panhgyria. ti vevaiwsh xreiazomai apo ton dhmo?,service,βεβαιωση_δραστηριοποιησης_υπαιθριου,greeklish,
+s09,μου εβαλαν προστιμο επειδη αφησα σακουλες εξω απο τον καδο. μπορω να το αμφισβητησω;,service,ενσταση_προστιμου_καθαριοτητας,el,
+s10,I need a certificate that I owe nothing to the municipality for a public tender.,service,δημοτικη_ενημεροτητα_βεβαιωμενων_χρεων,en,
+s11,μου χρεώνουν τέλη για μαγαζί που έκλεισε πριν από τρία χρόνια. θέλω να διαγραφεί η οφειλή,service,διαγραφη_οφειλης,el,
+s12,κάποιοι έσπασαν τα παγκάκια και τη βρύση στο πάρκο της γειτονιάς μας,service,καταγγελια_δολιοφθορων,el,
+s13,thelw na anoiksw idiwtiko wdeio. ti dikaiologhtika thelei h adeia?,service,αδεια_μουσικων_ιδρυματων/αδειοδοτηση_ωδειων_μουσικων_σχολων_χορωδιων,greeklish,δύο σελίδες για το ίδιο θέμα: δεκτή όποια από τις δύο
+s14,στη διασταυρωση του δρομου μας δεν υπαρχει πινακιδα στοπ και γινονται συνεχεια τρακαρισματα,service,σημανση_οδοστρωματος,el,
+s15,I'm a street musician. Do I need permission to play in the old town of Heraklion?,service,διαχειριση_καλλιτεχνικησ_δραστηριοτητασ,en,
+s16,τα αγριόχορτα στο πεζοδρόμιο έφτασαν μέχρι το γόνατο. ποιος τα κόβει;,service,καταστροφη_ζιζανιων,el,
+s17,θέλουμε να φτιάξουμε πεζοδρόμιο μπροστά από την καινούργια οικοδομή. χρειάζεται άδεια;,service,αδεια_κατασκευησ_πεζοδρομιου,el,
+s18,tha valoume perifraxh sto pezodromio gia oikodomikes ergasies. prepei na paroume adeia?,service,αδεια_χρησης_κοινοχρηστου_περιφραξης_οδοστρωματος,greeklish,
+s19,βγαινουν λυματα απο το φρεατιο της αποχετευσης στον δρομο και βρωμαει ολη η γειτονια,service,αγωγοι_αποχετευσης,el,
+s20,The notary asks for a certificate that no monetary contribution is owed for my plot.,service,βεβαιωση_μη_οφειλης_εισφορας_σε_χρημα,en,
+s21,θέλω να νομιμοποιήσω ένα αυθαίρετο και μου ζητάνε έκθεση αυτοψίας από τον δήμο,service,εκδοση_αυτοψιασ_νομμιμοποιηση,el,
+s22,αγορασα ενα οικοπεδο και θελω να ξερω τι επιτρεπεται να χτισω εκει,service,οικοδομησιμοτητα,el,
+s23,ti thlefwno exei to dhmarxeio gia genikes plhrofories?,service,επικοινωνια,greeklish,
+s24,θα έρθει γερανός για τη μετακόμιση και πρέπει να κλείσει ο δρόμος για δύο ώρες,service,αδεια_διακοπης_κυκλοφοριας,el,
+s25,I want to open a café. How do I find out if the land use allows it?,service,βεβαιωση_χρησης_γης,en,
+s26,η ΔΕΗ μου ζητάει χαρτί από τον δήμο για να βάλει ρεύμα στο καινούργιο μαγαζί,service,ηλεκτροδοτηση_οικιων_καταστηματων,el,
+s27,το ακινητο μου δεν εχει αριθμο και η τραπεζα θελει επισημη βεβαιωση της διευθυνσης,service,διευθυνση_οικοπεδου,el,
+s28,o dromos mas einai akoma xwmatodromos. mporei o dhmos na ton asfaltwsei?,service,ασφαλτοστρωση_οδου,greeklish,
+s29,ο συμβολαιογράφος θέλει να αποδείξω ότι το οικόπεδο είναι άρτιο. ποια υπηρεσία το βεβαιώνει;,service,βεβαιωση_αρτιοτητας,el,
+s30,My power was cut off and the electricity company says I need a document from the municipality to reconnect.,service,επανασυνδεση_παροχης,en,
+s31,στην έξοδο του στενού μας δεν φαίνονται τα αυτοκίνητα. θέλουμε να μπει ένας καθρέφτης,service,τοποθετηση_πινακιδων_σημανσης_και_καθρεπτων,el,
+s32,χρειάζομαι βεβαίωση για τις πινακίδες που υπήρχαν σε έναν δρόμο τη μέρα του τροχαίου μου,service,χορηγηση_βεβαιωσης_σημανσης_οδων,el,
+s33,sth lhksiarxikh praksh gennhshs exei grapsei lathos to xwrio pou gennhthka. pws diorthwnetai?,service,διορθωση_γεννησησ,greeklish,
+s34,χώρισα το 2015 και είμαι ακόμα γραμμένη στη μερίδα του πρώην συζύγου μου. θέλω δική μου μερίδα,service,μεριδα_δημοτη_διαζυγιου,el,
+s35,We are renovating and need to put a skip for building debris on the street. Is a permit required?,service,αδεια_κοινοχρηστου_καδου_οικοδομικων_υπολειμματων,en,
+s36,εχω καφετερια και θελω να βγαλω τραπεζοκαθισματα στο πεζοδρομιο για ολο τον χρονο,service,ετησια_αδεια_κοινοχρηστου_χωρου/καταληψη_κοινοχρηστου_χωρου,el,δύο σελίδες για το ίδιο θέμα: δεκτή όποια από τις δύο
+s37,δεν βαφτίσαμε το παιδί μας. πώς δηλώνουμε το όνομά του;,service,δηλωση_ονοματοδοσιας,el,
+s38,ena megalo dentro sto pezodromio exei kserathei. mporei o dhmos na to kopsei?,service,πρασινο_δενδρα,greeklish,
+s39,το παρτέρι στην πλατεία μας είναι παρατημένο. θέλουμε να φυτευτούν λουλούδια και να συντηρείται,service,καλλωπισμοσ_συντηρηση_κοινοχρηστων,el,
+s40,A new town planning study covers my area. How do I declare my property?,service,υποολη_δηλωσησ_ιδιοκτησιασ_πολεοδομικη_μελετη,en,
+s41,καποιος εχει αφησει μπαζα και σιδερα στη μεση του δρομου εδω και μια εβδομαδα,service,καταγγελια_εμποδιων_οδοστρωματος,el,
+s42,ο μηχανικός μου ζήτησε να βγάλω από τον δήμο το υψόμετρο του οικοπέδου. πού γίνεται αυτό;,service,υψομετρο,el,
+s43,plhrwsa argotera ena xrewstoumeno giati hmoun sto nosokomeio. mporw na glitwsw tis prosayksiseis?,service,απαλλαγη_προσαυξησεων_βεβαιωμενης_οφειλης,greeklish,
+s44,κάθε πρωί παρκάρουν πάνω στη ράμπα για αναπηρικά αμαξίδια έξω από το σχολείο,service,καταγγελια_παραβιασης_κοκ,el,
+s45,Unlicensed street vendors block the sidewalk near the market every day.,service,καταγγελια_λαικων_αγορων_εμποριου,en,
+s46,ο δρομος μας εχει να σκουπιστει μηνες. ειναι γεματος φυλλα και σκονη,service,αιτημα_οδοκαθαρισμου,el,
+s47,πού μπορώ να δω όλες τις υπηρεσίες που κάνει ο δήμος ηλεκτρονικά;,service,γενικες_υπηρεσιες,el,
+s48,tha vapsoume thn prosopsh ths polykatoikias kai xreiazomaste skalwsia sto pezodromio. ti adeia thelei?,service,αδεια_τοποθετησης_ικριωματων,greeklish,
+s49,παντρευτήκαμε στην εκκλησία πριν από μια εβδομάδα. πρέπει να δηλώσουμε τον γάμο στο ληξιαρχείο;,service,δηλωση_γαμου,el,
+s50,We already have our marriage license. How do we book a civil wedding at the town hall?,service,τελεση_πολιτικου_γαμου,en,
+c01,θέλω να μάθω για μια κατάσχεση που μου έκανε ο δήμος στον λογαριασμό και επίσης να μπει φωτιστικό στο σκοτεινό στενό μας,service,κατασχεσεις_οφειλων|τοποθετηση_φωτιστικων_σωματων,el,σύνθετο· υπηρεσίες 51-66 του ίδιου δείγματος σε ζευγάρια
+c02,θελω να κανω αιτηση για επιδομα και επισης εσπασε ο σωληνας του νερου εξω απο το σπιτι,service,επιδοματα|βλαβη_αγωγου_υδρευσης,el,σύνθετο
+c03,χρειάζομαι αντίγραφο ληξιαρχικής πράξης γέννησης και άδεια για τραπεζάκια έξω από το μαγαζί μου,service,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γεννησης|καταληψη_κοινοχρηστου_χωρου/ετησια_αδεια_κοινοχρηστου_χωρου,el,σύνθετο
+c04,θέλουμε άδεια για τη χορωδία του συλλόγου μας. επίσης πού δημοσιεύονται τα δελτία τύπου του δήμου;,service,αδειοδοτηση_ωδειων_μουσικων_σχολων_χορωδιων/αδεια_μουσικων_ιδρυματων|δελτια_τυπου,el,σύνθετο
+c05,I need a monthly permit to keep building materials on the street and also yellow lines at my garage entrance,service,μηνιαια_εκδοση_αδειων_οικοδομικων|αιτηση_κιτρινης_διαγραμμισης,en,σύνθετο
+c06,I need an identity certificate for my 12-year-old son and also there are rats in the park next to our house,service,πιστοποιητικο_ταυτοπροσωπιασ_ανηλικων|μυοκτονια_κοινοχρηστων,en,σύνθετο
+c07,ena egkataleleimmeno ktirio sth geitonia mas peftei kommatia kai episis thelw diagrammish sthn eisodo tou parking mou,service,καταγγελια_εγκαταλελειμμενων_κτιριων|αδεια_οριζοντιας_σημανσης_εισοδου_εξοδου,greeklish,σύνθετο
+c08,molis gennhsa kai thelw na erthei h maia sto spiti. episis exei polla koynoupia sto parko kai thelei psekasmo,service,μαια|απεντομωση_κοινοχρηστων,greeklish,σύνθετο
+o01,πώς βγάζω ευρωπαϊκή κάρτα ασφάλισης υγείας;,out_of_scope,,el,
+o02,ποιο λεωφορείο πάει από το λιμάνι στο αεροδρόμιο;,out_of_scope,,el,
+o03,θελω να κανω ενσταση για τον ΕΝΦΙΑ,out_of_scope,,el,
+o04,πώς κλείνω ραντεβού για νέα αστυνομική ταυτότητα;,out_of_scope,,el,
+o05,Which beaches near Heraklion have a blue flag this year?,out_of_scope,,en,
+o06,pws kanw aithsh gia syntaksh ston EFKA?,out_of_scope,,greeklish,
+o07,μου χάλασε το ψυγείο. ξέρετε κάποιον καλό τεχνικό;,out_of_scope,,el,
+o08,Can you recommend a good lawyer for my divorce?,out_of_scope,,en,
+g01,καλησπέρα! μπορείτε να με βοηθήσετε;,smalltalk,,el,
+g02,ευχαριστώ πολύ για τη βοήθεια!,smalltalk,,el,
+u01,έπεσε μεγάλο κλαδί στη μέση του δρόμου και δεν περνάνε τα αυτοκίνητα. ελάτε γρήγορα!,service,σπασμενα_κλαδια_δεντρου,el,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+u02,ο δρόμος υποχώρησε και άνοιξε λακκούβα ένα μέτρο. θα σκοτωθεί κανείς!,service,επισκευη_οδοστρωματος,el,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+u03,εχουν σβησει ολες οι κολονες στη γειτονια. ειναι κατασκοτεινα και φοβομαστε να περπατησουμε,service,βλαβες_δικτυου_δημοτικου_φωτισμου,el,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+u04,αδέσποτα σκυλιά επιτίθενται στα παιδιά στη στάση του σχολικού κάθε πρωί,service,αδεσποτα_ζωα,el,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+u05,Water is gushing from a broken pipe in our street and flooding the sidewalk!,service,βλαβη_αγωγου_υδρευσης,en,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+u06,trexei nero apo to kapaki ths ydreyshs edw kai wres kai plhmmyrise o dromos,service,βλαβη_αγωγου_υδρευσης,greeklish,στοχευμένο: αίτημα του Δήμου που μοιάζει επείγον
+e01,καίγεται το διπλανό χωράφι και η φωτιά πλησιάζει τα σπίτια!,emergency,,el,στοχευμένο: πραγματικό επείγον (σωστό = η απάντηση έχει το 112)
+e02,ένας ηλικιωμένος έπεσε στον δρόμο και δεν αντιδρά,emergency,,el,στοχευμένο: πραγματικό επείγον
+e03,Someone is trying to break into my neighbour's house right now,emergency,,en,στοχευμένο: πραγματικό επείγον
+e04,petaxthke kalwdio reymatos sto dromo kai bgazei spinthres,emergency,,greeklish,στοχευμένο: πραγματικό επείγον
