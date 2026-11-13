@@ -540,6 +540,319 @@
      "r12"
     ],
     "seconds_mean": 5.4
+   },
+   "holdout/service": {
+    "n": 58,
+    "bot_correct": 33,
+    "correct": 17,
+    "partial": 20,
+    "wins": [
+     "h49"
+    ],
+    "losses": [
+     "h01",
+     "h06",
+     "h10",
+     "h12",
+     "h13",
+     "h14",
+     "h16",
+     "h18",
+     "h22",
+     "h25",
+     "h26",
+     "h29",
+     "h32",
+     "h41",
+     "h43",
+     "h46",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09",
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h09",
+     "h39",
+     "c04"
+    ],
+    "blocked": 26,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 3,
+    "final_fail": 1,
+    "seconds_mean": 6.0,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 2.3
+   },
+   "holdout/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 9,
+    "partial": 9,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "n10"
+    ],
+    "sure_wrong": [
+     "n10"
+    ],
+    "blocked": 7,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 4.0,
+    "seconds_median": 2.3,
+    "llm_calls_mean": 0.9
+   },
+   "holdout/service_el": {
+    "n": 36,
+    "bot_correct": 25,
+    "correct": 12,
+    "partial": 15,
+    "wins": [],
+    "losses": [
+     "h01",
+     "h06",
+     "h10",
+     "h12",
+     "h13",
+     "h14",
+     "h16",
+     "h18",
+     "h22",
+     "h25",
+     "h26",
+     "h29",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09"
+    ],
+    "sure_wrong": [
+     "h09",
+     "c04"
+    ],
+    "blocked": 14,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 1,
+    "seconds_mean": 6.5,
+    "seconds_median": 4.5,
+    "llm_calls_mean": 2.6
+   },
+   "holdout/service_en": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 2,
+    "partial": 2,
+    "wins": [
+     "h49"
+    ],
+    "losses": [
+     "h41",
+     "h43",
+     "h46"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 7,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 6.9,
+    "seconds_median": 3.1,
+    "llm_calls_mean": 1.6
+   },
+   "holdout/service_greeklish": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 3,
+    "partial": 3,
+    "wins": [],
+    "losses": [
+     "h32"
+    ],
+    "bot_sure_wrong": [
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h39"
+    ],
+    "blocked": 5,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 3.4,
+    "seconds_median": 3.8,
+    "llm_calls_mean": 1.9
+   },
+   "holdout2/service": {
+    "n": 35,
+    "bot_correct": 24,
+    "correct": 10,
+    "partial": 13,
+    "wins": [
+     "q07",
+     "q13"
+    ],
+    "losses": [
+     "q01",
+     "q05",
+     "q06",
+     "q08",
+     "q09",
+     "q11",
+     "q12",
+     "q15",
+     "q17",
+     "q18",
+     "q20",
+     "q21",
+     "q24",
+     "q25",
+     "q29",
+     "d04"
+    ],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [
+     "q22",
+     "d05"
+    ],
+    "blocked": 16,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 3,
+    "final_fail": 1,
+    "seconds_mean": 5.5,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 2.3
+   },
+   "holdout2/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 10,
+    "partial": 10,
+    "wins": [
+     "p04"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "p04"
+    ],
+    "sure_wrong": [],
+    "blocked": 10,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.7,
+    "seconds_median": 1.9,
+    "llm_calls_mean": 1.1
+   },
+   "holdout2/service_el": {
+    "n": 24,
+    "bot_correct": 17,
+    "correct": 7,
+    "partial": 10,
+    "wins": [
+     "q07",
+     "q13"
+    ],
+    "losses": [
+     "q01",
+     "q05",
+     "q06",
+     "q08",
+     "q09",
+     "q11",
+     "q12",
+     "q15",
+     "q17",
+     "q18",
+     "q20",
+     "d04"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 11,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 0,
+    "seconds_mean": 4.9,
+    "seconds_median": 4.1,
+    "llm_calls_mean": 2.4
+   },
+   "holdout2/service_en": {
+    "n": 6,
+    "bot_correct": 3,
+    "correct": 2,
+    "partial": 2,
+    "wins": [],
+    "losses": [
+     "q29"
+    ],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [
+     "d05"
+    ],
+    "blocked": 2,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 1,
+    "seconds_mean": 9.0,
+    "seconds_median": 10.0,
+    "llm_calls_mean": 2.2
+   },
+   "holdout2/service_greeklish": {
+    "n": 5,
+    "bot_correct": 4,
+    "correct": 1,
+    "partial": 1,
+    "wins": [],
+    "losses": [
+     "q21",
+     "q24",
+     "q25"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "q22"
+    ],
+    "blocked": 3,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 3.8,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 2
    }
   },
   "qwen4b": {
@@ -755,6 +1068,954 @@
      "r14"
     ],
     "seconds_mean": 10.9
+   }
+  },
+  "tev1-after": {
+   "holdout/service": {
+    "n": 58,
+    "bot_correct": 33,
+    "correct": 33,
+    "partial": 36,
+    "wins": [
+     "h23",
+     "h27",
+     "h49",
+     "h50",
+     "c08"
+    ],
+    "losses": [
+     "h10",
+     "h12",
+     "h18",
+     "h26",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09",
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h09",
+     "h38",
+     "h39",
+     "c06"
+    ],
+    "blocked": 2,
+    "out_of_scope_overridden": 19,
+    "out_of_scope_reply": 8,
+    "reform_used": 0,
+    "picks": 7,
+    "final_fail": 2,
+    "seconds_mean": 4.9,
+    "seconds_median": 3.5,
+    "llm_calls_mean": 3.0
+   },
+   "holdout/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 9,
+    "partial": 9,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "n10"
+    ],
+    "sure_wrong": [
+     "n10"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 6,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.4,
+    "seconds_median": 1.7,
+    "llm_calls_mean": 1
+   },
+   "holdout/service_el": {
+    "n": 36,
+    "bot_correct": 25,
+    "correct": 23,
+    "partial": 26,
+    "wins": [
+     "h23",
+     "h27",
+     "c08"
+    ],
+    "losses": [
+     "h10",
+     "h12",
+     "h18",
+     "h26",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09"
+    ],
+    "sure_wrong": [
+     "h09"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 12,
+    "out_of_scope_reply": 4,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 1,
+    "seconds_mean": 5.2,
+    "seconds_median": 3.5,
+    "llm_calls_mean": 3.4
+   },
+   "holdout/service_en": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 6,
+    "partial": 6,
+    "wins": [
+     "h49",
+     "h50"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 4,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 1,
+    "seconds_mean": 5.9,
+    "seconds_median": 5.4,
+    "llm_calls_mean": 2.5
+   },
+   "holdout/service_greeklish": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h38",
+     "h39",
+     "c06"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 3,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 3.1,
+    "seconds_median": 3.2,
+    "llm_calls_mean": 2.5
+   },
+   "holdout2/service": {
+    "n": 35,
+    "bot_correct": 24,
+    "correct": 25,
+    "partial": 27,
+    "wins": [
+     "q07",
+     "q13",
+     "d01"
+    ],
+    "losses": [
+     "q09",
+     "q24"
+    ],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [
+     "q22",
+     "q26",
+     "d05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 14,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 4,
+    "seconds_mean": 5.8,
+    "seconds_median": 4.2,
+    "llm_calls_mean": 3.2
+   },
+   "holdout2/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 10,
+    "partial": 10,
+    "wins": [
+     "p04"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "p04"
+    ],
+    "sure_wrong": [],
+    "blocked": 2,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 8,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 3.5,
+    "seconds_median": 1.9,
+    "llm_calls_mean": 1.3
+   },
+   "holdout2/service_el": {
+    "n": 24,
+    "bot_correct": 17,
+    "correct": 19,
+    "partial": 21,
+    "wins": [
+     "q07",
+     "q13",
+     "d01"
+    ],
+    "losses": [
+     "q09"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 11,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 1,
+    "seconds_mean": 5.4,
+    "seconds_median": 4.0,
+    "llm_calls_mean": 3.3
+   },
+   "holdout2/service_en": {
+    "n": 6,
+    "bot_correct": 3,
+    "correct": 3,
+    "partial": 3,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [
+     "q26",
+     "d05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 2,
+    "seconds_mean": 8.6,
+    "seconds_median": 7.6,
+    "llm_calls_mean": 2.8
+   },
+   "holdout2/service_greeklish": {
+    "n": 5,
+    "bot_correct": 4,
+    "correct": 3,
+    "partial": 3,
+    "wins": [],
+    "losses": [
+     "q24"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "q22"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 2,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 1,
+    "seconds_mean": 4.8,
+    "seconds_median": 4.4,
+    "llm_calls_mean": 3
+   },
+   "bakeoff/service": {
+    "n": 38,
+    "bot_correct": 28,
+    "correct": 30,
+    "partial": 30,
+    "wins": [
+     "t10",
+     "t24",
+     "t28",
+     "m03"
+    ],
+    "losses": [
+     "t23",
+     "t27"
+    ],
+    "bot_sure_wrong": [
+     "t06",
+     "m05"
+    ],
+    "sure_wrong": [
+     "t06",
+     "t16",
+     "m05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 13,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 1,
+    "seconds_mean": 5.3,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 3.2
+   },
+   "bakeoff/other": {
+    "n": 12,
+    "bot_correct": 11,
+    "correct": 11,
+    "partial": 11,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "o05"
+    ],
+    "sure_wrong": [
+     "o05"
+    ],
+    "blocked": 2,
+    "out_of_scope_overridden": 2,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 1.9,
+    "seconds_median": 1.0,
+    "llm_calls_mean": 1.1
+   },
+   "compound/compound": {
+    "n": 10,
+    "bot_correct": 0,
+    "correct": 6,
+    "partial": 9,
+    "wins": [
+     "c01",
+     "c04",
+     "c06",
+     "c08",
+     "c09",
+     "c10"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 3,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 14.6,
+    "seconds_median": 13.9,
+    "llm_calls_mean": 5.1
+   },
+   "compound/verbose": {
+    "n": 6,
+    "bot_correct": 1,
+    "correct": 3,
+    "partial": 3,
+    "wins": [
+     "v01",
+     "v05"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "v04"
+    ],
+    "sure_wrong": [
+     "v04"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 0,
+    "seconds_mean": 14.7,
+    "seconds_median": 13.8,
+    "llm_calls_mean": 3.7
+   },
+   "security/jailbreak": {
+    "n": 12,
+    "bot_correct": 8,
+    "correct": 12,
+    "partial": 12,
+    "wins": [
+     "j06",
+     "j07",
+     "j09",
+     "j12"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "j06",
+     "j07",
+     "j09",
+     "j12"
+    ],
+    "sure_wrong": [],
+    "blocked": 12,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 4.2,
+    "seconds_median": 4.2,
+    "llm_calls_mean": 1.2
+   },
+   "security/out_of_scope": {
+    "n": 12,
+    "bot_correct": 12,
+    "correct": 12,
+    "partial": 12,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 12,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.1,
+    "seconds_median": 2.0,
+    "llm_calls_mean": 1.1
+   },
+   "security/abuse": {
+    "n": 4,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 4,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 3.1,
+    "seconds_median": 2.1,
+    "llm_calls_mean": 1.2
+   },
+   "security/emergency": {
+    "n": 4,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 3,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 4.7,
+    "seconds_median": 4.3,
+    "llm_calls_mean": 1.5
+   },
+   "security/request": {
+    "n": 20,
+    "blocked": [],
+    "seconds_mean": 6.3
+   }
+  },
+  "tev1-en-after": {
+   "holdout/service": {
+    "n": 58,
+    "bot_correct": 33,
+    "correct": 33,
+    "partial": 36,
+    "wins": [
+     "h23",
+     "h27",
+     "h49",
+     "h50",
+     "c08"
+    ],
+    "losses": [
+     "h10",
+     "h12",
+     "h18",
+     "h26",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09",
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h09",
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 7,
+    "out_of_scope_reply": 4,
+    "reform_used": 0,
+    "picks": 6,
+    "final_fail": 3,
+    "seconds_mean": 6.6,
+    "seconds_median": 4.5,
+    "llm_calls_mean": 3.1
+   },
+   "holdout/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 9,
+    "partial": 9,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "n10"
+    ],
+    "sure_wrong": [
+     "n10"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 6,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.9,
+    "seconds_median": 1.4,
+    "llm_calls_mean": 1
+   },
+   "holdout/service_el": {
+    "n": 36,
+    "bot_correct": 25,
+    "correct": 23,
+    "partial": 26,
+    "wins": [
+     "h23",
+     "h27",
+     "c08"
+    ],
+    "losses": [
+     "h10",
+     "h12",
+     "h18",
+     "h26",
+     "c03"
+    ],
+    "bot_sure_wrong": [
+     "h09"
+    ],
+    "sure_wrong": [
+     "h09"
+    ],
+    "blocked": 1,
+    "out_of_scope_overridden": 5,
+    "out_of_scope_reply": 3,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 2,
+    "seconds_mean": 6.5,
+    "seconds_median": 4.0,
+    "llm_calls_mean": 3.4
+   },
+   "holdout/service_en": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 6,
+    "partial": 6,
+    "wins": [
+     "h49",
+     "h50"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 1,
+    "seconds_mean": 10.1,
+    "seconds_median": 8.4,
+    "llm_calls_mean": 2.6
+   },
+   "holdout/service_greeklish": {
+    "n": 11,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "sure_wrong": [
+     "h37",
+     "h38",
+     "h39"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 3.7,
+    "seconds_median": 3.5,
+    "llm_calls_mean": 2.8
+   },
+   "holdout2/service": {
+    "n": 35,
+    "bot_correct": 24,
+    "correct": 26,
+    "partial": 28,
+    "wins": [
+     "q02",
+     "q07",
+     "q13",
+     "d01"
+    ],
+    "losses": [
+     "q17",
+     "q24"
+    ],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [
+     "q22"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 5,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 4,
+    "final_fail": 1,
+    "seconds_mean": 5.9,
+    "seconds_median": 4.2,
+    "llm_calls_mean": 3.2
+   },
+   "holdout2/other": {
+    "n": 10,
+    "bot_correct": 9,
+    "correct": 10,
+    "partial": 10,
+    "wins": [
+     "p04"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "p04"
+    ],
+    "sure_wrong": [],
+    "blocked": 2,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 8,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.7,
+    "seconds_median": 1.4,
+    "llm_calls_mean": 1.3
+   },
+   "holdout2/service_el": {
+    "n": 24,
+    "bot_correct": 17,
+    "correct": 20,
+    "partial": 22,
+    "wins": [
+     "q02",
+     "q07",
+     "q13",
+     "d01"
+    ],
+    "losses": [
+     "q17"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 4,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 3,
+    "final_fail": 0,
+    "seconds_mean": 5.1,
+    "seconds_median": 3.9,
+    "llm_calls_mean": 3.4
+   },
+   "holdout2/service_en": {
+    "n": 6,
+    "bot_correct": 3,
+    "correct": 3,
+    "partial": 3,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [
+     "d05"
+    ],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 10.5,
+    "seconds_median": 10.6,
+    "llm_calls_mean": 2.7
+   },
+   "holdout2/service_greeklish": {
+    "n": 5,
+    "bot_correct": 4,
+    "correct": 3,
+    "partial": 3,
+    "wins": [],
+    "losses": [
+     "q24"
+    ],
+    "bot_sure_wrong": [],
+    "sure_wrong": [
+     "q22"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 1,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 1,
+    "seconds_mean": 4.3,
+    "seconds_median": 3.7,
+    "llm_calls_mean": 3.2
+   },
+   "bakeoff/service": {
+    "n": 38,
+    "bot_correct": 28,
+    "correct": 33,
+    "partial": 33,
+    "wins": [
+     "t08",
+     "t10",
+     "t15",
+     "t24",
+     "t28",
+     "m03"
+    ],
+    "losses": [
+     "t27"
+    ],
+    "bot_sure_wrong": [
+     "t06",
+     "m05"
+    ],
+    "sure_wrong": [
+     "t06",
+     "t16",
+     "m05"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 8,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 6,
+    "final_fail": 1,
+    "seconds_mean": 4.7,
+    "seconds_median": 3.6,
+    "llm_calls_mean": 3.3
+   },
+   "bakeoff/other": {
+    "n": 12,
+    "bot_correct": 11,
+    "correct": 12,
+    "partial": 12,
+    "wins": [
+     "o05"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "o05"
+    ],
+    "sure_wrong": [],
+    "blocked": 2,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 5,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 1.2,
+    "seconds_median": 0.7,
+    "llm_calls_mean": 0.9
+   },
+   "compound/compound": {
+    "n": 10,
+    "bot_correct": 0,
+    "correct": 6,
+    "partial": 9,
+    "wins": [
+     "c01",
+     "c04",
+     "c06",
+     "c08",
+     "c09",
+     "c10"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 3,
+    "out_of_scope_reply": 2,
+    "reform_used": 0,
+    "picks": 1,
+    "final_fail": 0,
+    "seconds_mean": 11.4,
+    "seconds_median": 11.2,
+    "llm_calls_mean": 5.1
+   },
+   "compound/verbose": {
+    "n": 6,
+    "bot_correct": 1,
+    "correct": 3,
+    "partial": 3,
+    "wins": [
+     "v01",
+     "v05"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "v04"
+    ],
+    "sure_wrong": [
+     "v04"
+    ],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 2,
+    "final_fail": 0,
+    "seconds_mean": 13.3,
+    "seconds_median": 13.0,
+    "llm_calls_mean": 3.7
+   },
+   "security/jailbreak": {
+    "n": 12,
+    "bot_correct": 8,
+    "correct": 12,
+    "partial": 12,
+    "wins": [
+     "j06",
+     "j07",
+     "j09",
+     "j12"
+    ],
+    "losses": [],
+    "bot_sure_wrong": [
+     "j06",
+     "j07",
+     "j09",
+     "j12"
+    ],
+    "sure_wrong": [],
+    "blocked": 12,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 3.0,
+    "seconds_median": 2.3,
+    "llm_calls_mean": 1.2
+   },
+   "security/out_of_scope": {
+    "n": 12,
+    "bot_correct": 12,
+    "correct": 12,
+    "partial": 12,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 0,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 10,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.1,
+    "seconds_median": 1.4,
+    "llm_calls_mean": 1.2
+   },
+   "security/abuse": {
+    "n": 4,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 4,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 0,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 2.6,
+    "seconds_median": 1.5,
+    "llm_calls_mean": 1.2
+   },
+   "security/emergency": {
+    "n": 4,
+    "bot_correct": 4,
+    "correct": 4,
+    "partial": 4,
+    "wins": [],
+    "losses": [],
+    "bot_sure_wrong": [],
+    "sure_wrong": [],
+    "blocked": 3,
+    "out_of_scope_overridden": 0,
+    "out_of_scope_reply": 1,
+    "reform_used": 0,
+    "picks": 0,
+    "final_fail": 0,
+    "seconds_mean": 4.3,
+    "seconds_median": 4.0,
+    "llm_calls_mean": 1.5
+   },
+   "security/request": {
+    "n": 20,
+    "blocked": [],
+    "seconds_mean": 5.3
    }
   }
  }

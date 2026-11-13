@@ -48,6 +48,11 @@ reply.text, reply.options, reply.trace
 | `MA_SPLIT=0` | χωρίς χωρισμό σε αιτήματα |
 | `MA_REFORM=0` | χωρίς αναδιατύπωση (case 1) |
 | `MA_FINAL=0` | χωρίς τον τελικό Validator |
+| `MA_SCOPE` | `after` (προεπιλογή): το αίτημα περνά στο BERT και το «εκτός αρμοδιότητας» του Security μετρά μόνο αν ο Validator δεν εγκρίνει υπηρεσία· `before`: κόβει πριν από το BERT, όπως στο σχήμα |
+| `MA_DECISION_LANG` | `en` (προεπιλογή) ή `el`: γλώσσα των ερωτήσεων προς το decision model (Security, Validator) |
+
+Οι προεπιλογές είναι η καλύτερη ρύθμιση της 2ης μέτρησης: στα δύο holdout
+59 σωστές στις 93, όσο περίπου και το bot (57).
 
 ## Μέτρηση
 
@@ -56,7 +61,11 @@ venv/bin/python -m multiagent.evaluate security     # ο Security μόνος τ�
 venv/bin/python -m multiagent.evaluate validator    # ο Validator μόνος του
 venv/bin/python -m multiagent.evaluate pipeline     # όλη η ροή, δίπλα στο σημερινό bot
 venv/bin/python -m multiagent.evaluate summary      # πίνακες
+venv/bin/python -m multiagent.evaluate pipeline --configs tev1-after --sets holdout,holdout2
 ```
+
+Οι ρυθμίσεις της μέτρησης (`tev1`, `tev1-after`, `tev1-en-after` κ.ά.) ορίζονται
+στο `CONFIGS` του `evaluate.py`, με το `scope` και τη γλώσσα ρητά.
 
 Τα σετ του `sets/` γράφτηκαν πριν τρέξει μοντέλο και εξαιρούνται από την
 εκπαίδευση (`scripts/prepare_dataset.py`).

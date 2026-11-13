@@ -61,9 +61,11 @@ class Settings:
     # «Εκτός αρμοδιότητας» από τον Security:
     #   before  κόβει το αίτημα πριν από το BERT, όπως στο σχήμα της 10/11
     #   after   το αίτημα περνά στο BERT· η ετικέτα μετρά μόνο αν ούτε το BERT ούτε
-    #           ο Validator βρουν υπηρεσία (reports/multiagent.md, 2η μέτρηση)
-    scope: str = "before"
-    decision_lang: str = "el"   # γλώσσα των ερωτήσεων προς decision model
+    #           ο Validator βρουν υπηρεσία
+    # Προεπιλογή after με αγγλικές ερωτήσεις: η καλύτερη ρύθμιση στα δύο holdout,
+    # 59 σωστές στις 93 έναντι 27 με before (reports/multiagent.md, 2η μέτρηση).
+    scope: str = "after"
+    decision_lang: str = "en"   # γλώσσα των ερωτήσεων προς decision model
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
