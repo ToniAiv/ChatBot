@@ -31,6 +31,50 @@ def _trim(s: str, n: int = 220) -> str:
     return s if len(s) <= n else s[:n] + "…"
 
 
+# ── Περιγραφές για τον Validator (validator_text=clean) ──────────────
+# 154 από τις 162 περιγραφές των σελίδων ξεκινούν με τυποποιημένη φράση, και
+# τα τμήματα είχαν μόνο «Τηλεφωνική επικοινωνία» (reports/multiagent.md).
+_BOILERPLATE = [
+    r"Η υπηρεσία αυτή παρέχεται αποκλειστικά με φυσική παρουσία στα γραφεία του Δήμου\.?",
+    r"Δείτε παρακάτω τα στοιχεία επικοινωνίας\.?",
+    r"Η διαδικασία αφορά (?:στην|στη|την) υποβολή \S+ (?:από κάθε φυσικό ή νομικό πρόσωπο )?"
+    r"(?:για |σχετικά με |που )?",
+    r"Η αίτηση αφορά (?:τη διαδικασία |την )?",
+]
+_DOCUMENTS = re.compile(r"Κωδικούς taxisnet|Κωδικοί taxisnet|Απαιτούμενα δικαιολογητικά|ΑΠΑΙΤΟΥΜΕΝΑ|Δικαιολογητικά|•")
+
+
+def _clean(text: str, n: int = 160) -> str:
+    """Η περιγραφή χωρίς τις τυποποιημένες φράσεις και χωρίς τη λίστα δικαιολογητικών."""
+    s = re.sub(r"\s+", " ", text or "")
+    for pattern in _BOILERPLATE:
+        s = re.sub(pattern, "", s)
+    s = _DOCUMENTS.split(s)[0].strip(" .,:;")
+    return _trim(s, n)
+
+
+def _readable(intent: str) -> str:
+    return intent.replace("_", " ").strip()
+
+
+_DEPT_TOPICS: dict = {}
+
+
+def _dept_topics(intent: str, n: int = 6) -> str:
+    """Τι εξυπηρετεί το τμήμα ενός intent: το ίδιο το intent πρώτα, και τα άλλα intents
+    που οι πίνακες στέλνουν στο ίδιο τμήμα (mappings/intent_to_service.csv)."""
+    if not _DEPT_TOPICS:
+        import csv
+        from multiagent import ROOT
+        for r in csv.DictReader(open(ROOT / "mappings" / "intent_to_service.csv", encoding="utf-8")):
+            if r.get("department") and not r.get("url"):
+                _DEPT_TOPICS.setdefault("by_intent", {})[r["intent"]] = r["department"]
+                _DEPT_TOPICS.setdefault(r["department"], []).append(r["intent"])
+    code = _DEPT_TOPICS.get("by_intent", {}).get(intent)
+    others = [i for i in _DEPT_TOPICS.get(code, []) if i != intent] if code else []
+    return ", ".join(_readable(i) for i in [intent] + others[:n - 1])
+
+
 def _candidate(intent: str, score: float) -> Candidate | None:
     """Ο προορισμός ενός intent, ή None όταν το bot θα έλεγε «εκτός αρμοδιότητας»."""
     S = load()
@@ -39,14 +83,16 @@ def _candidate(intent: str, score: float) -> Candidate | None:
         if not dept:
             return None
         return Candidate(intent, score, "phone", dept.get("name", ""), dept=dept,
-                         description=f"Τηλεφωνική επικοινωνία με το τμήμα «{dept.get('name', '')}».")
+                         description=f"Τηλεφωνική επικοινωνία με το τμήμα «{dept.get('name', '')}».",
+                         topic=f"εξυπηρετεί τηλεφωνικά: {_dept_topics(intent)}")
     cand, _src = C.find_candidates(intent, S["vectorizer"], S["tfidf_matrix"], S["valid_kb"],
                                    S["service_table"])
     if not cand or cand[0][0] < C.MIN_TFIDF_SCORE:
         return None
     rec = cand[0][1]
     described = (C.SECTIONS.get(rec["url"]) or {}).get("sections", {}).get("Περιγραφή", "")
-    return Candidate(intent, score, "link", rec["title"], url=rec["url"], description=_trim(described))
+    return Candidate(intent, score, "link", rec["title"], url=rec["url"], description=_trim(described),
+                     topic=_clean(described))
 
 
 def greek_view(text: str) -> str:
@@ -102,7 +148,8 @@ def classify(text: str, pending: dict | None = None) -> Classification:
     if dept:
         out.confident = True
         out.candidates = [Candidate(intents[0][0], 1.0, "dept", dept.get("name", ""), dept=dept,
-                                    description=f"Στοιχεία επικοινωνίας του τμήματος «{dept.get('name', '')}».")]
+                                    description=f"Στοιχεία επικοινωνίας του τμήματος «{dept.get('name', '')}».",
+                                    topic=f"στοιχεία επικοινωνίας του τμήματος «{dept.get('name', '')}»")]
         out.top = list(out.candidates)          # ρητή ερώτηση για τμήμα: καμία άλλη επιλογή
         return out
 

@@ -16,6 +16,8 @@
     MA_SPLIT_LANGS=el | all           χωρισμός σε αιτήματα μόνο στα ελληνικά, ή και σε αγγλικά/greeklish
     MA_VALIDATOR_MODE=fits | choose   ο Validator κρίνει τους υποψήφιους του bot, ή διαλέγει στις 5 πρώτες του BERT
     MA_GREEKLISH=raw | greek          Security και Validator βλέπουν τα greeklish όπως γράφτηκαν, ή σε ελληνικά
+    MA_VALIDATOR_TEXT=plain | clean   περιγραφές των υπηρεσιών για τον Validator (Settings.validator_text)
+    MA_VALIDATOR_HINT=0 | 1           ο Validator μαθαίνει την πρώτη επιλογή του BERT και τη βεβαιότητά της
 """
 from __future__ import annotations
 
@@ -94,6 +96,14 @@ class Settings:
     # Προεπιλογή greek από τον κανόνα της 5ης μέτρησης (holdout5): στα greeklish 15 σωστές
     # έναντι 8, και καμία ετικέτα «χειραγώγηση» σε αίτημα (reports/multiagent.md).
     greeklish: str = "greek"
+    # Τι βλέπει ο Validator για κάθε υπηρεσία:
+    #   plain  τίτλος και οι πρώτοι 220 χαρακτήρες της «Περιγραφής» της σελίδας· για τα
+    #          τμήματα «Τηλεφωνική επικοινωνία με το τμήμα»· «καμία» και όταν το μήνυμα δεν αρκεί
+    #   clean  περιγραφή χωρίς τυποποιημένες φράσεις· για τα τμήματα τα θέματα που
+    #          εξυπηρετούν· «καμία» μόνο όταν όλες αφορούν σαφώς άλλο θέμα
+    validator_text: str = "plain"
+    # Ο Validator μαθαίνει ποια επιλογή θεωρεί πρώτη η αναζήτηση (BERT) και με τι βεβαιότητα
+    validator_hint: bool = False
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
@@ -118,9 +128,12 @@ def load(profile: str | None = None, **overrides) -> Settings:
                  split=_flag("MA_SPLIT"), reform=_flag("MA_REFORM"), final=_flag("MA_FINAL"))
     for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang"),
                       ("MA_EMERGENCY", "emergency"), ("MA_SPLIT_LANGS", "split_langs"),
-                      ("MA_VALIDATOR_MODE", "validator_mode"), ("MA_GREEKLISH", "greeklish")):
+                      ("MA_VALIDATOR_MODE", "validator_mode"), ("MA_GREEKLISH", "greeklish"),
+                      ("MA_VALIDATOR_TEXT", "validator_text")):
         if os.environ.get(name):
             setattr(s, key, os.environ[name].strip().lower())
+    if os.environ.get("MA_VALIDATOR_HINT"):
+        s.validator_hint = _flag("MA_VALIDATOR_HINT")
     for k, v in overrides.items():
         if k == "models":                       # αλλάζει μόνο τους ρόλους που δίνονται
             s.models.update(v)
@@ -131,7 +144,8 @@ def load(profile: str | None = None, **overrides) -> Settings:
                                ("MA_EMERGENCY", "emergency", ("block", "answer")),
                                ("MA_SPLIT_LANGS", "split_langs", ("el", "all")),
                                ("MA_VALIDATOR_MODE", "validator_mode", ("fits", "choose")),
-                               ("MA_GREEKLISH", "greeklish", ("raw", "greek"))):
+                               ("MA_GREEKLISH", "greeklish", ("raw", "greek")),
+                               ("MA_VALIDATOR_TEXT", "validator_text", ("plain", "clean"))):
         if getattr(s, key) not in allowed:
             raise ValueError(f"{name}: «{getattr(s, key)}»· γίνεται {' ή '.join(allowed)}")
     return s

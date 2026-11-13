@@ -38,9 +38,17 @@ FIT = {
 }
 PICK = {
     "el": {"q": "Ποια υπηρεσία του Δήμου Ηρακλείου ζητά ο πολίτης;",
-           "none": "Καμία από τις παραπάνω, ή το μήνυμα δεν αρκεί για να ξεχωρίσει μία."},
+           "none": "Καμία από τις παραπάνω, ή το μήνυμα δεν αρκεί για να ξεχωρίσει μία.",
+           # validator_text=clean: το «καμία» μόνο όταν όλες αφορούν σαφώς άλλο θέμα
+           "none_strict": "Καμία: κάθε επιλογή αφορά σαφώς άλλο θέμα από αυτό που ζητά ο πολίτης.",
+           # validator_hint: ποια θεωρεί πιο πιθανή η αναζήτηση
+           "hint": " Οι επιλογές είναι με τη σειρά της αναζήτησης· η a είναι η πρώτη της επιλογή, με "
+                   "βεβαιότητα {conf}. Διάλεξε άλλη μόνο αν ταιριάζει σαφώς καλύτερα."},
     "en": {"q": "Which service of the Municipality of Heraklion is the citizen asking for?",
-           "none": "None of the above, or the message is not enough to single one out."},
+           "none": "None of the above, or the message is not enough to single one out.",
+           "none_strict": "None: every option is clearly about a different matter than what the citizen asks.",
+           "hint": " The options are in the order of a search engine; option a is its first choice, with "
+                   "confidence {conf}. Choose another option only if it clearly fits better."},
 }
 
 SYSTEM_INTENT = """Είσαι ο ελεγκτής του εικονικού βοηθού του Δήμου Ηρακλείου. Ο πολίτης έγραψε ένα μήνυμα και η αναζήτηση πρότεινε υπηρεσίες του Δήμου.
@@ -56,8 +64,11 @@ def _stems(text: str) -> set:
     return {w[:5] for w in re.findall(r"\w+", C.normalize(text)) if len(w) >= 4}
 
 
-def _line(c: Candidate) -> str:
-    return f"{c.title}: {c.description}" if c.description else c.title
+def _line(c: Candidate, clean: bool = False) -> str:
+    """Η περιγραφή μιας επιλογής για τον Validator. Με clean: χωρίς τυποποιημένες φράσεις,
+    και για τα τμήματα τα θέματα που εξυπηρετούν (classifier._clean, _dept_topics)."""
+    text = c.topic if clean else c.description
+    return f"{c.title}: {text}" if text else c.title
 
 
 def pool(cls: Classification, settings: Settings) -> list:
@@ -76,10 +87,10 @@ def check_intent(message: str, cls: Classification, settings: Settings) -> tuple
         return None, Step("validator", "intent", "κανένας υποψήφιος προορισμός")
     try:
         if is_decision_model(model):
-            t = settings.decision_lang
+            t, clean = settings.decision_lang, settings.validator_text == "clean"
             if len(cands) == 1:
                 state = {"citizen_message": message, "service": cands[0].title,
-                         "description": cands[0].description}
+                         "description": cands[0].topic if clean else cands[0].description}
                 q = {"fits": {"type": "noul", "instructions": FIT[t]["q"],
                               "criteria": {"true": FIT[t]["true"], "false": FIT[t]["false"]}}}
                 ans, secs = llm.decide(url, model, state, q, settings.timeout)
@@ -88,9 +99,12 @@ def check_intent(message: str, cls: Classification, settings: Settings) -> tuple
                 note = f"«{cands[0].title}» ταιριάζει με πιθανότητα {p:.2f}"
             else:
                 keys = "abcdefgh"[:len(cands)]
-                criteria = {k: _line(c) for k, c in zip(keys, cands)}
-                criteria["none"] = PICK[t]["none"]
-                q = {"pick": {"type": "choice", "instructions": PICK[t]["q"], "criteria": criteria}}
+                criteria = {k: _line(c, clean) for k, c in zip(keys, cands)}
+                criteria["none"] = PICK[t]["none_strict" if clean else "none"]
+                instructions = PICK[t]["q"]
+                if settings.validator_hint:
+                    instructions += PICK[t]["hint"].format(conf=f"{cls.confidence:.2f}")
+                q = {"pick": {"type": "choice", "instructions": instructions, "criteria": criteria}}
                 ans, secs = llm.decide(url, model, message, q, settings.timeout)
                 key = ans["pick"]["choice"]
                 p = float(ans["pick"]["probabilities"].get(key, 0.0))
@@ -99,7 +113,8 @@ def check_intent(message: str, cls: Classification, settings: Settings) -> tuple
                         else f"καμία από τις {len(cands)} ({p:.2f})")
         else:
             user = (f"Μήνυμα: {message}\nΥπηρεσίες:\n"
-                    + "\n".join(f"{i}. {_line(c)}" for i, c in enumerate(cands, 1)))
+                    + "\n".join(f"{i}. {_line(c, settings.validator_text == 'clean')}"
+                                for i, c in enumerate(cands, 1)))
             out, secs = llm.chat_json(url, model, SYSTEM_INTENT, user, SCHEMA_INTENT, settings.timeout)
             n, ev = out.get("choice"), str(out.get("evidence", ""))
             # Οι λέξεις που επικαλείται πρέπει να υπάρχουν στο μήνυμα του πολίτη.

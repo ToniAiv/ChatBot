@@ -26,6 +26,7 @@ class Candidate:
     url: str = ""
     description: str = ""
     dept: dict | None = None
+    topic: str = ""                 # σύντομη περιγραφή για τον Validator (validator_text=clean)
 
 
 @dataclass

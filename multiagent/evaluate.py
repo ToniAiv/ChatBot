@@ -44,13 +44,15 @@ SETS = {"bakeoff": ROOT / "agent" / "bakeoff_questions.csv",
         "holdout2": ROOT / "agent" / "holdout2_questions.csv",
         "holdout3": ROOT / "agent" / "holdout3_questions.csv",
         "holdout4": ROOT / "agent" / "holdout4_questions.csv",
-        "holdout5": ROOT / "agent" / "holdout5_questions.csv"}
+        "holdout5": ROOT / "agent" / "holdout5_questions.csv",
+        "holdout6": ROOT / "agent" / "holdout6_questions.csv"}
 
 # όνομα → (ρύθμιση μοντέλων, επιπλέον ρυθμίσεις). Κάθε όνομα ορίζει πλήρως τη
 # ρύθμιση, ώστε οι γραμμές των αρχείων να σημαίνουν το ίδιο κι αν αλλάξουν οι
 # προεπιλογές του config.py.
 _OLD = {"emergency": "block", "split_langs": "el", "validator_mode": "fits",   # πριν από την 3η μέτρηση
-        "greeklish": "raw"}
+        "greeklish": "raw", "validator_text": "plain", "validator_hint": False}
+_PLAIN = {"validator_text": "plain", "validator_hint": False}                    # πριν από την 6η μέτρηση
 CONFIGS = {
     # 1η μέτρηση (13/11): το «εκτός αρμοδιότητας» κόβει πριν από το BERT
     "tev1": ("tev1", {"decision_lang": "el", "scope": "before", **_OLD}),
@@ -64,19 +66,27 @@ CONFIGS = {
     # 3η μέτρηση (13/11, holdout3): «επείγον» με απάντηση, χωρισμός σε όλες τις γλώσσες,
     # και η ίδια ρύθμιση με το qwen3:14b ως Validator
     "tev1-en-fix": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                             "split_langs": "all", "validator_mode": "fits", "greeklish": "raw"}),
+                             "split_langs": "all", "validator_mode": "fits", "greeklish": "raw", **_PLAIN}),
     "tev1-en-fix-q14": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                 "split_langs": "all", "validator_mode": "fits", "greeklish": "raw",
+                                 "split_langs": "all", "validator_mode": "fits", "greeklish": "raw", **_PLAIN,
                                  "models": {"validator": "qwen3:14b"}}),
     # 4η μέτρηση (13/11, holdout4): ο Validator διαλέγει ανάμεσα στις 5 πρώτες του BERT
     "tev1-en-choose": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                "split_langs": "all", "validator_mode": "choose", "greeklish": "raw"}),
+                                "split_langs": "all", "validator_mode": "choose", "greeklish": "raw", **_PLAIN}),
     # 5η μέτρηση (13/11, holdout5): Security και Validator βλέπουν τα greeklish σε ελληνικά
     "tev1-en-choose-gr": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                   "split_langs": "all", "validator_mode": "choose", "greeklish": "greek"}),
+                                   "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
+                                   **_PLAIN}),
+    # 6η μέτρηση (13/11, holdout6): καθαρές περιγραφές για τον Validator, και με την πρώτη επιλογή του BERT
+    "tev1-en-clean": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
+                               "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
+                               "validator_text": "clean", "validator_hint": False}),
+    "tev1-en-clean-hint": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
+                                    "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
+                                    "validator_text": "clean", "validator_hint": True}),
 }
 DEFAULTS = {"security": "rules,tev1-el,tev1-en,qwen4b", "validator": "tev1-el,tev1-en,qwen4b",
-            "pipeline": "tev1-en-choose,tev1-en-choose-gr"}
+            "pipeline": "tev1-en-choose-gr,tev1-en-clean,tev1-en-clean-hint"}
 SERVICE_TYPES = ("service", "department", "clarify")
 EXPECTED_LABEL = {"jailbreak": "manipulation", "out_of_scope": "out_of_scope", "abuse": "abuse",
                   "emergency": "emergency", "request": "request"}
@@ -299,12 +309,15 @@ def summarize() -> dict:
         out["pipeline"][name] = {}
         for sname, rs in _group(rows, "set").items():
             groups = {"all": rs}
-            if sname in ("bakeoff", "holdout", "holdout2", "holdout3", "holdout4", "holdout5"):
+            if sname in ("bakeoff", "holdout", "holdout2", "holdout3", "holdout4", "holdout5", "holdout6"):
                 # holdout3: οι στοχευμένες ερωτήσεις (u, e) μετριούνται χωριστά· holdout5: οι απόπειρες χειραγώγησης (j)
                 main = [r for r in rs if not ((sname == "holdout3" and r["id"][0] in "ue")
                                               or (sname == "holdout5" and r["id"][0] == "j"))]
                 if sname == "holdout5":
                     groups_extra = {"jailbreak": [r for r in rs if r["id"].startswith("j")]}
+                elif sname == "holdout6":   # τμήματα με τηλέφωνο (d) και υπηρεσίες με σελίδα (p) χωριστά
+                    groups_extra = {"departments": [r for r in rs if r["id"].startswith("d")],
+                                    "pages": [r for r in rs if r["id"].startswith("p")]}
                 else:
                     groups_extra = {}
                 groups = {"service": [r for r in main if r["type"] in SERVICE_TYPES],
