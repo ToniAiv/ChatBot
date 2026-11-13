@@ -42,12 +42,13 @@ SETS = {"bakeoff": ROOT / "agent" / "bakeoff_questions.csv",
         "security": ROOT / "multiagent" / "sets" / "security_questions.csv",
         "holdout": ROOT / "agent" / "holdout_questions.csv",
         "holdout2": ROOT / "agent" / "holdout2_questions.csv",
-        "holdout3": ROOT / "agent" / "holdout3_questions.csv"}
+        "holdout3": ROOT / "agent" / "holdout3_questions.csv",
+        "holdout4": ROOT / "agent" / "holdout4_questions.csv"}
 
 # όνομα → (ρύθμιση μοντέλων, επιπλέον ρυθμίσεις). Κάθε όνομα ορίζει πλήρως τη
 # ρύθμιση, ώστε οι γραμμές των αρχείων να σημαίνουν το ίδιο κι αν αλλάξουν οι
 # προεπιλογές του config.py.
-_OLD = {"emergency": "block", "split_langs": "el"}     # όπως ήταν πριν από την 3η μέτρηση
+_OLD = {"emergency": "block", "split_langs": "el", "validator_mode": "fits"}   # πριν από την 3η μέτρηση
 CONFIGS = {
     # 1η μέτρηση (13/11): το «εκτός αρμοδιότητας» κόβει πριν από το BERT
     "tev1": ("tev1", {"decision_lang": "el", "scope": "before", **_OLD}),
@@ -61,12 +62,16 @@ CONFIGS = {
     # 3η μέτρηση (13/11, holdout3): «επείγον» με απάντηση, χωρισμός σε όλες τις γλώσσες,
     # και η ίδια ρύθμιση με το qwen3:14b ως Validator
     "tev1-en-fix": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                             "split_langs": "all"}),
+                             "split_langs": "all", "validator_mode": "fits"}),
     "tev1-en-fix-q14": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                 "split_langs": "all", "models": {"validator": "qwen3:14b"}}),
+                                 "split_langs": "all", "validator_mode": "fits",
+                                 "models": {"validator": "qwen3:14b"}}),
+    # 4η μέτρηση (13/11, holdout4): ο Validator διαλέγει ανάμεσα στις 5 πρώτες του BERT
+    "tev1-en-choose": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
+                                "split_langs": "all", "validator_mode": "choose"}),
 }
 DEFAULTS = {"security": "rules,tev1-el,tev1-en,qwen4b", "validator": "tev1-el,tev1-en,qwen4b",
-            "pipeline": "tev1-en-after,tev1-en-fix"}
+            "pipeline": "tev1-en-fix,tev1-en-choose"}
 SERVICE_TYPES = ("service", "department", "clarify")
 EXPECTED_LABEL = {"jailbreak": "manipulation", "out_of_scope": "out_of_scope", "abuse": "abuse",
                   "emergency": "emergency", "request": "request"}
@@ -289,7 +294,7 @@ def summarize() -> dict:
         out["pipeline"][name] = {}
         for sname, rs in _group(rows, "set").items():
             groups = {"all": rs}
-            if sname in ("bakeoff", "holdout", "holdout2", "holdout3"):
+            if sname in ("bakeoff", "holdout", "holdout2", "holdout3", "holdout4"):
                 # holdout3: οι στοχευμένες ερωτήσεις (u, e) μετριούνται χωριστά
                 main = [r for r in rs if not (sname == "holdout3" and r["id"][0] in "ue")]
                 groups = {"service": [r for r in main if r["type"] in SERVICE_TYPES],

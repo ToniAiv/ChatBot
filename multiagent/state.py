@@ -36,7 +36,8 @@ class Classification:
     intents: list = field(default_factory=list)       # top-5 (intent, πιθανότητα)
     confidence: float = 0.0         # βεβαιότητα προορισμού
     confident: bool = False
-    candidates: list = field(default_factory=list)    # 1 αν είναι σίγουρο, αλλιώς οι επιλογές
+    candidates: list = field(default_factory=list)    # 1 αν είναι σίγουρο, αλλιώς οι επιλογές του bot
+    top: list = field(default_factory=list)           # οι 5 πρώτες του BERT, χωρίς διπλό προορισμό
     family: str = ""                # τίτλος οικογένειας, αν οι επιλογές είναι οικογένεια
     aspect: str | None = None       # δικαιολογητικά, επικοινωνία κ.λπ. (aspects.py)
     error: str = ""
@@ -50,7 +51,7 @@ class Segment:
     label: str = "request"          # Security: request | out_of_scope | manipulation | abuse | emergency
     cls: Classification | None = None
     chosen: Candidate | None = None
-    how: str = ""                   # confident | pick | reform
+    how: str = ""                   # confident | pick | switch (άλλη από την 1η του σίγουρου BERT) | reform
     reformed: str = ""              # το κείμενο του case 1, αν έγινε δεκτό
     status: str = ""                # answered | clarify | blocked | out_of_scope | emergency | error
     answer: str = ""

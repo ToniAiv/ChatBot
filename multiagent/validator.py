@@ -9,6 +9,10 @@ Validator agent: δύο έλεγχοι, όπως στο σχήμα.
 Ο Validator κρίνει πάντα με τις λέξεις του πολίτη, ποτέ με την
 αναδιατύπωση του Welcome: έτσι μια αναδιατύπωση που άλλαξε το νόημα κόβεται.
 Αν το μοντέλο δεν απαντήσει, ισχύει ό,τι θα έκανε το σημερινό bot.
+
+Με validator_mode=choose ο Validator δεν κρίνει μόνο την πρώτη υπηρεσία του
+BERT: διαλέγει ανάμεσα στις 5 πρώτες, και όταν το BERT είναι σίγουρο
+(reports/multiagent.md, 4η μέτρηση).
 """
 from __future__ import annotations
 
@@ -56,9 +60,18 @@ def _line(c: Candidate) -> str:
     return f"{c.title}: {c.description}" if c.description else c.title
 
 
+def pool(cls: Classification, settings: Settings) -> list:
+    """Οι υποψήφιοι που κρίνει ο Validator: του bot (fits), ή οι 5 πρώτες του BERT (choose).
+    Μια ρητή ερώτηση για τμήμα («τηλέφωνο της πολεοδομίας») μένει πάντα όπως είναι."""
+    explicit = bool(cls.candidates) and cls.candidates[0].kind == "dept"
+    if settings.validator_mode == "choose" and cls.top and not explicit:
+        return cls.top
+    return cls.candidates
+
+
 def check_intent(message: str, cls: Classification, settings: Settings) -> tuple:
     """(ο προορισμός που εγκρίθηκε ή None, γραμμή ίχνους)."""
-    model, url, cands = settings.model("validator"), settings.url("validator"), cls.candidates
+    model, url, cands = settings.model("validator"), settings.url("validator"), pool(cls, settings)
     if not cands:
         return None, Step("validator", "intent", "κανένας υποψήφιος προορισμός")
     try:
@@ -95,7 +108,7 @@ def check_intent(message: str, cls: Classification, settings: Settings) -> tuple
             note = (f"διάλεξε «{chosen.title}» («{ev}»)" if chosen
                     else f"απάντησε {n} («{ev}»){'' if quoted else ', οι λέξεις δεν είναι του πολίτη'}")
     except (llm.ModelError, KeyError, TypeError, ValueError) as exc:
-        chosen = cands[0] if cls.confident else None      # όπως το σημερινό bot
+        chosen = cls.candidates[0] if cls.confident and cls.candidates else None      # όπως το σημερινό bot
         return chosen, Step("validator", "intent", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model)
     return chosen, Step("validator", "intent", note, secs, model)
 

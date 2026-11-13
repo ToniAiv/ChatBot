@@ -54,6 +54,24 @@ def _classify(text: str, pending, trace: list, note: str = ""):
     return cls
 
 
+def _how(cls, chosen) -> str:
+    """Πώς βρέθηκε η απάντηση: η σίγουρη του BERT, επιλογή σε αβέβαιο BERT, ή άλλη
+    από την πρώτη ενός σίγουρου BERT (μόνο με validator_mode=choose)."""
+    if not cls.confident:
+        return "pick"
+    first = cls.candidates[0] if cls.candidates else None
+    return "confident" if first and classifier.same_place(chosen, first) else "switch"
+
+
+def _buttons(cls, settings) -> tuple:
+    """(κουμπιά, κείμενο ή None) όταν δεν βρέθηκε απάντηση. Με validator_mode=choose,
+    εκεί που το bot δεν θα έδειχνε επιλογές (σίγουρο BERT που απορρίφθηκε, ή αβέβαιο
+    χωρίς επιλογές), κουμπιά γίνονται οι 3 πρώτες του BERT."""
+    if settings.validator_mode == "choose" and not cls.error and cls.top and (cls.confident or not cls.candidates):
+        return classifier.options(cls, cls.top[:3]), C.MSG[cls.lang]["suggest"]
+    return classifier.options(cls), None
+
+
 def _resolve(seg: Segment, pending, settings, trace: list) -> None:
     """Βήματα 5 και 6 για ένα αίτημα: BERT, Validator, case 1, case 2."""
     cls = _classify(seg.text, pending, trace)
@@ -69,7 +87,7 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
     outside = seg.label == "out_of_scope"           # μόνο με scope=after φτάνει ως εδώ
     urgent = seg.label == "emergency"               # μόνο με emergency=answer φτάνει ως εδώ
     if chosen:
-        seg.chosen, seg.how = chosen, "confident" if cls.confident else "pick"
+        seg.chosen, seg.how = chosen, _how(cls, chosen)
     elif outside or urgent:
         pass        # χωρίς case 1: δεν ψάχνουμε υπηρεσία με το ζόρι για ό,τι ο Security ξεχώρισε
     elif settings.reform and not cls.error:
@@ -96,12 +114,13 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
         seg.status = "emergency"                    # μόνο το κείμενο για το 112
         trace.append(Step("security", "emergency", "μόνο 112: ούτε το BERT ούτε ο Validator βρήκαν υπηρεσία"))
     elif outside and not cls.error:
-        seg.status, seg.options = "out_of_scope", classifier.options(seg.cls)
+        seg.status, seg.options = "out_of_scope", _buttons(seg.cls, settings)[0]
         trace.append(Step("security", "scope", "εκτός αρμοδιότητας: ούτε το BERT ούτε ο Validator βρήκαν "
                                                "υπηρεσία"))
     else:                                                         # case 2
         seg.status = "error" if cls.error else "clarify"
-        seg.answer, seg.options = classifier.clarify_text(seg.cls), classifier.options(seg.cls)
+        seg.options, text = _buttons(seg.cls, settings)
+        seg.answer = text or classifier.clarify_text(seg.cls)
 
 
 def run(message: str, session: Session | None = None, settings: config.Settings | None = None) -> Reply:

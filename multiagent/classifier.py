@@ -48,6 +48,22 @@ def _candidate(intent: str, score: float) -> Candidate | None:
     return Candidate(intent, score, "link", rec["title"], url=rec["url"], description=_trim(described))
 
 
+def same_place(a: Candidate, b: Candidate) -> bool:
+    """Ίδιος προορισμός: ίδια σελίδα, ή ίδιο τμήμα."""
+    return (a.url or (a.kind, a.title)) == (b.url or (b.kind, b.title))
+
+
+def _top(intents: list) -> list:
+    """Οι 5 πρώτες υπηρεσίες του BERT ως υποψήφιοι, χωρίς δύο φορές τον ίδιο προορισμό.
+    Με αυτές διαλέγει ο Validator όταν validator_mode=choose."""
+    out = []
+    for intent, score in intents[:5]:
+        c = _candidate(intent, score)
+        if c and not any(same_place(c, o) for o in out):
+            out.append(c)
+    return out
+
+
 def classify(text: str, pending: dict | None = None) -> Classification:
     """Ένα αίτημα → top-5 intents, βεβαιότητα προορισμού και υποψήφιοι προορισμοί.
 
@@ -68,6 +84,7 @@ def classify(text: str, pending: dict | None = None) -> Classification:
     greek, intents, _used = C.combine_with_context(greek, intents, pending, tok, mdl, le, table, ns)
     out.intents = intents
     out.confidence = C.destination_confidence(intents, table, ns)
+    out.top = _top(intents)
 
     # «τηλέφωνο της πολεοδομίας» → στοιχεία του τμήματος (departments.py)
     code = C.department_override(greek, intents, pending)
@@ -76,6 +93,7 @@ def classify(text: str, pending: dict | None = None) -> Classification:
         out.confident = True
         out.candidates = [Candidate(intents[0][0], 1.0, "dept", dept.get("name", ""), dept=dept,
                                     description=f"Στοιχεία επικοινωνίας του τμήματος «{dept.get('name', '')}».")]
+        out.top = list(out.candidates)          # ρητή ερώτηση για τμήμα: καμία άλλη επιλογή
         return out
 
     if out.confidence >= C.MIN_BERT_CONFIDENCE:
@@ -105,10 +123,10 @@ def answer(c: Candidate, cls: Classification) -> str:
     return C.compose_answer(cls.current, c.intent, cand, src, cls.lang, aspect=cls.aspect)
 
 
-def options(cls: Classification) -> list:
-    """Οι υποψήφιοι ως κουμπιά, στη μορφή του gui.Api.chat."""
+def options(cls: Classification, pool: list | None = None) -> list:
+    """Οι υποψήφιοι ως κουμπιά, στη μορφή του gui.Api.chat (pool: άλλοι από τους του bot)."""
     return [{"intent": c.intent, "title": c.title, "kind": "link" if c.kind == "link" else "phone",
-             "url": c.url} for c in cls.candidates]
+             "url": c.url} for c in (cls.candidates if pool is None else pool)]
 
 
 def clarify_text(cls: Classification) -> str:

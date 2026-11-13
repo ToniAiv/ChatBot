@@ -14,6 +14,7 @@
     MA_DECISION_LANG=el | en          γλώσσα των ερωτήσεων προς decision model
     MA_EMERGENCY=block | answer       «επείγον»: μόνο το 112, ή το 112 και η απάντηση του Δήμου
     MA_SPLIT_LANGS=el | all           χωρισμός σε αιτήματα μόνο στα ελληνικά, ή και σε αγγλικά/greeklish
+    MA_VALIDATOR_MODE=fits | choose   ο Validator κρίνει τους υποψήφιους του bot, ή διαλέγει στις 5 πρώτες του BERT
 """
 from __future__ import annotations
 
@@ -78,6 +79,11 @@ class Settings:
     # σκορ με block / el, 2 σύνθετα μισά σωστά επιπλέον (reports/multiagent.md).
     emergency: str = "answer"
     split_langs: str = "all"
+    # Ο Validator μετά το BERT:
+    #   fits    κρίνει τους υποψήφιους του bot: τη σίγουρη απάντηση («ταιριάζει;») ή τις
+    #           επιλογές που θα έδειχνε το bot
+    #   choose  διαλέγει πάντα ανάμεσα στις 5 πρώτες υπηρεσίες του BERT (ή «καμία»)
+    validator_mode: str = "fits"
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
@@ -101,7 +107,8 @@ def load(profile: str | None = None, **overrides) -> Settings:
     s = Settings(profile=profile, models=models, urls=urls, rules=_flag("MA_RULES"),
                  split=_flag("MA_SPLIT"), reform=_flag("MA_REFORM"), final=_flag("MA_FINAL"))
     for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang"),
-                      ("MA_EMERGENCY", "emergency"), ("MA_SPLIT_LANGS", "split_langs")):
+                      ("MA_EMERGENCY", "emergency"), ("MA_SPLIT_LANGS", "split_langs"),
+                      ("MA_VALIDATOR_MODE", "validator_mode")):
         if os.environ.get(name):
             setattr(s, key, os.environ[name].strip().lower())
     for k, v in overrides.items():
@@ -112,7 +119,8 @@ def load(profile: str | None = None, **overrides) -> Settings:
     for name, key, allowed in (("MA_SCOPE", "scope", ("before", "after")),
                                ("MA_DECISION_LANG", "decision_lang", ("el", "en")),
                                ("MA_EMERGENCY", "emergency", ("block", "answer")),
-                               ("MA_SPLIT_LANGS", "split_langs", ("el", "all"))):
+                               ("MA_SPLIT_LANGS", "split_langs", ("el", "all")),
+                               ("MA_VALIDATOR_MODE", "validator_mode", ("fits", "choose"))):
         if getattr(s, key) not in allowed:
             raise ValueError(f"{name}: «{getattr(s, key)}»· γίνεται {' ή '.join(allowed)}")
     return s
