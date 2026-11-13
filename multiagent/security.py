@@ -7,7 +7,10 @@ Security agent: τι είδους μήνυμα έστειλε ο πολίτης.
   2. Ένα μοντέλο, για κάθε αίτημα χωριστά (check): decision model ή LLM,
      ανάλογα με τη ρύθμιση.
 
-Μόνο τα αιτήματα με ετικέτα "request" φτάνουν στον ταξινομητή.
+Χειραγώγηση, προσβολές και επείγοντα κόβονται πάντα πριν από τον ταξινομητή.
+Το «εκτός αρμοδιότητας» εξαρτάται από τη ρύθμιση scope (config.py): με
+"before" κόβεται κι αυτό, με "after" το αίτημα περνά και η ετικέτα μετρά μόνο
+αν ούτε το BERT ούτε ο Validator βρουν υπηρεσία (pipeline.py).
 Αν το μοντέλο δεν απαντήσει, το αίτημα περνά: οι απαντήσεις είναι έτοιμα
 κείμενα, άρα ένα μήνυμα που ξέφυγε δεν μπορεί να βάλει λόγια στο στόμα του bot.
 """
@@ -22,6 +25,12 @@ from multiagent.config import Settings, is_decision_model
 from multiagent.state import Step
 
 LABELS = ("request", "out_of_scope", "manipulation", "abuse", "emergency")
+ALWAYS_BLOCKED = ("manipulation", "abuse", "emergency")
+
+
+def blocks(label: str, settings: Settings) -> bool:
+    """Κόβεται το αίτημα πριν από τον ταξινομητή;"""
+    return label in ALWAYS_BLOCKED or (label == "out_of_scope" and settings.scope == "before")
 
 # ── 1. Κανόνες ────────────────────────────────────────────────
 # Λίγοι και στενοί: ό,τι πιάνουν είναι σχεδόν σίγουρα επίθεση. Το «ποιες

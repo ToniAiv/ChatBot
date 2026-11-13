@@ -32,6 +32,7 @@ TEXT = {
         "out_of_scope": "Δεν βρήκα υπηρεσία του Δήμου Ηρακλείου γι' αυτό το θέμα· ίσως αφορά άλλον φορέα. "
                         f"Αν πιστεύετε ότι αφορά τον Δήμο, καλέστε στο {C.PHONE}.",
         "for": "Για το «{text}»:",
+        "or_these": "Αν εννοείτε κάποιο από τα παρακάτω, διαλέξτε το.",
         "final_note": f"Αν αυτό δεν καλύπτει ό,τι ρωτήσατε, γράψτε το με άλλα λόγια ή καλέστε στο {C.PHONE}.",
         "empty": "Παρακαλώ γράψτε μια ερώτηση.",
     },
@@ -44,6 +45,7 @@ TEXT = {
         "out_of_scope": "I could not find a Municipality of Heraklion service for this; it may concern "
                         f"another authority. If you think it concerns the Municipality, please call {C.PHONE}.",
         "for": "About “{text}”:",
+        "or_these": "If you meant one of the following, please choose it.",
         "final_note": f"If this does not cover what you asked, please rephrase it or call {C.PHONE}.",
         "empty": "Please type a question.",
     },
@@ -160,21 +162,26 @@ def compose(segments: list, lang: str) -> tuple:
     """(κείμενο, κουμπιά). Με περισσότερα από ένα αιτήματα, κάθε απάντηση
     ξεκινά με τις λέξεις του αιτήματός της."""
     t = TEXT[lang]
-    many = sum(s.status in ("answered", "clarify") for s in segments) >= 2
+    many = sum(s.status in ("answered", "clarify", "out_of_scope") for s in segments) >= 2
     blocks, options, said = [], [], set()
     for s in segments:
-        if s.status in ("answered", "clarify", "error"):
+        if s.status == "blocked":               # κομμένο από τον Security: ένα έτοιμο κείμενο ανά είδος
+            key = CANNED.get(s.label, "blocked")
+            if key not in said:
+                said.add(key)
+                blocks.append(t[key])
+            continue
+        if s.status == "out_of_scope":          # scope=after: ούτε BERT ούτε Validator βρήκαν υπηρεσία
+            body = t["out_of_scope"]
+            if s.options and not options:
+                options, body = s.options, body + "\n" + t["or_these"]
+        else:
             body = s.answer
             if s.status == "answered" and s.final_ok is False:
                 body += "\n\n" + t["final_note"]
             if s.status == "clarify" and not options:
                 options = s.options
-            if many:
-                body = t["for"].format(text=_short(s.text)) + "\n" + body
-            blocks.append(body)
-        else:                                   # κομμένο από τον Security: ένα έτοιμο κείμενο ανά είδος
-            key = CANNED.get(s.label, "blocked")
-            if key not in said:
-                said.add(key)
-                blocks.append(t[key])
+        if many:
+            body = t["for"].format(text=_short(s.text)) + "\n" + body
+        blocks.append(body)
     return "\n\n".join(blocks), options

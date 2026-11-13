@@ -10,6 +10,8 @@
     MA_URL_SECURITY=http://host:11434 άλλος server για έναν ρόλο
     MA_OLLAMA_URL=http://host:11434   άλλος server για όλους
     MA_RULES=0  MA_SPLIT=0  MA_REFORM=0  MA_FINAL=0   κλείνουν ένα βήμα
+    MA_SCOPE=before | after           πότε μετρά το «εκτός αρμοδιότητας» του Security (Settings.scope)
+    MA_DECISION_LANG=el | en          γλώσσα των ερωτήσεων προς decision model
 """
 from __future__ import annotations
 
@@ -56,6 +58,11 @@ class Settings:
     split: bool = True          # Welcome: χωρισμός σε αιτήματα
     reform: bool = True         # case 1 του σχήματος
     final: bool = True          # τελικός Validator
+    # «Εκτός αρμοδιότητας» από τον Security:
+    #   before  κόβει το αίτημα πριν από το BERT, όπως στο σχήμα της 10/11
+    #   after   το αίτημα περνά στο BERT· η ετικέτα μετρά μόνο αν ούτε το BERT ούτε
+    #           ο Validator βρουν υπηρεσία (reports/multiagent.md, 2η μέτρηση)
+    scope: str = "before"
     decision_lang: str = "el"   # γλώσσα των ερωτήσεων προς decision model
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
@@ -79,6 +86,13 @@ def load(profile: str | None = None, **overrides) -> Settings:
             urls[role] = os.environ[f"MA_URL_{role.upper()}"].rstrip("/")
     s = Settings(profile=profile, models=models, urls=urls, rules=_flag("MA_RULES"),
                  split=_flag("MA_SPLIT"), reform=_flag("MA_REFORM"), final=_flag("MA_FINAL"))
+    for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang")):
+        if os.environ.get(name):
+            setattr(s, key, os.environ[name].strip().lower())
     for k, v in overrides.items():
         setattr(s, k, v)
+    if s.scope not in ("before", "after"):
+        raise ValueError(f"MA_SCOPE: «{s.scope}»· γίνεται before ή after")
+    if s.decision_lang not in ("el", "en"):
+        raise ValueError(f"MA_DECISION_LANG: «{s.decision_lang}»· γίνεται el ή en")
     return s

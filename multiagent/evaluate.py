@@ -3,7 +3,8 @@
 
     venv/bin/python -m multiagent.evaluate security     ο Security μόνος του (multiagent/sets/security_questions.csv)
     venv/bin/python -m multiagent.evaluate validator    ο Validator μόνος του, πάνω στους υποψήφιους του BERT (bakeoff)
-    venv/bin/python -m multiagent.evaluate pipeline     όλη η ροή, δίπλα στο σημερινό bot (bakeoff, compound, security)
+    venv/bin/python -m multiagent.evaluate pipeline     όλη η ροή, δίπλα στο σημερινό bot (bakeoff, compound, security,
+                                                        holdout, holdout2)
     venv/bin/python -m multiagent.evaluate summary      πίνακες από τα αρχεία των παραπάνω
 
     --configs tev1-el,qwen4b     ποιες ρυθμίσεις (βλ. CONFIGS)
@@ -38,18 +39,26 @@ usage_log.ENABLED = False    # ερωτήσεις δοκιμής, όχι πολ�
 REPORTS = ROOT / "reports"
 SETS = {"bakeoff": ROOT / "agent" / "bakeoff_questions.csv",
         "compound": ROOT / "multiagent" / "sets" / "compound_questions.csv",
-        "security": ROOT / "multiagent" / "sets" / "security_questions.csv"}
+        "security": ROOT / "multiagent" / "sets" / "security_questions.csv",
+        "holdout": ROOT / "agent" / "holdout_questions.csv",
+        "holdout2": ROOT / "agent" / "holdout2_questions.csv"}
 
-# όνομα → (ρύθμιση μοντέλων, επιπλέον ρυθμίσεις)
+# όνομα → (ρύθμιση μοντέλων, επιπλέον ρυθμίσεις). Κάθε όνομα ορίζει πλήρως τη
+# ρύθμιση, ώστε οι γραμμές των αρχείων να σημαίνουν το ίδιο κι αν αλλάξουν οι
+# προεπιλογές του config.py.
 CONFIGS = {
-    "tev1": ("tev1", {}),
-    "tev1-el": ("tev1", {"decision_lang": "el"}),
-    "tev1-en": ("tev1", {"decision_lang": "en"}),
-    "qwen4b": ("qwen4b", {}),
-    "qwen14b": ("qwen14b", {}),
+    # 1η μέτρηση (13/11): το «εκτός αρμοδιότητας» κόβει πριν από το BERT
+    "tev1": ("tev1", {"decision_lang": "el", "scope": "before"}),
+    "tev1-el": ("tev1", {"decision_lang": "el", "scope": "before"}),
+    "tev1-en": ("tev1", {"decision_lang": "en", "scope": "before"}),
+    "qwen4b": ("qwen4b", {"scope": "before"}),
+    "qwen14b": ("qwen14b", {"scope": "before"}),
+    # 2η μέτρηση (13/11): το «εκτός αρμοδιότητας» μετρά μετά το BERT
+    "tev1-after": ("tev1", {"decision_lang": "el", "scope": "after"}),
+    "tev1-en-after": ("tev1", {"decision_lang": "en", "scope": "after"}),
 }
 DEFAULTS = {"security": "rules,tev1-el,tev1-en,qwen4b", "validator": "tev1-el,tev1-en,qwen4b",
-            "pipeline": "tev1,qwen4b"}
+            "pipeline": "tev1-after,tev1-en-after"}
 SERVICE_TYPES = ("service", "department", "clarify")
 EXPECTED_LABEL = {"jailbreak": "manipulation", "out_of_scope": "out_of_scope", "abuse": "abuse",
                   "emergency": "emergency", "request": "request"}
@@ -213,8 +222,20 @@ def load(name: str) -> list:
     return list(csv.DictReader(open(path, encoding="utf-8"))) if path.exists() else []
 
 
+def blocked(r: dict) -> bool:
+    """Ο Security έκοψε όλο το μήνυμα πριν από τον ταξινομητή."""
+    return bool(r["how"]) and all(h == "blocked" for h in r["how"].split("|"))
+
+
+def overridden(r: dict) -> int:
+    """Αιτήματα με ετικέτα «εκτός αρμοδιότητας» που τελικά απαντήθηκαν (scope=after)."""
+    return sum(lab == "out_of_scope" and how in ("confident", "pick", "reform")
+               for lab, how in zip(r["labels"].split("|"), r["how"].split("|")))
+
+
 def summarize() -> dict:
     out: dict = {"security": {}, "validator": {}, "pipeline": {}}
+    langs = {(s, q["id"]): q.get("lang", "") for s in SETS for q in questions(s)}
 
     for name, rows in _group(load("multiagent_security.csv"), "config").items():
         s = {"seconds_per_call": round(statistics.mean(float(r["seconds"]) for r in rows), 2)}
@@ -236,9 +257,13 @@ def summarize() -> dict:
         out["pipeline"][name] = {}
         for sname, rs in _group(rows, "set").items():
             groups = {"all": rs}
-            if sname == "bakeoff":
+            if sname in ("bakeoff", "holdout", "holdout2"):
                 groups = {"service": [r for r in rs if r["type"] in SERVICE_TYPES],
                           "other": [r for r in rs if r["type"] not in SERVICE_TYPES]}
+                for lang in ("el", "en", "greeklish"):
+                    items = [r for r in groups["service"] if langs.get((sname, r["id"])) == lang]
+                    if items:
+                        groups[f"service_{lang}"] = items
             elif sname == "compound":
                 groups = {"compound": [r for r in rs if r["id"].startswith("c")],
                           "verbose": [r for r in rs if r["id"].startswith("v")]}
@@ -252,7 +277,7 @@ def summarize() -> dict:
                     # μετράει μόνο αν πέρασαν από τον Security.
                     out["pipeline"][name][f"{sname}/{g}"] = {
                         "n": len(items),
-                        "blocked": [r["id"] for r in items if "request" not in r["labels"].split("|")],
+                        "blocked": [r["id"] for r in items if blocked(r)],
                         "seconds_mean": round(statistics.mean(secs), 1)}
                     continue
                 out["pipeline"][name][f"{sname}/{g}"] = {
@@ -264,8 +289,9 @@ def summarize() -> dict:
                     "losses": [r["id"] for r in items if not b(r["correct"]) and b(r["floor_correct"])],
                     "bot_sure_wrong": [r["id"] for r in items if wrong(r, "floor_")],
                     "sure_wrong": [r["id"] for r in items if wrong(r, "")],
-                    "blocked": sum("request" not in r["labels"].split("|") and r["labels"] != "smalltalk"
-                                   for r in items),
+                    "blocked": sum(blocked(r) for r in items),
+                    "out_of_scope_overridden": sum(overridden(r) for r in items),
+                    "out_of_scope_reply": sum("out_of_scope" in r["how"].split("|") for r in items),
                     "reform_used": sum("reform" in r["how"] for r in items),
                     "picks": sum("pick" in r["how"] for r in items),
                     "final_fail": sum(int(r["final_fail"]) for r in items),

@@ -52,7 +52,7 @@ class Segment:
     chosen: Candidate | None = None
     how: str = ""                   # confident | pick | reform
     reformed: str = ""              # το κείμενο του case 1, αν έγινε δεκτό
-    status: str = ""                # answered | clarify | blocked | error
+    status: str = ""                # answered | clarify | blocked | out_of_scope | error
     answer: str = ""
     options: list = field(default_factory=list)
     final_ok: bool | None = None    # ο τελικός Validator

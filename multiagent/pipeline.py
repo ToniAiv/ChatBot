@@ -5,9 +5,13 @@
     1. Welcome    παραλαβή: κουβέντα → έτοιμη απάντηση
     2. Security   κανόνες σε όλο το μήνυμα
     3. Welcome    χωρισμός σε αιτήματα
-    4. Security   μοντέλο, ανά αίτημα· μόνο τα "request" συνεχίζουν
+    4. Security   μοντέλο, ανά αίτημα· χειραγώγηση, προσβολές, επείγοντα σταματούν εδώ.
+                  Το «εκτός αρμοδιότητας» σταματά εδώ με scope=before· με scope=after
+                  το αίτημα συνεχίζει με την ετικέτα του
     5. BERT       υποψήφιοι προορισμοί ανά αίτημα
     6. Validator  ταιριάζει κάποιος;
+                    όχι, και ο Security είπε «εκτός αρμοδιότητας» → απάντηση «άλλος
+                          φορέας», με τις επιλογές του BERT αν υπάρχουν
                     όχι → case 1: ο Welcome αναδιατυπώνει και το BERT ξανατρέχει
                           (χωρίς Security: το αίτημα έχει ήδη εγκριθεί)
                     πάλι όχι → case 2: ερώτηση προς τον πολίτη
@@ -60,8 +64,11 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
 
     chosen, step = validator.check_intent(seg.text, cls, settings)
     trace.append(step)
+    outside = seg.label == "out_of_scope"           # μόνο με scope=after φτάνει ως εδώ
     if chosen:
         seg.chosen, seg.how = chosen, "confident" if cls.confident else "pick"
+    elif outside:
+        pass        # χωρίς case 1: Security και Validator συμφωνούν ότι δεν είναι υπηρεσία του Δήμου
     elif settings.reform and not cls.error:
         new, step = welcome.reform(seg.text, settings)            # case 1
         trace.append(step)
@@ -77,6 +84,13 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
 
     if seg.chosen:
         seg.status, seg.answer = "answered", classifier.answer(seg.chosen, seg.cls)
+        if outside:
+            trace.append(Step("security", "scope", "το «εκτός αρμοδιότητας» δεν ισχύει: BERT και Validator "
+                                                   "βρήκαν υπηρεσία"))
+    elif outside and not cls.error:
+        seg.status, seg.options = "out_of_scope", classifier.options(seg.cls)
+        trace.append(Step("security", "scope", "εκτός αρμοδιότητας: ούτε το BERT ούτε ο Validator βρήκαν "
+                                               "υπηρεσία"))
     else:                                                         # case 2
         seg.status = "error" if cls.error else "clarify"
         seg.answer, seg.options = classifier.clarify_text(seg.cls), classifier.options(seg.cls)
@@ -120,9 +134,9 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
     # 4. Security: μοντέλο
     trace.append(security.check(segments, settings))
     for seg in segments:
-        if seg.label != "request":
+        if security.blocks(seg.label, settings):
             seg.status = "blocked"
-    allowed = [s for s in segments if s.label == "request"]
+    allowed = [s for s in segments if s.status != "blocked"]
 
     # 5-6. BERT και Validator, ανά αίτημα
     pending = session.pending.take()
@@ -134,6 +148,8 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
     if len(allowed) >= 2 and len(allowed) == len(segments) and not any(s.status == "answered" for s in allowed):
         trace.append(Step("welcome", "unsplit", "κανένα κομμάτι δεν λύθηκε, το μήνυμα κρίνεται ολόκληρο"))
         whole = Segment(text)
+        if all(s.label == "out_of_scope" for s in allowed):
+            whole.label = "out_of_scope"
         _resolve(whole, pending, settings, trace)
         segments = allowed = [whole]
 
