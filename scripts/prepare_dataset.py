@@ -35,7 +35,7 @@ EVAL_FILES = sorted((DATASETS / "tests").glob("*.csv")) + [
                            "pooling_holdout.csv", "family_holdout.csv")] + [
     ROOT / "agent" / n for n in ("bakeoff_questions.csv", "holdout_questions.csv", "holdout2_questions.csv",
                                     "holdout3_questions.csv", "holdout4_questions.csv", "holdout5_questions.csv",
-                                    "followup_questions.csv", "followup2_questions.csv")] + [
+                                    "holdout6_questions.csv", "followup_questions.csv", "followup2_questions.csv")] + [
     ROOT / "multiagent" / "sets" / n for n in ("security_questions.csv", "compound_questions.csv")]
 
 
