@@ -307,6 +307,8 @@ def summarize() -> dict:
             elif sname == "security":
                 groups = _group(rs, "type")
             for g, items in groups.items():
+                if not items:               # π.χ. μέτρηση που σταμάτησε πριν φτάσει σε αυτή την ομάδα
+                    continue
                 secs = [float(r["seconds"]) for r in items]
                 wrong = lambda r, p: b(r[p + "answered"]) and not b(r[p + "partial"])   # noqa: E731
                 if g == "request":
