@@ -83,7 +83,9 @@ class Settings:
     #   fits    κρίνει τους υποψήφιους του bot: τη σίγουρη απάντηση («ταιριάζει;») ή τις
     #           επιλογές που θα έδειχνε το bot
     #   choose  διαλέγει πάντα ανάμεσα στις 5 πρώτες υπηρεσίες του BERT (ή «καμία»)
-    validator_mode: str = "fits"
+    # Προεπιλογή choose από τον κανόνα της 4ης μέτρησης (holdout4): 35 σωστές έναντι 31,
+    # 6 σίγουρα λάθη έναντι 7 (reports/multiagent.md).
+    validator_mode: str = "choose"
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
