@@ -15,6 +15,7 @@
     MA_EMERGENCY=block | answer       «επείγον»: μόνο το 112, ή το 112 και η απάντηση του Δήμου
     MA_SPLIT_LANGS=el | all           χωρισμός σε αιτήματα μόνο στα ελληνικά, ή και σε αγγλικά/greeklish
     MA_VALIDATOR_MODE=fits | choose   ο Validator κρίνει τους υποψήφιους του bot, ή διαλέγει στις 5 πρώτες του BERT
+    MA_GREEKLISH=raw | greek          Security και Validator βλέπουν τα greeklish όπως γράφτηκαν, ή σε ελληνικά
 """
 from __future__ import annotations
 
@@ -86,6 +87,11 @@ class Settings:
     # Προεπιλογή choose από τον κανόνα της 4ης μέτρησης (holdout4): 35 σωστές έναντι 31,
     # 6 σίγουρα λάθη έναντι 7 (reports/multiagent.md).
     validator_mode: str = "choose"
+    # Τι βλέπουν Security, Validator και κανόνες σε μήνυμα γραμμένο σε greeklish:
+    #   raw    το μήνυμα όπως το έγραψε ο πολίτης
+    #   greek  μεταγραμμένο σε ελληνικά, όπως το βλέπει το BERT (ο χωρισμός κρατά πάντα
+    #          τις λέξεις του πολίτη)
+    greeklish: str = "raw"
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
@@ -110,7 +116,7 @@ def load(profile: str | None = None, **overrides) -> Settings:
                  split=_flag("MA_SPLIT"), reform=_flag("MA_REFORM"), final=_flag("MA_FINAL"))
     for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang"),
                       ("MA_EMERGENCY", "emergency"), ("MA_SPLIT_LANGS", "split_langs"),
-                      ("MA_VALIDATOR_MODE", "validator_mode")):
+                      ("MA_VALIDATOR_MODE", "validator_mode"), ("MA_GREEKLISH", "greeklish")):
         if os.environ.get(name):
             setattr(s, key, os.environ[name].strip().lower())
     for k, v in overrides.items():
@@ -122,7 +128,8 @@ def load(profile: str | None = None, **overrides) -> Settings:
                                ("MA_DECISION_LANG", "decision_lang", ("el", "en")),
                                ("MA_EMERGENCY", "emergency", ("block", "answer")),
                                ("MA_SPLIT_LANGS", "split_langs", ("el", "all")),
-                               ("MA_VALIDATOR_MODE", "validator_mode", ("fits", "choose"))):
+                               ("MA_VALIDATOR_MODE", "validator_mode", ("fits", "choose")),
+                               ("MA_GREEKLISH", "greeklish", ("raw", "greek"))):
         if getattr(s, key) not in allowed:
             raise ValueError(f"{name}: «{getattr(s, key)}»· γίνεται {' ή '.join(allowed)}")
     return s

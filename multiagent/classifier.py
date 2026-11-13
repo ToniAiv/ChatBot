@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 
 import connector as C
+import greeklish
 import gui
 
 from multiagent.state import Candidate, Classification
@@ -46,6 +47,15 @@ def _candidate(intent: str, score: float) -> Candidate | None:
     rec = cand[0][1]
     described = (C.SECTIONS.get(rec["url"]) or {}).get("sections", {}).get("Περιγραφή", "")
     return Candidate(intent, score, "link", rec["title"], url=rec["url"], description=_trim(described))
+
+
+def greek_view(text: str) -> str:
+    """Τα greeklish σε ελληνικά, όπως τα βλέπει το BERT (μεταγραφή και ορθογραφία,
+    χωρίς LLM). Τα ελληνικά και τα αγγλικά μένουν ακριβώς όπως τα έγραψε ο πολίτης."""
+    if C.detect_language(text) == "el":
+        return text
+    greek = greeklish.to_greek(text)
+    return C.prepare_greek(greek) if greek else text
 
 
 def same_place(a: Candidate, b: Candidate) -> bool:

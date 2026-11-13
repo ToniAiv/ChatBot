@@ -121,12 +121,12 @@ def check(segments: list, settings: Settings) -> Step:
             lang = settings.decision_lang
             question = {"kind": {"type": "choice", "instructions": QUESTION[lang], "criteria": CRITERIA[lang]}}
             for seg in segments:
-                ans, secs = llm.decide(url, model, seg.text, question, settings.timeout)
+                ans, secs = llm.decide(url, model, seg.view or seg.text, question, settings.timeout)
                 total += secs
                 seg.label = ans["kind"]["choice"] if ans["kind"]["choice"] in LABELS else "request"
                 notes.append(f"{seg.label} ({ans['kind']['probabilities'].get(seg.label, 0):.2f})")
         else:
-            user = "\n".join(f"{i}. {seg.text}" for i, seg in enumerate(segments, 1))
+            user = "\n".join(f"{i}. {seg.view or seg.text}" for i, seg in enumerate(segments, 1))
             out, total = llm.chat_json(url, model, SYSTEM, user, SCHEMA, settings.timeout)
             found = {x.get("n"): x.get("label") for x in out.get("labels", []) if isinstance(x, dict)}
             for i, seg in enumerate(segments, 1):

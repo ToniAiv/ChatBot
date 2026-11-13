@@ -82,7 +82,8 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
             cls = alt
     seg.cls = cls
 
-    chosen, step = validator.check_intent(seg.text, cls, settings)
+    said = seg.view or seg.text                     # οι λέξεις του πολίτη, ή η μεταγραφή τους (greeklish)
+    chosen, step = validator.check_intent(said, cls, settings)
     trace.append(step)
     outside = seg.label == "out_of_scope"           # μόνο με scope=after φτάνει ως εδώ
     urgent = seg.label == "emergency"               # μόνο με emergency=answer φτάνει ως εδώ
@@ -97,7 +98,7 @@ def _resolve(seg: Segment, pending, settings, trace: list) -> None:
             again = _classify(new, None, trace, " (αναδιατύπωση)")
             if again.confident and again.candidates:
                 # Ο Validator κρίνει με τις λέξεις του πολίτη, όχι με την αναδιατύπωση.
-                chosen, step = validator.check_intent(seg.text, again, settings)
+                chosen, step = validator.check_intent(said, again, settings)
                 trace.append(step)
                 if chosen:
                     again.lang, again.aspect = cls.lang, cls.aspect
@@ -143,8 +144,13 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
                    for o in st["options"]]
         return done(st["text"], options, st["lang"], [])
 
-    # 2. Security: κανόνες
-    broken = security.rules(text) if settings.rules else None
+    # Greeklish: Security και Validator βλέπουν τη μεταγραφή σε ελληνικά (greeklish=greek)
+    def view_of(s: str) -> str:
+        return classifier.greek_view(s) if settings.greeklish == "greek" else s
+
+    # 2. Security: κανόνες, στις λέξεις του πολίτη και στη μεταγραφή τους
+    whole_view = view_of(text)
+    broken = (security.rules(text) or (whole_view != text and security.rules(whole_view))) if settings.rules else None
     if broken:
         trace.append(Step("security", "rules", broken))
         segments = [Segment(text, label="manipulation", status="blocked")]
@@ -157,6 +163,10 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
     segments = [Segment(p) for p in parts]
     if len(segments) == 1:
         segments[0].alt = alt
+    for seg in segments:
+        seg.view = whole_view if seg.text == text else view_of(seg.text)
+        if seg.view != seg.text:
+            trace.append(Step("welcome", "greeklish", seg.view[:120]))
 
     # 4. Security: μοντέλο
     trace.append(security.check(segments, settings))
@@ -174,7 +184,7 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
     # κρίνεται ολόκληρο, όπως θα το έκρινε το σημερινό bot.
     if len(allowed) >= 2 and len(allowed) == len(segments) and not any(s.status == "answered" for s in allowed):
         trace.append(Step("welcome", "unsplit", "κανένα κομμάτι δεν λύθηκε, το μήνυμα κρίνεται ολόκληρο"))
-        whole = Segment(text)
+        whole = Segment(text, view=whole_view)
         if any(s.label == "emergency" for s in allowed):
             whole.label = "emergency"
         elif all(s.label == "out_of_scope" for s in allowed):
@@ -186,7 +196,7 @@ def run(message: str, session: Session | None = None, settings: config.Settings 
     if settings.final:
         for seg in allowed:
             if seg.status == "answered":
-                seg.final_ok, step = validator.check_final(seg.text, seg.answer, settings)
+                seg.final_ok, step = validator.check_final(seg.view or seg.text, seg.answer, settings)
                 trace.append(step)
 
     # Ένα αίτημα που περιμένει διευκρίνιση ενώνεται με το επόμενο μήνυμα (context.py).

@@ -47,6 +47,7 @@ class Classification:
 class Segment:
     """Ένα αίτημα του μηνύματος, με τις λέξεις του πολίτη."""
     text: str
+    view: str = ""                  # ό,τι βλέπουν Security και Validator (greeklish=greek: σε ελληνικά)
     alt: str = ""                   # απόσπασμα του Welcome από φλύαρο μήνυμα
     label: str = "request"          # Security: request | out_of_scope | manipulation | abuse | emergency
     cls: Classification | None = None
