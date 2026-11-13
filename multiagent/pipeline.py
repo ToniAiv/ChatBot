@@ -1,0 +1,154 @@
+"""
+Η ροή του σχήματος για ένα μήνυμα. Τη σειρά την ορίζει ο κώδικας· οι agents
+κρίνουν μόνο μέσα στο δικό τους βήμα.
+
+    1. Welcome    παραλαβή: κουβέντα → έτοιμη απάντηση
+    2. Security   κανόνες σε όλο το μήνυμα
+    3. Welcome    χωρισμός σε αιτήματα
+    4. Security   μοντέλο, ανά αίτημα· μόνο τα "request" συνεχίζουν
+    5. BERT       υποψήφιοι προορισμοί ανά αίτημα
+    6. Validator  ταιριάζει κάποιος;
+                    όχι → case 1: ο Welcome αναδιατυπώνει και το BERT ξανατρέχει
+                          (χωρίς Security: το αίτημα έχει ήδη εγκριθεί)
+                    πάλι όχι → case 2: ερώτηση προς τον πολίτη
+    7. Welcome    σύνθεση: απαντήσεις για όσα λύθηκαν + ερώτηση για όσα όχι
+    8. Validator  τελικός έλεγχος κάθε απάντησης
+
+    from multiagent import pipeline
+    reply = pipeline.run("θέλω βεβαίωση κατοικίας")     # reply.text, reply.options, reply.trace
+"""
+from __future__ import annotations
+
+import time
+
+import connector as C
+
+from multiagent import classifier, config, security, validator, welcome
+from multiagent.state import Reply, Segment, Session, Step
+
+
+def _describe(cls) -> str:
+    if cls.error:
+        return f"η μετάφραση απέτυχε ({cls.error})"
+    if not cls.intents:
+        return "χωρίς αποτέλεσμα"
+    top, score = cls.intents[0]
+    if cls.confident:
+        where = cls.candidates[0].title if cls.candidates else "χωρίς σελίδα ή τμήμα"
+        return f"σίγουρο {cls.confidence:.2f}: {top} → «{where}»"
+    if cls.candidates:
+        return f"αβέβαιο {cls.confidence:.2f}: {top} ({score:.2f}), {len(cls.candidates)} επιλογές"
+    return f"αβέβαιο {cls.confidence:.2f}: {top} ({score:.2f}), καμία επιλογή"
+
+
+def _classify(text: str, pending, trace: list, note: str = ""):
+    t0 = time.monotonic()
+    cls = classifier.classify(text, pending)
+    trace.append(Step("classifier", "bert", _describe(cls) + note, round(time.monotonic() - t0, 2)))
+    return cls
+
+
+def _resolve(seg: Segment, pending, settings, trace: list) -> None:
+    """Βήματα 5 και 6 για ένα αίτημα: BERT, Validator, case 1, case 2."""
+    cls = _classify(seg.text, pending, trace)
+    if not cls.confident and not cls.error and seg.alt:
+        # Φλύαρο μήνυμα: δεύτερη ευκαιρία με το απόσπασμα του Welcome.
+        alt = _classify(seg.alt, None, trace, " (απόσπασμα)")
+        if alt.confident and alt.candidates:
+            cls = alt
+    seg.cls = cls
+
+    chosen, step = validator.check_intent(seg.text, cls, settings)
+    trace.append(step)
+    if chosen:
+        seg.chosen, seg.how = chosen, "confident" if cls.confident else "pick"
+    elif settings.reform and not cls.error:
+        new, step = welcome.reform(seg.text, settings)            # case 1
+        trace.append(step)
+        if new:
+            again = _classify(new, None, trace, " (αναδιατύπωση)")
+            if again.confident and again.candidates:
+                # Ο Validator κρίνει με τις λέξεις του πολίτη, όχι με την αναδιατύπωση.
+                chosen, step = validator.check_intent(seg.text, again, settings)
+                trace.append(step)
+                if chosen:
+                    again.lang, again.aspect = cls.lang, cls.aspect
+                    seg.cls, seg.chosen, seg.how, seg.reformed = again, chosen, "reform", new
+
+    if seg.chosen:
+        seg.status, seg.answer = "answered", classifier.answer(seg.chosen, seg.cls)
+    else:                                                         # case 2
+        seg.status = "error" if cls.error else "clarify"
+        seg.answer, seg.options = classifier.clarify_text(seg.cls), classifier.options(seg.cls)
+
+
+def run(message: str, session: Session | None = None, settings: config.Settings | None = None) -> Reply:
+    settings, session = settings or config.load(), session or Session()
+    t0, trace = time.monotonic(), []
+
+    def done(text: str, options: list, lang: str, segments: list) -> Reply:
+        return Reply(text, options, lang, segments, trace, round(time.monotonic() - t0, 2))
+
+    text = (message or "").strip()
+    if not text:
+        return done(welcome.TEXT["el"]["empty"], [], "el", [])
+    lang = welcome.language_of(text)
+
+    # 1. Welcome: κουβέντα
+    st = welcome.smalltalk(text)
+    if st:
+        trace.append(Step("welcome", "smalltalk", st["kind"]))
+        options = [{"intent": o["intent"], "title": o["title"], "kind": o["kind"], "url": o.get("url", "")}
+                   for o in st["options"]]
+        return done(st["text"], options, st["lang"], [])
+
+    # 2. Security: κανόνες
+    broken = security.rules(text) if settings.rules else None
+    if broken:
+        trace.append(Step("security", "rules", broken))
+        segments = [Segment(text, label="manipulation", status="blocked")]
+        return done(welcome.compose(segments, lang)[0], [], lang, segments)
+
+    # 3. Welcome: χωρισμός
+    parts, alt, step = welcome.split(text, settings)
+    if step:
+        trace.append(step)
+    segments = [Segment(p) for p in parts]
+    if len(segments) == 1:
+        segments[0].alt = alt
+
+    # 4. Security: μοντέλο
+    trace.append(security.check(segments, settings))
+    for seg in segments:
+        if seg.label != "request":
+            seg.status = "blocked"
+    allowed = [s for s in segments if s.label == "request"]
+
+    # 5-6. BERT και Validator, ανά αίτημα
+    pending = session.pending.take()
+    for seg in allowed:
+        _resolve(seg, pending if len(allowed) == 1 else None, settings, trace)
+
+    # Αν ο χωρισμός δεν έδωσε ούτε μία απάντηση, δεν βοήθησε: το μήνυμα
+    # κρίνεται ολόκληρο, όπως θα το έκρινε το σημερινό bot.
+    if len(allowed) >= 2 and len(allowed) == len(segments) and not any(s.status == "answered" for s in allowed):
+        trace.append(Step("welcome", "unsplit", "κανένα κομμάτι δεν λύθηκε, το μήνυμα κρίνεται ολόκληρο"))
+        whole = Segment(text)
+        _resolve(whole, pending, settings, trace)
+        segments = allowed = [whole]
+
+    # 8. Validator: τελικός έλεγχος (πριν από τη σύνθεση, γιατί αλλάζει το κείμενο)
+    if settings.final:
+        for seg in allowed:
+            if seg.status == "answered":
+                seg.final_ok, step = validator.check_final(seg.text, seg.answer, settings)
+                trace.append(step)
+
+    # Ένα αίτημα που περιμένει διευκρίνιση ενώνεται με το επόμενο μήνυμα (context.py).
+    waiting = [s for s in allowed if s.status == "clarify"]
+    if len(waiting) == 1:
+        session.pending.remember(waiting[0].cls.current, waiting[0].cls.aspect)
+
+    # 7. Welcome: σύνθεση
+    reply, options = welcome.compose(segments, lang)
+    return done(reply or C.MSG[lang]["unknown"], options, lang, segments)

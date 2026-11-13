@@ -3,6 +3,7 @@
 #   ./run.sh            παράθυρο (desktop)
 #   ./run.sh cli --query "..."
 #   ./run.sh web        web έκδοση: http://127.0.0.1:8000/heraklion και /eservices (DEPLOY.md)
+#   ./run.sh agents     multi-agent σύστημα στο τερματικό (multiagent/README.md)
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="$ROOT/venv/bin/python"
@@ -24,5 +25,11 @@ case "${1:-gui}" in
     fi
     if [ "$1" = gui ] || [ -z "${1:-}" ]; then exec "$PY" "$ROOT/app/gui.py"; fi
     shift; exec "$PY" "$ROOT/app/connector.py" "$@" ;;
-  *)    echo "Χρήση: ./run.sh [gui|cli --query \"...\"|web]"; exit 1 ;;
+  agents)
+    if ! ollama_up; then
+      echo "⚠  Το Ollama δεν τρέχει. Οι agents χρειάζονται τα μοντέλα του (multiagent/README.md)."
+      exit 1
+    fi
+    shift; cd "$ROOT"; exec "$PY" -m multiagent.cli "$@" ;;
+  *)    echo "Χρήση: ./run.sh [gui|cli --query \"...\"|web|agents]"; exit 1 ;;
 esac
