@@ -12,6 +12,8 @@
     MA_RULES=0  MA_SPLIT=0  MA_REFORM=0  MA_FINAL=0   κλείνουν ένα βήμα
     MA_SCOPE=before | after           πότε μετρά το «εκτός αρμοδιότητας» του Security (Settings.scope)
     MA_DECISION_LANG=el | en          γλώσσα των ερωτήσεων προς decision model
+    MA_EMERGENCY=block | answer       «επείγον»: μόνο το 112, ή το 112 και η απάντηση του Δήμου
+    MA_SPLIT_LANGS=el | all           χωρισμός σε αιτήματα μόνο στα ελληνικά, ή και σε αγγλικά/greeklish
 """
 from __future__ import annotations
 
@@ -66,6 +68,14 @@ class Settings:
     # 59 σωστές στις 93 έναντι 27 με before (reports/multiagent.md, 2η μέτρηση).
     scope: str = "after"
     decision_lang: str = "en"   # γλώσσα των ερωτήσεων προς decision model
+    # «Επείγον» από τον Security:
+    #   block   μόνο το κείμενο για το 112, χωρίς ταξινόμηση
+    #   answer  το κείμενο για το 112 και, αν BERT και Validator βρουν υπηρεσία, η απάντησή της
+    emergency: str = "block"
+    # Ο έλεγχος «μήπως έχει δύο αιτήματα» πριν από το μοντέλο του χωρισμού:
+    #   el   μόνο ελληνικές λέξεις (και, επίσης…)· τα αγγλικά και τα greeklish δεν χωρίζονται
+    #   all  και αγγλικές λέξεις και greeklish (and, also, kai, episis…)
+    split_langs: str = "el"
     threshold: float = 0.5      # πιθανότητα πάνω από την οποία ο Validator εγκρίνει
     timeout: int = 120          # δευτερόλεπτα ανά κλήση μοντέλου
 
@@ -88,13 +98,19 @@ def load(profile: str | None = None, **overrides) -> Settings:
             urls[role] = os.environ[f"MA_URL_{role.upper()}"].rstrip("/")
     s = Settings(profile=profile, models=models, urls=urls, rules=_flag("MA_RULES"),
                  split=_flag("MA_SPLIT"), reform=_flag("MA_REFORM"), final=_flag("MA_FINAL"))
-    for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang")):
+    for name, key in (("MA_SCOPE", "scope"), ("MA_DECISION_LANG", "decision_lang"),
+                      ("MA_EMERGENCY", "emergency"), ("MA_SPLIT_LANGS", "split_langs")):
         if os.environ.get(name):
             setattr(s, key, os.environ[name].strip().lower())
     for k, v in overrides.items():
-        setattr(s, k, v)
-    if s.scope not in ("before", "after"):
-        raise ValueError(f"MA_SCOPE: «{s.scope}»· γίνεται before ή after")
-    if s.decision_lang not in ("el", "en"):
-        raise ValueError(f"MA_DECISION_LANG: «{s.decision_lang}»· γίνεται el ή en")
+        if k == "models":                       # αλλάζει μόνο τους ρόλους που δίνονται
+            s.models.update(v)
+        else:
+            setattr(s, k, v)
+    for name, key, allowed in (("MA_SCOPE", "scope", ("before", "after")),
+                               ("MA_DECISION_LANG", "decision_lang", ("el", "en")),
+                               ("MA_EMERGENCY", "emergency", ("block", "answer")),
+                               ("MA_SPLIT_LANGS", "split_langs", ("el", "all"))):
+        if getattr(s, key) not in allowed:
+            raise ValueError(f"{name}: «{getattr(s, key)}»· γίνεται {' ή '.join(allowed)}")
     return s

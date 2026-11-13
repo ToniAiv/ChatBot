@@ -335,6 +335,8 @@
     "bot_correct": 28,
     "correct": 17,
     "partial": 18,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 17,
     "wins": [
      "t24"
     ],
@@ -376,6 +378,8 @@
     "bot_correct": 11,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 11,
+    "correct_or_button": 12,
     "wins": [
      "o05"
     ],
@@ -399,6 +403,8 @@
     "bot_correct": 0,
     "correct": 3,
     "partial": 9,
+    "bot_correct_or_button": 0,
+    "correct_or_button": 3,
     "wins": [
      "c01",
      "c04",
@@ -422,6 +428,8 @@
     "bot_correct": 1,
     "correct": 2,
     "partial": 2,
+    "bot_correct_or_button": 1,
+    "correct_or_button": 2,
     "wins": [
      "v01",
      "v05"
@@ -450,6 +458,8 @@
     "bot_correct": 8,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 12,
     "wins": [
      "j06",
      "j07",
@@ -479,6 +489,8 @@
     "bot_correct": 12,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 12,
+    "correct_or_button": 12,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -498,6 +510,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -517,6 +531,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -546,6 +562,8 @@
     "bot_correct": 33,
     "correct": 17,
     "partial": 20,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 17,
     "wins": [
      "h49"
     ],
@@ -594,6 +612,8 @@
     "bot_correct": 9,
     "correct": 9,
     "partial": 9,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 9,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -617,6 +637,8 @@
     "bot_correct": 25,
     "correct": 12,
     "partial": 15,
+    "bot_correct_or_button": 25,
+    "correct_or_button": 12,
     "wins": [],
     "losses": [
      "h01",
@@ -655,6 +677,8 @@
     "bot_correct": 4,
     "correct": 2,
     "partial": 2,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 2,
     "wins": [
      "h49"
     ],
@@ -680,6 +704,8 @@
     "bot_correct": 4,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 3,
     "wins": [],
     "losses": [
      "h32"
@@ -707,6 +733,8 @@
     "bot_correct": 24,
     "correct": 10,
     "partial": 13,
+    "bot_correct_or_button": 24,
+    "correct_or_button": 10,
     "wins": [
      "q07",
      "q13"
@@ -751,6 +779,8 @@
     "bot_correct": 9,
     "correct": 10,
     "partial": 10,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 10,
     "wins": [
      "p04"
     ],
@@ -774,6 +804,8 @@
     "bot_correct": 17,
     "correct": 7,
     "partial": 10,
+    "bot_correct_or_button": 17,
+    "correct_or_button": 7,
     "wins": [
      "q07",
      "q13"
@@ -809,6 +841,8 @@
     "bot_correct": 3,
     "correct": 2,
     "partial": 2,
+    "bot_correct_or_button": 3,
+    "correct_or_button": 2,
     "wins": [],
     "losses": [
      "q29"
@@ -834,6 +868,8 @@
     "bot_correct": 4,
     "correct": 1,
     "partial": 1,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 1,
     "wins": [],
     "losses": [
      "q21",
@@ -861,6 +897,8 @@
     "bot_correct": 28,
     "correct": 16,
     "partial": 17,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 16,
     "wins": [
      "t08",
      "t24",
@@ -907,6 +945,8 @@
     "bot_correct": 11,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 11,
+    "correct_or_button": 12,
     "wins": [
      "o05"
     ],
@@ -930,6 +970,8 @@
     "bot_correct": 0,
     "correct": 3,
     "partial": 7,
+    "bot_correct_or_button": 0,
+    "correct_or_button": 3,
     "wins": [
      "c01",
      "c08",
@@ -953,6 +995,8 @@
     "bot_correct": 1,
     "correct": 0,
     "partial": 0,
+    "bot_correct_or_button": 1,
+    "correct_or_button": 0,
     "wins": [],
     "losses": [
      "v03"
@@ -976,6 +1020,8 @@
     "bot_correct": 8,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 12,
     "wins": [
      "j06",
      "j07",
@@ -1005,6 +1051,8 @@
     "bot_correct": 12,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 12,
+    "correct_or_button": 12,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1024,6 +1072,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1043,6 +1093,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1076,6 +1128,8 @@
     "bot_correct": 33,
     "correct": 33,
     "partial": 36,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 33,
     "wins": [
      "h23",
      "h27",
@@ -1117,6 +1171,8 @@
     "bot_correct": 9,
     "correct": 9,
     "partial": 9,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 9,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1140,6 +1196,8 @@
     "bot_correct": 25,
     "correct": 23,
     "partial": 26,
+    "bot_correct_or_button": 25,
+    "correct_or_button": 23,
     "wins": [
      "h23",
      "h27",
@@ -1173,6 +1231,8 @@
     "bot_correct": 4,
     "correct": 6,
     "partial": 6,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 6,
     "wins": [
      "h49",
      "h50"
@@ -1195,6 +1255,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1222,6 +1284,8 @@
     "bot_correct": 24,
     "correct": 25,
     "partial": 27,
+    "bot_correct_or_button": 24,
+    "correct_or_button": 25,
     "wins": [
      "q07",
      "q13",
@@ -1254,6 +1318,8 @@
     "bot_correct": 9,
     "correct": 10,
     "partial": 10,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 10,
     "wins": [
      "p04"
     ],
@@ -1277,6 +1343,8 @@
     "bot_correct": 17,
     "correct": 19,
     "partial": 21,
+    "bot_correct_or_button": 17,
+    "correct_or_button": 19,
     "wins": [
      "q07",
      "q13",
@@ -1302,6 +1370,8 @@
     "bot_correct": 3,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 3,
+    "correct_or_button": 3,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1326,6 +1396,8 @@
     "bot_correct": 4,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 3,
     "wins": [],
     "losses": [
      "q24"
@@ -1349,6 +1421,8 @@
     "bot_correct": 28,
     "correct": 30,
     "partial": 30,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 30,
     "wins": [
      "t10",
      "t24",
@@ -1383,6 +1457,8 @@
     "bot_correct": 11,
     "correct": 11,
     "partial": 11,
+    "bot_correct_or_button": 11,
+    "correct_or_button": 11,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1406,6 +1482,8 @@
     "bot_correct": 0,
     "correct": 6,
     "partial": 9,
+    "bot_correct_or_button": 0,
+    "correct_or_button": 6,
     "wins": [
      "c01",
      "c04",
@@ -1432,6 +1510,8 @@
     "bot_correct": 1,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 1,
+    "correct_or_button": 3,
     "wins": [
      "v01",
      "v05"
@@ -1458,6 +1538,8 @@
     "bot_correct": 8,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 12,
     "wins": [
      "j06",
      "j07",
@@ -1487,6 +1569,8 @@
     "bot_correct": 12,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 12,
+    "correct_or_button": 12,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1506,6 +1590,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1525,6 +1611,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1551,6 +1639,8 @@
     "bot_correct": 33,
     "correct": 33,
     "partial": 36,
+    "bot_correct_or_button": 33,
+    "correct_or_button": 33,
     "wins": [
      "h23",
      "h27",
@@ -1592,6 +1682,8 @@
     "bot_correct": 9,
     "correct": 9,
     "partial": 9,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 9,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1615,6 +1707,8 @@
     "bot_correct": 25,
     "correct": 23,
     "partial": 26,
+    "bot_correct_or_button": 25,
+    "correct_or_button": 23,
     "wins": [
      "h23",
      "h27",
@@ -1648,6 +1742,8 @@
     "bot_correct": 4,
     "correct": 6,
     "partial": 6,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 6,
     "wins": [
      "h49",
      "h50"
@@ -1670,6 +1766,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1697,6 +1795,8 @@
     "bot_correct": 24,
     "correct": 26,
     "partial": 28,
+    "bot_correct_or_button": 24,
+    "correct_or_button": 26,
     "wins": [
      "q02",
      "q07",
@@ -1728,6 +1828,8 @@
     "bot_correct": 9,
     "correct": 10,
     "partial": 10,
+    "bot_correct_or_button": 9,
+    "correct_or_button": 10,
     "wins": [
      "p04"
     ],
@@ -1751,6 +1853,8 @@
     "bot_correct": 17,
     "correct": 20,
     "partial": 22,
+    "bot_correct_or_button": 17,
+    "correct_or_button": 20,
     "wins": [
      "q02",
      "q07",
@@ -1777,6 +1881,8 @@
     "bot_correct": 3,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 3,
+    "correct_or_button": 3,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [
@@ -1798,6 +1904,8 @@
     "bot_correct": 4,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 3,
     "wins": [],
     "losses": [
      "q24"
@@ -1821,6 +1929,8 @@
     "bot_correct": 28,
     "correct": 33,
     "partial": 33,
+    "bot_correct_or_button": 28,
+    "correct_or_button": 33,
     "wins": [
      "t08",
      "t10",
@@ -1856,6 +1966,8 @@
     "bot_correct": 11,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 11,
+    "correct_or_button": 12,
     "wins": [
      "o05"
     ],
@@ -1879,6 +1991,8 @@
     "bot_correct": 0,
     "correct": 6,
     "partial": 9,
+    "bot_correct_or_button": 0,
+    "correct_or_button": 6,
     "wins": [
      "c01",
      "c04",
@@ -1905,6 +2019,8 @@
     "bot_correct": 1,
     "correct": 3,
     "partial": 3,
+    "bot_correct_or_button": 1,
+    "correct_or_button": 3,
     "wins": [
      "v01",
      "v05"
@@ -1931,6 +2047,8 @@
     "bot_correct": 8,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 8,
+    "correct_or_button": 12,
     "wins": [
      "j06",
      "j07",
@@ -1960,6 +2078,8 @@
     "bot_correct": 12,
     "correct": 12,
     "partial": 12,
+    "bot_correct_or_button": 12,
+    "correct_or_button": 12,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1979,6 +2099,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],
@@ -1998,6 +2120,8 @@
     "bot_correct": 4,
     "correct": 4,
     "partial": 4,
+    "bot_correct_or_button": 4,
+    "correct_or_button": 4,
     "wins": [],
     "losses": [],
     "bot_sure_wrong": [],

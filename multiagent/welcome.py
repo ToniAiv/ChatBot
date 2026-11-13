@@ -80,6 +80,8 @@ SCHEMA_SPLIT = {"type": "object", "required": ["requests"], "properties": {"requ
     "type": "array", "minItems": 1, "maxItems": 3, "items": {"type": "string"}}}}
 
 _COMPOSITE = re.compile(r"\b(και|επισης|ακομα|επιπλεον)\b")
+# αγγλικά και greeklish (split_langs=all)
+_COMPOSITE_LATIN = re.compile(r"\b(and|also|plus|kai|ke|episis|epishs|episeis|akoma|epipleon)\b")
 _SENTENCE_END = re.compile(r"[.!?;;·]\s+\S")
 
 
@@ -87,9 +89,11 @@ def _tokens(s: str) -> list:
     return C.normalize(re.sub(r"[^\w\s]", " ", s)).split()
 
 
-def may_be_composite(text: str) -> bool:
+def may_be_composite(text: str, any_lang: bool = False) -> bool:
     """Αξίζει να ρωτήσουμε το μοντέλο; Τα σύντομα, απλά μηνύματα δεν πληρώνουν κλήση."""
-    return len(text.split()) >= 6 and bool(_SENTENCE_END.search(text) or _COMPOSITE.search(C.normalize(text)))
+    plain = C.normalize(text)
+    joined = _COMPOSITE.search(plain) or (any_lang and _COMPOSITE_LATIN.search(plain))
+    return len(text.split()) >= 6 and bool(_SENTENCE_END.search(text) or joined)
 
 
 def verbatim(part: str, message: str) -> bool:
@@ -106,7 +110,7 @@ def split(text: str, settings: Settings) -> tuple:
     ολόκληρο το μήνυμα και, αν το μοντέλο απομόνωσε το αίτημα μέσα από φλύαρο
     κείμενο, το απόσπασμα ως δεύτερη ευκαιρία για τον ταξινομητή.
     """
-    if not settings.split or not may_be_composite(text):
+    if not settings.split or not may_be_composite(text, settings.split_langs == "all"):
         return [text], "", None
     model = settings.model("split")
     try:
@@ -165,7 +169,7 @@ def compose(segments: list, lang: str) -> tuple:
     many = sum(s.status in ("answered", "clarify", "out_of_scope") for s in segments) >= 2
     blocks, options, said = [], [], set()
     for s in segments:
-        if s.status == "blocked":               # κομμένο από τον Security: ένα έτοιμο κείμενο ανά είδος
+        if s.status in ("blocked", "emergency"):    # ένα έτοιμο κείμενο ανά είδος
             key = CANNED.get(s.label, "blocked")
             if key not in said:
                 said.add(key)
@@ -179,6 +183,9 @@ def compose(segments: list, lang: str) -> tuple:
             body = s.answer
             if s.status == "answered" and s.final_ok is False:
                 body += "\n\n" + t["final_note"]
+            if s.status == "answered" and s.label == "emergency" and "emergency" not in said:
+                said.add("emergency")               # emergency=answer: πρώτα το 112
+                body = t["emergency"] + "\n\n" + body
             if s.status == "clarify" and not options:
                 options = s.options
         if many:
