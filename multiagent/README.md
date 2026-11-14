@@ -69,6 +69,7 @@ venv/bin/python -m multiagent.evaluate security     # ο Security μόνος τ�
 venv/bin/python -m multiagent.evaluate validator    # ο Validator μόνος του
 venv/bin/python -m multiagent.evaluate pipeline     # όλη η ροή, δίπλα στο σημερινό bot
 venv/bin/python -m multiagent.evaluate summary      # πίνακες
+venv/bin/python -m multiagent.evaluate metrics --configs tev1-en-choose-gr,<νέα>   # reports/metrics.txt: bot δίπλα στις ρυθμίσεις
 venv/bin/python -m multiagent.evaluate pipeline --configs tev1-after --sets holdout,holdout2
 ```
 

@@ -6,6 +6,7 @@
     venv/bin/python -m multiagent.evaluate pipeline     όλη η ροή, δίπλα στο σημερινό bot (bakeoff, compound, security,
                                                         holdout, holdout2)
     venv/bin/python -m multiagent.evaluate summary      πίνακες από τα αρχεία των παραπάνω
+    venv/bin/python -m multiagent.evaluate metrics      reports/metrics.txt: το bot δίπλα στις ρυθμίσεις --configs
 
     --configs tev1-el,qwen4b     ποιες ρυθμίσεις (βλ. CONFIGS)
     --sets bakeoff,compound      ποια σετ, για το pipeline
@@ -395,14 +396,133 @@ def _group(rows: list, key: str) -> dict:
     return out
 
 
+# ── 5. Αρχείο σύγκρισης με το bot (reports/metrics.txt) ───────
+MAIN_SETS = ("bakeoff", "holdout", "holdout2", "holdout3", "holdout4", "holdout5", "holdout6")
+FRESH_SETS = MAIN_SETS[1:]           # σετ που γράφτηκαν πριν τρέξει μοντέλο πάνω τους
+
+
+def _scored(name: str) -> list:
+    """Οι γραμμές μιας ρύθμισης, ξαναβαθμολογημένες από τα αποθηκευμένα κείμενα με τη
+    σημερινή βαθμολόγηση, ώστε παλιές και νέες εκτελέσεις να μετριούνται ίδια."""
+    qs = {(s, q["id"]): q for s in SETS for q in questions(s)}
+    out = []
+    for r in load("multiagent_answers.csv"):
+        if r["config"] != name or (r["set"], r["id"]) not in qs:
+            continue
+        q = qs[(r["set"], r["id"])]
+        fc, fp, fa = grade(q, r["floor_text"].replace(" ⏎ ", "\n"))
+        c, p, a = grade(q, r["reply"].replace(" ⏎ ", "\n"))
+        out.append({**r, "q": q, "fc": fc, "fp": fp, "fw": fa and not fp, "c": c, "p": p, "w": a and not p,
+                    "fo": fc or b(r.get("floor_opt", "")), "o": c or b(r.get("opt", ""))})
+    return out
+
+
+def _service(rows: list) -> list:
+    return [r for r in rows if r["type"] in SERVICE_TYPES and not (r["set"] == "holdout3" and r["id"][0] in "ue")]
+
+
+def write_metrics(names: list) -> str:
+    """Απλό αρχείο κειμένου: το bot δίπλα σε μία ή περισσότερες ρυθμίσεις του multi-agent."""
+    data = {n: _scored(n) for n in names}
+    cols = ["bot"] + names
+    w = max(14, max(len(n) for n in names) + 2)
+
+    def row(label: str, values: list) -> str:
+        return f"{label:<40}" + "".join(f"{v:>{w}}" for v in values)
+
+    def pair(rows_by: dict, key_bot: str, key: str, pick=lambda r: True) -> list:
+        first = [r for r in rows_by[names[0]] if pick(r)]
+        return [sum(r[key_bot] for r in first)] + [sum(r[key] for r in rows_by[n] if pick(r)) for n in names]
+
+    lines = ["ΣΥΓΚΡΙΣΗ: ΣΗΜΕΡΙΝΟ BOT ΚΑΙ MULTI-AGENT",
+             f"Ενημέρωση: {time.strftime('%d/%m/%Y')} · πηγή: reports/multiagent_answers.csv · μία εκτέλεση ανά σετ",
+             "Ρυθμίσεις multi-agent: " + ", ".join(names) + " (ορισμός στο CONFIGS του multiagent/evaluate.py)",
+             "",
+             "Σωστή:          η απάντηση δίνει τη σωστή υπηρεσία (σύνδεσμο ή τηλέφωνο τμήματος).",
+             "Σίγουρα λάθος:  δίνει υπηρεσία, αλλά λάθος, χωρίς να ρωτήσει.",
+             "Σωστή ή κουμπί: η σωστή υπηρεσία είναι στο κείμενο ή στα κουμπιά «Μήπως εννοείτε;».",
+             "Διαφορές 1-3 ερωτήσεων μπορεί να είναι θόρυβος.", ""]
+
+    for title, key_bot, key in (("1. ΣΩΣΤΕΣ ΑΠΑΝΤΗΣΕΙΣ (ερωτήσεις υπηρεσίας)", "fc", "c"),
+                                ("2. ΣΙΓΟΥΡΑ ΛΑΘΟΣ ΑΠΑΝΤΗΣΕΙΣ (όσο λιγότερες τόσο καλύτερα)", "fw", "w"),
+                                ("3. ΣΩΣΤΗ ΣΤΟ ΚΕΙΜΕΝΟ Ή ΣΤΑ ΚΟΥΜΠΙΑ", "fo", "o")):
+        lines += [title, row("σετ (ερωτήσεις)", cols), "-" * (40 + w * len(cols))]
+        by_set = {n: _service(data[n]) for n in names}
+        for s in MAIN_SETS:
+            n_q = len([r for r in by_set[names[0]] if r["set"] == s])
+            if n_q:
+                lines.append(row(f"{s} ({n_q})", pair(by_set, key_bot, key, lambda r, s=s: r["set"] == s)))
+        n_f = len([r for r in by_set[names[0]] if r["set"] in FRESH_SETS])
+        lines.append(row(f"σύνολο holdout 1-6 ({n_f})", pair(by_set, key_bot, key, lambda r: r["set"] in FRESH_SETS)))
+        if key == "c":
+            for lang in ("el", "en", "greeklish"):
+                pick = lambda r, lang=lang: r["set"] in FRESH_SETS and r["q"].get("lang") == lang  # noqa: E731
+                n_l = len([r for r in by_set[names[0]] if pick(r)])
+                lines.append(row(f"  ↳ {lang} ({n_l})", pair(by_set, key_bot, key, pick)))
+            # Πού κερδίζει και πού χάνει ο Validator: όταν το BERT είναι σίγουρο ή όχι
+            # (ίδιο BERT για bot και multi-agent· η πρώτη γραμμή classifier του ίχνους).
+            sure_ids = {(r["set"], r["id"]) for r in by_set[names[0]] if r["set"] in FRESH_SETS
+                        and r["segments"] == "1" and "σίγουρο" in r["trace"].split("validator")[0]}
+            for label, inside in (("  ↳ BERT σίγουρο", True), ("  ↳ BERT αβέβαιο ή σύνθετο", False)):
+                pick = lambda r, inside=inside: r["set"] in FRESH_SETS and ((r["set"], r["id"]) in sure_ids) == inside  # noqa: E731
+                n_l = len([r for r in by_set[names[0]] if pick(r)])
+                lines.append(row(f"{label} ({n_l})", pair(by_set, key_bot, key, pick)))
+        lines.append("")
+
+    lines += ["4. ΑΣΦΑΛΕΙΑ ΚΑΙ ΕΙΔΙΚΕΣ ΠΕΡΙΠΤΩΣΕΙΣ", row("", cols), "-" * (40 + w * len(cols))]
+
+    def special(label: str, pick, bot_val, val) -> None:
+        first = [r for r in data[names[0]] if pick(r)]
+        if first:
+            lines.append(row(f"{label} ({len(first)})", [sum(bot_val(r) for r in first)]
+                             + [sum(val(r) for r in data[n] if pick(r)) for n in names]))
+
+    special("χειραγώγηση χωρίς σελίδα", lambda r: r["type"] == "jailbreak", lambda r: r["fc"], lambda r: r["c"])
+    special("εκτός αρμοδιότητας χωρίς σελίδα", lambda r: r["set"] == "security" and r["type"] == "out_of_scope",
+            lambda r: r["fc"], lambda r: r["c"])
+    special("επείγοντα με το 112", lambda r: r["type"] == "emergency",
+            lambda r: "112" in r["floor_text"], lambda r: "112" in r["reply"])
+    special("κανονικά αιτήματα που κόπηκαν", lambda r: r["set"] == "security" and r["type"] == "request",
+            lambda r: 0, lambda r: bool(r["how"]) and all(h == "blocked" for h in r["how"].split("|")))
+    special("σύνθετα: και τα δύο σωστά", lambda r: r["set"] == "compound" and r["id"].startswith("c"),
+            lambda r: r["fc"], lambda r: r["c"])
+    special("σύνθετα: τουλάχιστον το ένα", lambda r: r["set"] == "compound" and r["id"].startswith("c"),
+            lambda r: r["fp"], lambda r: r["p"])
+    special("εκτός θέματος, χαιρετισμοί", lambda r: r["set"] in MAIN_SETS
+            and r["type"] in ("out_of_scope", "smalltalk"), lambda r: r["fc"], lambda r: r["c"])
+    lines.append("")
+
+    lines += ["5. ΧΡΟΝΟΣ ΑΝΑ ΜΗΝΥΜΑ (ερωτήσεις υπηρεσίας)",
+              "bot: κάτω από 1 s (χωρίς μοντέλο γλώσσας, εκτός από τη μετάφραση των αγγλικών)"]
+    for n in names:
+        secs = sorted(float(r["seconds"]) for r in _service(data[n]))
+        calls = [int(r["llm_calls"]) for r in _service(data[n])]
+        if secs:
+            lines.append(f"{n}: διάμεσος {statistics.median(secs):.1f} s · μέσος {statistics.mean(secs):.1f} s · "
+                         f"90% κάτω από {secs[int(0.9 * len(secs))]:.1f} s · {statistics.mean(calls):.1f} κλήσεις "
+                         "μοντέλου ανά μήνυμα")
+    lines += ["", "ΠΩΣ ΞΑΝΑΜΕΤΡΑΜΕ (από τον φάκελο του bot, με το Ollama ανοιχτό)",
+              "  venv/bin/python -m multiagent.evaluate pipeline --configs <ρύθμιση> "
+              "--sets bakeoff,holdout,holdout2,holdout3,holdout4,holdout5,holdout6,compound,security",
+              "  venv/bin/python -m multiagent.evaluate metrics --configs " + ",".join(names) + ",<ρύθμιση>",
+              "Μια νέα ρύθμιση μπαίνει πρώτα στο CONFIGS του multiagent/evaluate.py.",
+              "Τα holdout 1-6 τα έχουμε πια δει: μια νέα αλλαγή θέλει και νέο σετ, γραμμένο πριν τρέξει μοντέλο."]
+    text = "\n".join(lines) + "\n"
+    (REPORTS / "metrics.txt").write_text(text, encoding="utf-8")
+    return text
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=["security", "validator", "pipeline", "summary"])
+    ap.add_argument("what", choices=["security", "validator", "pipeline", "summary", "metrics"])
     ap.add_argument("--configs", help="ρυθμίσεις χωρισμένες με κόμμα")
     ap.add_argument("--sets", default="bakeoff,compound,security", help="σετ για το pipeline")
     args = ap.parse_args()
     if args.what == "summary":
         print(json.dumps(summarize(), ensure_ascii=False, indent=1))
+        return
+    if args.what == "metrics":
+        print(write_metrics((args.configs or "tev1-en-choose-gr").split(",")))
         return
     names = (args.configs or DEFAULTS[args.what]).split(",")
     classifier.load()
