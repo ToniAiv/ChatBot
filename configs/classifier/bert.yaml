@@ -1,0 +1,3 @@
+# Το BERT και οι πίνακες του σημερινού bot (app/), φορτωμένα μία φορά.
+# Δεν έχει δικές του ρυθμίσεις: αποφασίζει όπως το bot (κατώφλι 0,80 στο connector.py).
+_target_: multiagent.classifier.Classifier

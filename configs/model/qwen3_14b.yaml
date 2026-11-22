@@ -1,0 +1,5 @@
+# LLM με έξοδο JSON (/api/chat), μεγαλύτερο και πιο αργό (~35 s ανά μήνυμα στο laptop).
+_target_: multiagent.llm.OllamaModel
+name: "qwen3:14b"
+url: ${ollama_url}
+timeout: ${timeout}

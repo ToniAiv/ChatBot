@@ -1,0 +1,15 @@
+# @package _global_
+# 1η μέτρηση (13/11/2026): το «εκτός αρμοδιότητας» κόβει πριν από το BERT· ερωτήσεις προς το decision model στα ελληνικά.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: el
+security:
+  scope: before
+  emergency: block
+welcome:
+  split_langs: el
+validator:
+  mode: fits
+  text: plain
+  hint: false
+pipeline:
+  greeklish: raw

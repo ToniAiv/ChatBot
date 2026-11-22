@@ -17,5 +17,8 @@ __pycache__/
 mappings/.llm_prefill.checkpoint.json
 logs/
 
+# Hydra: ένας φάκελος ανά εκτέλεση του multiagent.chat, με το πλήρες config της
+outputs/
+
 # Embeddings της υβριδικής αναζήτησης (scripts/hybrid_search.py): ξαναφτιάχνονται
 cache/

@@ -15,6 +15,8 @@ Security agent: τι είδους μήνυμα έστειλε ο πολίτης.
 "answer" η απάντηση έχει το 112 και, αν βρεθεί, την υπηρεσία του Δήμου.
 Αν το μοντέλο δεν απαντήσει, το αίτημα περνά: οι απαντήσεις είναι έτοιμα
 κείμενα, άρα ένα μήνυμα που ξέφυγε δεν μπορεί να βάλει λόγια στο στόμα του bot.
+
+Ο agent είναι η κλάση Security· ρυθμίσεις στο configs/security/default.yaml.
 """
 from __future__ import annotations
 
@@ -23,18 +25,11 @@ import re
 import connector as C
 
 from multiagent import llm
-from multiagent.config import Settings, is_decision_model
+from multiagent.config import Settings, choice
 from multiagent.state import Step
 
 LABELS = ("request", "out_of_scope", "manipulation", "abuse", "emergency")
 ALWAYS_BLOCKED = ("manipulation", "abuse")
-
-
-def blocks(label: str, settings: Settings) -> bool:
-    """Κόβεται το αίτημα πριν από τον ταξινομητή;"""
-    return (label in ALWAYS_BLOCKED
-            or (label == "out_of_scope" and settings.scope == "before")
-            or (label == "emergency" and settings.emergency == "block"))
 
 # ── 1. Κανόνες ────────────────────────────────────────────────
 # Λίγοι και στενοί: ό,τι πιάνουν είναι σχεδόν σίγουρα επίθεση. Το «ποιες
@@ -112,29 +107,69 @@ SCHEMA = {"type": "object", "required": ["labels"], "properties": {"labels": {
         "n": {"type": "integer"}, "label": {"type": "string", "enum": list(LABELS)}}}}}}
 
 
-def check(segments: list, settings: Settings) -> Step:
-    """Βάζει ετικέτα σε κάθε αίτημα (segment.label) και επιστρέφει τη γραμμή του ίχνους."""
-    model, url = settings.model("security"), settings.url("security")
-    total, notes = 0.0, []
-    try:
-        if is_decision_model(model):
-            lang = settings.decision_lang
-            question = {"kind": {"type": "choice", "instructions": QUESTION[lang], "criteria": CRITERIA[lang]}}
+class Security:
+    """Ο Security agent: κανόνες σε όλο το μήνυμα και ετικέτα ανά αίτημα από το μοντέλο."""
+
+    def __init__(self, *, model: llm.OllamaModel, rules: bool = True, scope: str = "after",
+                 emergency: str = "answer", lang: str = "en"):
+        choice("security.scope", scope, ("before", "after"))
+        choice("security.emergency", emergency, ("block", "answer"))
+        choice("security.lang", lang, ("el", "en"))
+        self.model, self.rules_on = model, bool(rules)
+        self.scope, self.emergency, self.lang = scope, emergency, lang
+
+    @classmethod
+    def from_settings(cls, s: Settings) -> Security:
+        """Από τις παλιές ρυθμίσεις (config.py, μεταβλητές MA_*)."""
+        return cls(model=llm.OllamaModel(name=s.model("security"), url=s.url("security"), timeout=s.timeout),
+                   rules=s.rules, scope=s.scope, emergency=s.emergency, lang=s.decision_lang)
+
+    def params(self) -> dict:
+        return {"model": self.model.params(), "rules": self.rules_on, "scope": self.scope,
+                "emergency": self.emergency, "lang": self.lang}
+
+    def rule(self, text: str) -> str | None:
+        """Ο κανόνας που παραβιάζει το μήνυμα, ή None. Με rules: false, πάντα None."""
+        return rules(text) if self.rules_on else None
+
+    def blocks(self, label: str) -> bool:
+        """Κόβεται το αίτημα πριν από τον ταξινομητή;"""
+        return (label in ALWAYS_BLOCKED
+                or (label == "out_of_scope" and self.scope == "before")
+                or (label == "emergency" and self.emergency == "block"))
+
+    def check(self, segments: list) -> Step:
+        """Βάζει ετικέτα σε κάθε αίτημα (segment.label) και επιστρέφει τη γραμμή του ίχνους."""
+        model = self.model
+        total, notes = 0.0, []
+        try:
+            if model.decision:
+                question = {"kind": {"type": "choice", "instructions": QUESTION[self.lang],
+                                     "criteria": CRITERIA[self.lang]}}
+                for seg in segments:
+                    ans, secs = model.decide(seg.view or seg.text, question)
+                    total += secs
+                    seg.label = ans["kind"]["choice"] if ans["kind"]["choice"] in LABELS else "request"
+                    notes.append(f"{seg.label} ({ans['kind']['probabilities'].get(seg.label, 0):.2f})")
+            else:
+                user = "\n".join(f"{i}. {seg.view or seg.text}" for i, seg in enumerate(segments, 1))
+                out, total = model.chat_json(SYSTEM, user, SCHEMA)
+                found = {x.get("n"): x.get("label") for x in out.get("labels", []) if isinstance(x, dict)}
+                for i, seg in enumerate(segments, 1):
+                    seg.label = found.get(i) if found.get(i) in LABELS else "request"
+                    notes.append(seg.label)
+        except (llm.ModelError, KeyError, TypeError) as exc:
             for seg in segments:
-                ans, secs = llm.decide(url, model, seg.view or seg.text, question, settings.timeout)
-                total += secs
-                seg.label = ans["kind"]["choice"] if ans["kind"]["choice"] in LABELS else "request"
-                notes.append(f"{seg.label} ({ans['kind']['probabilities'].get(seg.label, 0):.2f})")
-        else:
-            user = "\n".join(f"{i}. {seg.view or seg.text}" for i, seg in enumerate(segments, 1))
-            out, total = llm.chat_json(url, model, SYSTEM, user, SCHEMA, settings.timeout)
-            found = {x.get("n"): x.get("label") for x in out.get("labels", []) if isinstance(x, dict)}
-            for i, seg in enumerate(segments, 1):
-                seg.label = found.get(i) if found.get(i) in LABELS else "request"
-                notes.append(seg.label)
-    except (llm.ModelError, KeyError, TypeError) as exc:
-        for seg in segments:
-            seg.label = "request"
-        return Step("security", "model", f"το μοντέλο δεν απάντησε, τα αιτήματα περνούν ({exc})"[:160],
-                    round(total, 2), model)
-    return Step("security", "model", " · ".join(notes), round(total, 2), model)
+                seg.label = "request"
+            return Step("security", "model", f"το μοντέλο δεν απάντησε, τα αιτήματα περνούν ({exc})"[:160],
+                        round(total, 2), model.name)
+        return Step("security", "model", " · ".join(notes), round(total, 2), model.name)
+
+
+# Ο παλιός τρόπος (μεταβλητές MA_*): οι ίδιες μέθοδοι, με ρυθμίσεις από το config.py.
+def blocks(label: str, settings: Settings) -> bool:
+    return Security.from_settings(settings).blocks(label)
+
+
+def check(segments: list, settings: Settings) -> Step:
+    return Security.from_settings(settings).check(segments)

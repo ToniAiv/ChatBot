@@ -1,0 +1,6 @@
+# Κάθε εκτέλεση γράφει σε δικό της φάκελο, μαζί με το πλήρες config της (.hydra/)
+run:
+  dir: outputs/${task_name}/${now:%Y-%m-%d_%H-%M-%S}
+sweep:
+  dir: outputs/${task_name}/multirun/${now:%Y-%m-%d_%H-%M-%S}
+  subdir: ${hydra.job.num}

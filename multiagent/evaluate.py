@@ -8,7 +8,7 @@
     venv/bin/python -m multiagent.evaluate summary      πίνακες από τα αρχεία των παραπάνω
     venv/bin/python -m multiagent.evaluate metrics      reports/metrics.txt: το bot δίπλα στις ρυθμίσεις --configs
 
-    --configs tev1-el,qwen4b     ποιες ρυθμίσεις (βλ. CONFIGS)
+    --configs tev1-el,qwen4b     ποιες ρυθμίσεις: ονόματα αρχείων του configs/experiment/ (Hydra)
     --sets bakeoff,compound      ποια σετ, για το pipeline
 
 Κάθε γραμμή γράφεται αμέσως στο reports/multiagent_*.csv. Αν η μέτρηση
@@ -26,7 +26,7 @@ import statistics
 import sys
 import time
 
-from multiagent import ROOT, classifier, config, pipeline, security, validator
+from multiagent import ROOT, build, classifier, security
 from multiagent.state import Segment, Session
 
 sys.path.insert(0, str(ROOT / "agent"))
@@ -48,44 +48,10 @@ SETS = {"bakeoff": ROOT / "agent" / "bakeoff_questions.csv",
         "holdout5": ROOT / "agent" / "holdout5_questions.csv",
         "holdout6": ROOT / "agent" / "holdout6_questions.csv"}
 
-# όνομα → (ρύθμιση μοντέλων, επιπλέον ρυθμίσεις). Κάθε όνομα ορίζει πλήρως τη
-# ρύθμιση, ώστε οι γραμμές των αρχείων να σημαίνουν το ίδιο κι αν αλλάξουν οι
-# προεπιλογές του config.py.
-_OLD = {"emergency": "block", "split_langs": "el", "validator_mode": "fits",   # πριν από την 3η μέτρηση
-        "greeklish": "raw", "validator_text": "plain", "validator_hint": False}
-_PLAIN = {"validator_text": "plain", "validator_hint": False}                    # πριν από την 6η μέτρηση
-CONFIGS = {
-    # 1η μέτρηση (13/11): το «εκτός αρμοδιότητας» κόβει πριν από το BERT
-    "tev1": ("tev1", {"decision_lang": "el", "scope": "before", **_OLD}),
-    "tev1-el": ("tev1", {"decision_lang": "el", "scope": "before", **_OLD}),
-    "tev1-en": ("tev1", {"decision_lang": "en", "scope": "before", **_OLD}),
-    "qwen4b": ("qwen4b", {"scope": "before", **_OLD}),
-    "qwen14b": ("qwen14b", {"scope": "before", **_OLD}),
-    # 2η μέτρηση (13/11): το «εκτός αρμοδιότητας» μετρά μετά το BERT
-    "tev1-after": ("tev1", {"decision_lang": "el", "scope": "after", **_OLD}),
-    "tev1-en-after": ("tev1", {"decision_lang": "en", "scope": "after", **_OLD}),
-    # 3η μέτρηση (13/11, holdout3): «επείγον» με απάντηση, χωρισμός σε όλες τις γλώσσες,
-    # και η ίδια ρύθμιση με το qwen3:14b ως Validator
-    "tev1-en-fix": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                             "split_langs": "all", "validator_mode": "fits", "greeklish": "raw", **_PLAIN}),
-    "tev1-en-fix-q14": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                 "split_langs": "all", "validator_mode": "fits", "greeklish": "raw", **_PLAIN,
-                                 "models": {"validator": "qwen3:14b"}}),
-    # 4η μέτρηση (13/11, holdout4): ο Validator διαλέγει ανάμεσα στις 5 πρώτες του BERT
-    "tev1-en-choose": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                "split_langs": "all", "validator_mode": "choose", "greeklish": "raw", **_PLAIN}),
-    # 5η μέτρηση (13/11, holdout5): Security και Validator βλέπουν τα greeklish σε ελληνικά
-    "tev1-en-choose-gr": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                   "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
-                                   **_PLAIN}),
-    # 6η μέτρηση (13/11, holdout6): καθαρές περιγραφές για τον Validator, και με την πρώτη επιλογή του BERT
-    "tev1-en-clean": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                               "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
-                               "validator_text": "clean", "validator_hint": False}),
-    "tev1-en-clean-hint": ("tev1", {"decision_lang": "en", "scope": "after", "emergency": "answer",
-                                    "split_langs": "all", "validator_mode": "choose", "greeklish": "greek",
-                                    "validator_text": "clean", "validator_hint": True}),
-}
+# Οι ρυθμίσεις που μετράμε είναι τα αρχεία του configs/experiment/ (ένα ανά μέτρηση,
+# με το ίδιο όνομα που έχει η στήλη config των αρχείων αποτελεσμάτων). Κάθε αρχείο
+# γράφει όλους τους διακόπτες, ώστε οι παλιές γραμμές να σημαίνουν το ίδιο κι αν
+# αλλάξουν οι προεπιλογές των configs/. Ως τις 22/11/2026 ήταν το λεξικό CONFIGS εδώ.
 DEFAULTS = {"security": "rules,tev1-el,tev1-en,qwen4b", "validator": "tev1-el,tev1-en,qwen4b",
             "pipeline": "tev1-en-choose-gr,tev1-en-clean,tev1-en-clean-hint"}
 SERVICE_TYPES = ("service", "department", "clarify")
@@ -133,16 +99,16 @@ def run_security(names: list) -> None:
     sheet = Sheet("multiagent_security.csv",
                   ["config", "id", "type", "label", "blocked", "seconds", "detail", "text"], ("config", "id"))
     for name in names:
-        settings = None if name == "rules" else config.load(CONFIGS[name][0], **CONFIGS[name][1])
+        agent = None if name == "rules" else build.pipeline(name).security
         for q in questions("security"):
             if sheet.has(name, q["id"]):
                 continue
-            if settings is None:
+            if agent is None:
                 hit = security.rules(q["text"])
                 label, secs, detail = ("manipulation" if hit else "request"), 0.0, hit or ""
             else:
                 seg = Segment(q["text"])
-                step = security.check([seg], settings)
+                step = agent.check([seg])
                 label, secs, detail = seg.label, step.seconds, step.detail
             sheet.add({"config": name, "id": q["id"], "type": q["type"], "label": label,
                        "blocked": label != "request", "seconds": secs, "detail": detail, "text": q["text"]})
@@ -187,7 +153,7 @@ def run_validator(names: list) -> None:
                   ["config", "id", "type", "zone", "candidates", "gold", "chosen", "outcome", "seconds",
                    "detail", "text"], ("config", "id"))
     for name in names:
-        settings = config.load(CONFIGS[name][0], **CONFIGS[name][1])
+        agent = build.pipeline(name).validator
         for q in questions("bakeoff"):
             if q["type"] == "smalltalk" or sheet.has(name, q["id"]):
                 continue
@@ -198,7 +164,7 @@ def run_validator(names: list) -> None:
                 zone, chosen, outcome, secs, detail = "none", -1, "no_candidates", 0.0, ""
             else:
                 zone = "confident" if cls.confident else "options"
-                pick, step = validator.check_intent(q["text"], cls, settings)
+                pick, step = agent.check_intent(q["text"], cls)
                 chosen = cls.candidates.index(pick) if pick else -1
                 secs, detail = step.seconds, step.detail
                 if cls.confident:
@@ -242,7 +208,7 @@ def run_pipeline(names: list, sets: list) -> None:
     sheet = Sheet("multiagent_answers.csv", fields, ("config", "set", "id"))
     floors: dict = {}
     for name in names:
-        settings = config.load(CONFIGS[name][0], **CONFIGS[name][1])
+        pipe = build.pipeline(name)
         for sname in sets:
             for q in questions(sname):
                 if sheet.has(name, sname, q["id"]):
@@ -250,7 +216,7 @@ def run_pipeline(names: list, sets: list) -> None:
                 if (sname, q["id"]) not in floors:
                     floors[(sname, q["id"])] = gui.Api().chat(q["text"])
                 floor = floors[(sname, q["id"])]["text"]
-                reply = pipeline.run(q["text"], Session(), settings)
+                reply = pipe.run(q["text"], Session())
                 fc, fp, fa = grade(q, floor)
                 c, p, a = grade(q, reply.text)
                 by = collections.defaultdict(float)
@@ -436,7 +402,7 @@ def write_metrics(names: list) -> str:
 
     lines = ["ΣΥΓΚΡΙΣΗ: ΣΗΜΕΡΙΝΟ BOT ΚΑΙ MULTI-AGENT",
              f"Ενημέρωση: {time.strftime('%d/%m/%Y')} · πηγή: reports/multiagent_answers.csv · μία εκτέλεση ανά σετ",
-             "Ρυθμίσεις multi-agent: " + ", ".join(names) + " (ορισμός στο CONFIGS του multiagent/evaluate.py)",
+             "Ρυθμίσεις multi-agent: " + ", ".join(names) + " (ορισμός στο configs/experiment/<όνομα>.yaml)",
              "",
              "Σωστή:          η απάντηση δίνει τη σωστή υπηρεσία (σύνδεσμο ή τηλέφωνο τμήματος).",
              "Σίγουρα λάθος:  δίνει υπηρεσία, αλλά λάθος, χωρίς να ρωτήσει.",
@@ -505,7 +471,7 @@ def write_metrics(names: list) -> str:
               "  venv/bin/python -m multiagent.evaluate pipeline --configs <ρύθμιση> "
               "--sets bakeoff,holdout,holdout2,holdout3,holdout4,holdout5,holdout6,compound,security",
               "  venv/bin/python -m multiagent.evaluate metrics --configs " + ",".join(names) + ",<ρύθμιση>",
-              "Μια νέα ρύθμιση μπαίνει πρώτα στο CONFIGS του multiagent/evaluate.py.",
+              "Μια νέα ρύθμιση γράφεται πρώτα ως configs/experiment/<όνομα>.yaml.",
               "Τα holdout 1-6 τα έχουμε πια δει: μια νέα αλλαγή θέλει και νέο σετ, γραμμένο πριν τρέξει μοντέλο."]
     text = "\n".join(lines) + "\n"
     (REPORTS / "metrics.txt").write_text(text, encoding="utf-8")
@@ -525,6 +491,9 @@ def main() -> None:
         print(write_metrics((args.configs or "tev1-en-choose-gr").split(",")))
         return
     names = (args.configs or DEFAULTS[args.what]).split(",")
+    unknown = [n for n in names if n not in build.experiments() and not (n == "rules" and args.what == "security")]
+    if unknown:
+        ap.error(f"άγνωστες ρυθμίσεις: {', '.join(unknown)} · υπάρχουν: {', '.join(build.experiments())}")
     classifier.load()
     t0 = time.monotonic()
     if args.what == "security":

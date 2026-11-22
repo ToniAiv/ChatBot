@@ -1,0 +1,15 @@
+# @package _global_
+# 6η μέτρηση (13/11/2026, holdout6): καθαρές περιγραφές των υπηρεσιών για τον Validator.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: en
+security:
+  scope: after
+  emergency: answer
+welcome:
+  split_langs: all
+validator:
+  mode: choose
+  text: clean
+  hint: false
+pipeline:
+  greeklish: greek

@@ -1,0 +1,5 @@
+# LLM με έξοδο JSON (/api/chat): χωρισμός σε αιτήματα, αναδιατύπωση, ή κρίσεις σε JSON.
+_target_: multiagent.llm.OllamaModel
+name: "qwen3:4b"
+url: ${ollama_url}
+timeout: ${timeout}

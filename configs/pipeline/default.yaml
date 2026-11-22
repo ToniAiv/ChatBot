@@ -1,0 +1,8 @@
+# Η σειρά των βημάτων για ένα μήνυμα (multiagent/pipeline.py). Οι agents έρχονται
+# έτοιμοι, ο καθένας από το δικό του αρχείο.
+_target_: multiagent.pipeline.Pipeline
+welcome: ${welcome}
+security: ${security}
+classifier: ${classifier}
+validator: ${validator}
+greeklish: greek      # τι βλέπουν Security και Validator σε greeklish · raw: όπως γράφτηκαν · greek: σε ελληνικά

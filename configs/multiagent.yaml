@@ -1,0 +1,37 @@
+# Το multi-agent σύστημα: ποια κομμάτια φτιάχνονται και με ποιες ρυθμίσεις.
+#
+#   python -m multiagent.chat                                  συζήτηση με αυτές τις ρυθμίσεις
+#   python -m multiagent.chat experiment=tev1-en-clean         μια ρύθμιση που έχουμε μετρήσει
+#   python -m multiagent.chat security.scope=before            αλλαγή μίας τιμής
+#   python -m multiagent.chat model@security.model=qwen3_4b    άλλο μοντέλο για έναν agent
+#   python -m multiagent.chat print_config=true                τύπωσε όλο το config στην αρχή
+#
+# Κάθε κομμάτι είναι μια κλάση (_target_) και φτιάχνεται χωριστά: πρώτα τα
+# μοντέλα (configs/model/), μετά οι agents που τα παίρνουν, και τέλος το
+# pipeline που παίρνει έτοιμους τους agents (configs/pipeline/default.yaml).
+
+defaults:
+  - _self_
+  - hydra: default
+  - welcome: default
+  - security: default
+  - classifier: bert
+  - validator: default
+  - pipeline: default
+  # Ποιο μοντέλο παίρνει κάθε agent (ένα αρχείο ανά μοντέλο στο configs/model/)
+  - model@welcome.split_model: qwen3_4b
+  - model@welcome.reform_model: qwen3_4b
+  - model@security.model: tev1_4b
+  - model@validator.model: tev1_4b
+  - model@validator.final_model: tev1_4b
+  # Μια ρύθμιση που έχουμε μετρήσει (configs/experiment/), π.χ. experiment=tev1-en-clean
+  - experiment: null
+
+task_name: chat
+ollama_url: ${oc.env:MA_OLLAMA_URL,'http://localhost:11434'}
+timeout: 120          # δευτερόλεπτα ανά κλήση μοντέλου
+decision_lang: en     # γλώσσα των ερωτήσεων προς το decision model (Security, Validator)
+
+# Μόνο για τη συζήτηση (python -m multiagent.chat)
+once: null            # ένα μήνυμα και τέλος: 'once="θέλω βεβαίωση κατοικίας"'
+print_config: false

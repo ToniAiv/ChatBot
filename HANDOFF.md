@@ -23,11 +23,11 @@
 πολίτης → Welcome → Security → BERT → Validator → Welcome → Validator → πολίτης.
 Ο Welcome χωρίζει το μήνυμα σε αιτήματα. Αν ο Validator απορρίψει τον προορισμό, ο Welcome αναδιατυπώνει (case 1) και, αν ούτε αυτό πιάσει, ρωτά τον πολίτη (case 2). Ο Planner του σχήματος έχει ερωτηματικό και δεν υπάρχει στον κώδικα.
 
-- **Κώδικας:** `multiagent/` (οδηγίες στο `README.md` του). `./run.sh agents` για συζήτηση στο τερματικό, με το ίχνος κάθε μηνύματος. Το `app/` δεν άλλαξε: ο ταξινομητής του multi-agent είναι το pipeline του bot (ίδιες απαντήσεις σε 8/8 δοκιμές).
-- **Μοντέλα ανά ρόλο** (`multiagent/config.py`, `MA_PROFILE`):
+- **Κώδικας:** `multiagent/` (οδηγίες στο `README.md` του). `./run.sh agents` για συζήτηση στο τερματικό, με το ίχνος κάθε μηνύματος. **Ρυθμίσεις με Hydra (22/11):** κάθε agent είναι κλάση που φτιάχνεται χωριστά από το δικό της `.yaml` στο `configs/`, όπως στο repo Feathers του Νικόλα (github.com/Ni-Vi/Feathers)· κάθε μέτρηση είναι ένα `configs/experiment/<όνομα>.yaml`. Το `app/` δεν άλλαξε: ο ταξινομητής του multi-agent είναι το pipeline του bot (ίδιες απαντήσεις σε 8/8 δοκιμές).
+- **Μοντέλα ανά ρόλο** (`configs/model/` και η λίστα defaults του `configs/multiagent.yaml`· ο παλιός τρόπος: `MA_PROFILE`):
   - `tev1`: οι κρίσεις στο `tev1:4b` (decision model: ναι/όχι ή επιλογή, με πιθανότητα), το κείμενο στο `qwen3:4b`.
   - `qwen4b`: όλα στο `qwen3:4b`.
-  - Κάθε ρόλος μπορεί να πάρει και δικό του server (`MA_URL_<ΡΟΛΟΣ>`), για να τρέξει αργότερα σε cloud.
+  - Κάθε ρόλος μπορεί να πάρει και δικό του server (`<agent>.model.url`, παλιά `MA_URL_<ΡΟΛΟΣ>`), για να τρέξει αργότερα σε cloud.
 - **1η μέτρηση (`reports/multiagent.md`): χειρότερο από το bot στις ερωτήσεις υπηρεσίας.** Bot **28/38**, `tev1` 17, `qwen4b` 16.
   - `tev1`: ο Security έκρινε «εκτός αρμοδιότητας» 15 από τις 38 ερωτήσεις υπηρεσίας, πριν φτάσουν στο BERT.
   - `qwen4b`: ο Validator απέρριψε 16 από τις 28 σωστές απαντήσεις του BERT. Το `qwen3:4b` δεν κάνει για Validator.
@@ -152,12 +152,14 @@ Form filling / Security / Summary: όχι ακόμα.
 - **Η μνήμη μένει όταν το bot δεν καταλαβαίνει** (commit **63b569b**, διακόπτης `BOT_MEMORY_KEEP_UNCLEAR=0`). Σβήνει μόνο όταν τα κουμπιά δείχνουν άλλες υπηρεσίες.
   Διάλογοι τριών μηνυμάτων με μεσαίο μήνυμα που δεν αναγνωρίζεται: σωστό τηλέφωνο στο τρίτο μήνυμα από 0/58 σε **50/58** (κανόνες) και από 49 σε **58/58** (με embeddings). Κίνδυνος: 1 απώλεια στους 63 διαλόγους.
 
-### Εκκρεμότητες (13/11)
+### Εκκρεμότητες (22/11)
 - ✅ **Multi-agent: «εκτός αρμοδιότητας» μετά το BERT** (13/11): μετρήθηκε στα δύο holdout, ισάξιο με το bot (§0).
 - ✅ **Multi-agent: holdout3, «επείγον» με απάντηση, χωρισμός σε όλες τις γλώσσες, `qwen3:14b` ως Validator** (13/11, §0). Το κατώφλι του Validator ελέγχθηκε και μένει 0,5.
 - ✅ **Multi-agent: ανάλυση όλων των λαθών και Validator με τις 5 πρώτες του BERT** (13/11, holdout4, §0).
 - ✅ **Multi-agent: greeklish σε ελληνικά για Security και Validator** (13/11, holdout5, §0).
 - ✅ **Multi-agent: καθαρές περιγραφές για τον Validator** (13/11, holdout6, §0). Μετρήθηκαν, αλλά δεν έγιναν προεπιλογή: περισσότερες σωστές, αλλά και περισσότερα σίγουρα λάθη.
+- ✅ **Multi-agent με Hydra και .yml** (22/11, όπως στο repo Feathers του Νικόλα): `configs/`, `./run.sh agents` (= `python -m multiagent.chat`), `multiagent/build.py` για χρήση από κώδικα. Οι 13 ρυθμίσεις που μετρήσαμε έγιναν `configs/experiment/*.yaml` με ακριβώς τις ίδιες τιμές, και σε δείγμα 30 ερωτήσεων (holdout6, compound, security) οι απαντήσεις βγήκαν ίδιες με τον προηγούμενο κώδικα. Τα `MA_*` και το `multiagent.cli` δουλεύουν ακόμα, με τις ίδιες κλάσεις· θα φύγουν με απόφαση της ομάδας.
+- ✅ **Σχήμα Planner–Observer, εκδοχή 2** (22/11): η Διευκρίνιση και η Απάντηση έγιναν μία φάση, η Εξυπηρέτηση (απόφαση της ομάδας). Αρχείο: `docs/papers/planner_observer.html` στον εξωτερικό φάκελο. Ο κώδικας του Planner–Observer δεν έχει ξεκινήσει.
 - **Bot: 8 «proposed» αντιστοιχίσεις δίνουν λάθος σελίδα** (`mappings/intent_to_service.csv`, 6η μέτρηση της `reports/multiagent.md`). Θέλει έλεγχο από άνθρωπο και διόρθωση.
 - **Multi-agent, επόμενα βήματα (περιμένουν απόφαση):**
   1. **Η σίγουρη απάντηση του BERT να μένει,** και ο Validator να διαλέγει μόνο όταν το BERT είναι αβέβαιο, με τις καθαρές περιγραφές. Υπολογισμός από τα ίδια δεδομένα (όχι μέτρηση): 270 σωστές στις 373, έναντι 205 του bot, αλλά 35 σίγουρα λάθη έναντι 23. Θέλει νέο σετ.
@@ -168,6 +170,7 @@ Form filling / Security / Summary: όχι ακόμα.
   5. Αναδιατύπωση και τελικός Validator: τίποτα σε πέντε μετρήσεις. Είναι μέρος του σχήματος της ομάδας, άρα θέλει απόφαση της ομάδας.
   6. Νέο σετ ελέγχου για κάθε επόμενη αλλαγή, ιδανικά από μηνύματα ανθρώπων (web demo με `BOT_LOG=1` και συναίνεση).
   7. Σύνδεση με το web demo και με τη μνήμη υπηρεσίας.
+  8. **Planner–Observer πάνω στα `configs/`:** Orchestrator, κοινή κατάσταση, Planner με κανόνες, φάση Εξυπηρέτηση (σχήμα, εκδοχή 2). Κάθε νέο κομμάτι μια κλάση με δικό της `.yaml`, όπως οι σημερινοί agents.
 - ✅ **Συνάντηση της ομάδας 26/10: φάση μελέτης και έρευνας.** Ολοκληρώθηκε· στις 10/11 η ομάδα διάλεξε multi-agent (αρχή της §0). Το Σάββατο 31/10 κάθε μέλος παρουσιάζει σύντομα τα ευρήματά του. Σχέδιο:
   1. Tutorials: Hugging Face (και στο YouTube), multi-agent περιβάλλοντα, Pydantic AI / smolagents / Ollama.
   2. Επέκταση του σχήματος (αρχή της §0): πώς υλοποιείται το pipeline, ιδέες βελτίωσης και γιατί.
@@ -288,7 +291,8 @@ PYTHONPATH=scripts:app venv/bin/python scripts/regression.py --update # ΜΟΝΟ
 |---|---|
 | `app/` | `connector.py` (pipeline, μηνύματα MSG, κατώφλια) · `gui.py` (παράθυρο + JS) · `smalltalk.py` · `context.py` · `acronyms.py` · `greeklish.py` · `language.py` · `spellfix.py` · `aspects.py` · `aspect_embed.py` (είδος ερώτησης με embeddings, 22/10) · `departments.py` · `usage_log.py` · **`server.py`** (web έκδοση, 18/10) |
 | `agent/` | `bakeoff.py` (σύγκριση LLM) · `guarded.py` (agent «με πάτωμα») · `welcome.py` (συνομιλητής, σταμάτησε) · σετ ερωτήσεων `*_questions.csv`, γραμμένα πριν τρέξει μοντέλο (§0) |
-| `multiagent/` | το multi-agent σύστημα της 13/11 (§0): `pipeline.py` (ροή) · `welcome.py` · `security.py` · `validator.py` · `classifier.py` (το BERT του bot) · `config.py` (μοντέλο ανά ρόλο, `MA_SCOPE`, `MA_DECISION_LANG`, `MA_EMERGENCY`, `MA_SPLIT_LANGS`, `MA_VALIDATOR_MODE`, `MA_GREEKLISH`, `MA_VALIDATOR_TEXT`, `MA_VALIDATOR_HINT`) · `cli.py` · `evaluate.py` · `sets/` |
+| `multiagent/` | το multi-agent σύστημα της 13/11 (§0), κάθε agent μια κλάση: `pipeline.py` (`Pipeline`, η ροή) · `welcome.py` · `security.py` · `validator.py` · `classifier.py` (το BERT του bot) · `llm.py` (`OllamaModel`) · `chat.py` (συζήτηση με Hydra) · `build.py` (τα κομμάτια από τα `configs/`, για κώδικα) · `config.py` και `cli.py` (ο παλιός τρόπος, μεταβλητές `MA_*`) · `evaluate.py` · `sets/` |
+| `configs/` | οι ρυθμίσεις του multi-agent (Hydra, 22/11): `multiagent.yaml` (ποια κομμάτια, λίστα defaults) · ένας φάκελος ανά agent · `model/` (ένα αρχείο ανά μοντέλο) · `experiment/` (μία ρύθμιση ανά μέτρηση) · `hydra/` (φάκελος ανά εκτέλεση στο `outputs/`) |
 | `web/` | `widget.js` (αιωρούμενο κουμπί, μπαίνει σε οποιαδήποτε σελίδα). Οδηγίες για float και hosting: **`DEPLOY.md`** |
 | `mappings/` | `intent_to_service.csv` (237 γραμμές: 52 verified / 125 auto / 11 proposed / 49 no_service) · `departments.csv` (44 τμήματα, από τον επίσημο κατάλογο 12/10/2026) · `department_aliases.csv` · `acronyms.csv` · `intent_groups.csv` (οικογένειες). Τα ιστορικά πήγαν στο `archive/mappings/` (25/10) |
 | `data/` | `heraklion_eservices.json` (KB: 167 υπηρεσίες με συνδέσμους) · `heraklion_eservices_enriched.json` · `service_sections.json` (ενότητες σελίδων: δικαιολογητικά, επικοινωνία) |

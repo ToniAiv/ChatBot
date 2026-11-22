@@ -1,0 +1,16 @@
+# @package _global_
+# 5η μέτρηση (13/11/2026, holdout5): Security και Validator βλέπουν τα greeklish σε ελληνικά.
+# Η σημερινή προεπιλογή του configs/multiagent.yaml.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: en
+security:
+  scope: after
+  emergency: answer
+welcome:
+  split_langs: all
+validator:
+  mode: choose
+  text: plain
+  hint: false
+pipeline:
+  greeklish: greek

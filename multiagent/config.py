@@ -1,5 +1,10 @@
 """
-Ρυθμίσεις: ποιο μοντέλο και ποιος server για κάθε ρόλο.
+Ο παλιός τρόπος ρύθμισης, με μεταβλητές περιβάλλοντος (multiagent.cli).
+
+Ο κύριος τρόπος είναι πια τα configs/ (Hydra): κάθε agent είναι μια κλάση
+που φτιάχνεται από το δικό της αρχείο .yaml (multiagent/README.md). Εδώ μένουν
+οι μεταβλητές MA_*: το Settings που φτιάχνουν δίνει στις ίδιες κλάσεις τις
+ίδιες τιμές (from_settings), άρα και την ίδια συμπεριφορά.
 
 Ο κώδικας των agents δεν ξέρει πού τρέχει το μοντέλο. Κάθε ρόλος παίρνει από
 εδώ ένα όνομα μοντέλου και μια διεύθυνση Ollama, οπότε το ίδιο pipeline
@@ -49,6 +54,12 @@ DECISION_FAMILIES = ("tev1", "nimble", "clef")
 
 def is_decision_model(model: str) -> bool:
     return model.split("/")[-1].split(":")[0].startswith(DECISION_FAMILIES)
+
+
+def choice(name: str, value, allowed: tuple) -> None:
+    """Σφάλμα με τις επιτρεπτές τιμές, αν μια ρύθμιση έχει άλλη."""
+    if value not in allowed:
+        raise ValueError(f"{name}: «{value}»· γίνεται {' ή '.join(map(str, allowed))}")
 
 
 def _flag(name: str) -> bool:

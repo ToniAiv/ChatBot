@@ -1,0 +1,15 @@
+# @package _global_
+# 2η μέτρηση (13/11/2026): το «εκτός αρμοδιότητας» μετρά μετά από το BERT· ερωτήσεις στα ελληνικά.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: el
+security:
+  scope: after
+  emergency: block
+welcome:
+  split_langs: el
+validator:
+  mode: fits
+  text: plain
+  hint: false
+pipeline:
+  greeklish: raw

@@ -1,0 +1,17 @@
+# @package _global_
+# 3η μέτρηση (13/11/2026, holdout3): όπως το tev1-en-fix, με το qwen3:14b ως Validator μετά το BERT.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+defaults:
+  - override /model@validator.model: qwen3_14b
+decision_lang: en
+security:
+  scope: after
+  emergency: answer
+welcome:
+  split_langs: all
+validator:
+  mode: fits
+  text: plain
+  hint: false
+pipeline:
+  greeklish: raw

@@ -3,7 +3,8 @@
 #   ./run.sh            παράθυρο (desktop)
 #   ./run.sh cli --query "..."
 #   ./run.sh web        web έκδοση: http://127.0.0.1:8000/heraklion και /eservices (DEPLOY.md)
-#   ./run.sh agents     multi-agent σύστημα στο τερματικό (multiagent/README.md)
+#   ./run.sh agents     multi-agent σύστημα στο τερματικό, ρυθμίσεις από τα configs/ (multiagent/README.md)
+#   ./run.sh agents experiment=tev1-en-clean   με μια ρύθμιση που έχουμε μετρήσει
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="$ROOT/venv/bin/python"
@@ -30,6 +31,6 @@ case "${1:-gui}" in
       echo "⚠  Το Ollama δεν τρέχει. Οι agents χρειάζονται τα μοντέλα του (multiagent/README.md)."
       exit 1
     fi
-    shift; cd "$ROOT"; exec "$PY" -m multiagent.cli "$@" ;;
+    shift; cd "$ROOT"; exec "$PY" -m multiagent.chat "$@" ;;
   *)    echo "Χρήση: ./run.sh [gui|cli --query \"...\"|web|agents]"; exit 1 ;;
 esac

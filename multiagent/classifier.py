@@ -5,6 +5,8 @@
 connector.py με τη σειρά που τις καλεί το gui.Api.chat, ώστε ένα αίτημα που
 περνά όλους τους ελέγχους να παίρνει ακριβώς την απάντηση του σημερινού bot.
 Η μνήμη υπηρεσίας (ερωτήσεις συνέχειας) δεν έχει συνδεθεί ακόμα εδώ.
+
+Στο pipeline μπαίνει ως η κλάση Classifier (configs/classifier/bert.yaml).
 """
 from __future__ import annotations
 
@@ -194,3 +196,29 @@ def clarify_text(cls: Classification) -> str:
     if cls.candidates:
         return m["suggest_family"].format(title=cls.family) if cls.family else m["suggest"]
     return m["clarify_aspect" if cls.aspect else "clarify"]
+
+
+class Classifier:
+    """Ο ταξινομητής ως κομμάτι του pipeline. Το BERT και οι πίνακες φορτώνονται μία φορά
+    για όλη τη διεργασία, την πρώτη φορά που χρειάζονται."""
+
+    def load(self) -> dict:
+        return load()
+
+    def classify(self, text: str, pending: dict | None = None) -> Classification:
+        return classify(text, pending)
+
+    def greek_view(self, text: str) -> str:
+        return greek_view(text)
+
+    def answer(self, c: Candidate, cls: Classification) -> str:
+        return answer(c, cls)
+
+    def options(self, cls: Classification, pool: list | None = None) -> list:
+        return options(cls, pool)
+
+    def clarify_text(self, cls: Classification) -> str:
+        return clarify_text(cls)
+
+    def params(self) -> dict:
+        return {}

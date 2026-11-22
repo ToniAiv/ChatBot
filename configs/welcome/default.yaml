@@ -1,0 +1,8 @@
+# Welcome: κουβέντα, χωρισμός σε αιτήματα, αναδιατύπωση (case 1), σύνθεση της απάντησης.
+# Τα κείμενα των απαντήσεων έρχονται πάντα από τους πίνακες του bot.
+_target_: multiagent.welcome.Welcome
+split: true           # χωρισμός του μηνύματος σε αιτήματα
+split_langs: all      # el: χωρισμός μόνο στα ελληνικά · all: και σε αγγλικά και greeklish
+reform: true          # case 1: αναδιατύπωση όταν ο Validator δεν εγκρίνει υπηρεσία
+split_model: ???      # από το configs/model/ (λίστα defaults στο configs/multiagent.yaml)
+reform_model: ???

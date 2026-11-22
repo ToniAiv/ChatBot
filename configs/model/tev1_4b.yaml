@@ -1,0 +1,6 @@
+# Decision model: απαντά σε ερωτήσεις ναι/όχι ή επιλογής με πιθανότητα (/v1/systemone).
+# Δεν γράφει κείμενο.
+_target_: multiagent.llm.OllamaModel
+name: "tev1:4b"
+url: ${ollama_url}
+timeout: ${timeout}

@@ -1,6 +1,6 @@
 ΣΥΓΚΡΙΣΗ: ΣΗΜΕΡΙΝΟ BOT ΚΑΙ MULTI-AGENT
-Ενημέρωση: 14/11/2026 · πηγή: reports/multiagent_answers.csv · μία εκτέλεση ανά σετ
-Ρυθμίσεις multi-agent: tev1-en-choose-gr (ορισμός στο CONFIGS του multiagent/evaluate.py)
+Ενημέρωση: 22/11/2026 · πηγή: reports/multiagent_answers.csv · μία εκτέλεση ανά σετ
+Ρυθμίσεις multi-agent: tev1-en-choose-gr (ορισμός στο configs/experiment/<όνομα>.yaml)
 
 Σωστή:          η απάντηση δίνει τη σωστή υπηρεσία (σύνδεσμο ή τηλέφωνο τμήματος).
 Σίγουρα λάθος:  δίνει υπηρεσία, αλλά λάθος, χωρίς να ρωτήσει.
@@ -66,5 +66,5 @@ tev1-en-choose-gr: διάμεσος 10.6 s · μέσος 12.9 s · 90% κάτω 
 ΠΩΣ ΞΑΝΑΜΕΤΡΑΜΕ (από τον φάκελο του bot, με το Ollama ανοιχτό)
   venv/bin/python -m multiagent.evaluate pipeline --configs <ρύθμιση> --sets bakeoff,holdout,holdout2,holdout3,holdout4,holdout5,holdout6,compound,security
   venv/bin/python -m multiagent.evaluate metrics --configs tev1-en-choose-gr,<ρύθμιση>
-Μια νέα ρύθμιση μπαίνει πρώτα στο CONFIGS του multiagent/evaluate.py.
+Μια νέα ρύθμιση γράφεται πρώτα ως configs/experiment/<όνομα>.yaml.
 Τα holdout 1-6 τα έχουμε πια δει: μια νέα αλλαγή θέλει και νέο σετ, γραμμένο πριν τρέξει μοντέλο.

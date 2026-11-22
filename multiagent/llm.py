@@ -7,6 +7,9 @@
 
 Και οι δύο επιστρέφουν (αποτέλεσμα, δευτερόλεπτα) και σηκώνουν ModelError
 όταν το μοντέλο δεν απαντήσει. Ο agent αποφασίζει τι κάνει τότε.
+
+OllamaModel: ένα μοντέλο όπως το παίρνει ένας agent (όνομα, server, χρονικό
+όριο). Τα configs/model/*.yaml φτιάχνουν ένα για κάθε agent.
 """
 from __future__ import annotations
 
@@ -14,6 +17,8 @@ import json
 import time
 
 import requests
+
+from multiagent.config import OLLAMA_URL, is_decision_model
 
 
 class ModelError(RuntimeError):
@@ -67,3 +72,27 @@ def decide(url: str, model: str, state, questions: dict, timeout: int = 120) -> 
     except (requests.RequestException, ValueError, KeyError) as exc:
         raise ModelError(f"{model}: {exc}") from exc
     return out, round(time.monotonic() - t0, 2)
+
+
+class OllamaModel:
+    """Ένα μοντέλο του Ollama για έναν agent. Ο agent δεν ξέρει πού τρέχει το μοντέλο."""
+
+    def __init__(self, *, name: str, url: str = OLLAMA_URL, timeout: int = 120):
+        self.name, self.url, self.timeout = name, str(url).rstrip("/"), int(timeout)
+
+    @property
+    def decision(self) -> bool:
+        """Decision model (decide) ή LLM με έξοδο JSON (chat_json)."""
+        return is_decision_model(self.name)
+
+    def chat_json(self, system: str, user: str, schema: dict, num_predict: int = 400) -> tuple:
+        return chat_json(self.url, self.name, system, user, schema, self.timeout, num_predict)
+
+    def decide(self, state, questions: dict) -> tuple:
+        return decide(self.url, self.name, state, questions, self.timeout)
+
+    def params(self) -> dict:
+        return {"name": self.name, "url": self.url, "timeout": self.timeout}
+
+    def __repr__(self) -> str:
+        return f"OllamaModel({self.name} @ {self.url})"

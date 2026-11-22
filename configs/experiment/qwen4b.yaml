@@ -1,0 +1,21 @@
+# @package _global_
+# 1η μέτρηση (13/11/2026): όλοι οι ρόλοι στο qwen3:4b.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+defaults:
+  - override /model@welcome.split_model: qwen3_4b
+  - override /model@welcome.reform_model: qwen3_4b
+  - override /model@security.model: qwen3_4b
+  - override /model@validator.model: qwen3_4b
+  - override /model@validator.final_model: qwen3_4b
+decision_lang: en
+security:
+  scope: before
+  emergency: block
+welcome:
+  split_langs: el
+validator:
+  mode: fits
+  text: plain
+  hint: false
+pipeline:
+  greeklish: raw

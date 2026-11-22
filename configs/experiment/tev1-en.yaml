@@ -1,0 +1,15 @@
+# @package _global_
+# 1η μέτρηση (13/11/2026): όπως το tev1, με τις ερωτήσεις προς το decision model στα αγγλικά.
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: en
+security:
+  scope: before
+  emergency: block
+welcome:
+  split_langs: el
+validator:
+  mode: fits
+  text: plain
+  hint: false
+pipeline:
+  greeklish: raw

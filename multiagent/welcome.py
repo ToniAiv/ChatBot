@@ -9,6 +9,8 @@ Welcome agent: παραλαμβάνει το μήνυμα και δίνει τη
 Ο Welcome δεν γράφει ο ίδιος το κείμενο της απάντησης: τα κείμενα και τα
 στοιχεία επικοινωνίας έρχονται από τους πίνακες του bot. Το μοντέλο του
 χρησιμοποιείται μόνο για να κόψει και να αναδιατυπώσει.
+
+Ο agent είναι η κλάση Welcome· ρυθμίσεις στο configs/welcome/default.yaml.
 """
 from __future__ import annotations
 
@@ -19,7 +21,7 @@ import greeklish
 import smalltalk as chitchat
 
 from multiagent import classifier, llm
-from multiagent.config import Settings
+from multiagent.config import Settings, choice
 from multiagent.state import Step
 
 TEXT = {
@@ -103,57 +105,12 @@ def verbatim(part: str, message: str) -> bool:
     return all(any(t == m for m in rest) for t in _tokens(part))
 
 
-def split(text: str, settings: Settings) -> tuple:
-    """(αιτήματα, απόσπασμα, γραμμή ίχνους ή None).
-
-    Με δύο ή περισσότερα αιτήματα επιστρέφει τα κομμάτια. Με ένα, επιστρέφει
-    ολόκληρο το μήνυμα και, αν το μοντέλο απομόνωσε το αίτημα μέσα από φλύαρο
-    κείμενο, το απόσπασμα ως δεύτερη ευκαιρία για τον ταξινομητή.
-    """
-    if not settings.split or not may_be_composite(text, settings.split_langs == "all"):
-        return [text], "", None
-    model = settings.model("split")
-    try:
-        out, secs = llm.chat_json(settings.url("split"), model, SYSTEM_SPLIT, text, SCHEMA_SPLIT,
-                                  settings.timeout)
-    except llm.ModelError as exc:
-        return [text], "", Step("welcome", "split", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model)
-    parts = [str(p).strip() for p in out.get("requests", []) if str(p).strip()]
-    if not parts or not all(verbatim(p, text) for p in parts):
-        return [text], "", Step("welcome", "split", "απορρίφθηκε: άλλαξε τις λέξεις του πολίτη", secs, model)
-    parts = [p for p in parts if len(_tokens(p)) >= 2 and not chitchat.detect(p)]
-    parts = list(dict.fromkeys(parts))
-    if len(parts) >= 2:
-        return parts, "", Step("welcome", "split", f"{len(parts)} αιτήματα: " + " | ".join(parts), secs, model)
-    if len(parts) == 1 and len(_tokens(parts[0])) <= 0.7 * len(_tokens(text)):
-        return [text], parts[0], Step("welcome", "split", f"1 αίτημα, απόσπασμα: {parts[0]}", secs, model)
-    return [text], "", Step("welcome", "split", "1 αίτημα", secs, model)
-
-
 # ── case 1: αναδιατύπωση ─────────────────────────────────────
 SYSTEM_REFORM = """Ο πολίτης έγραψε στον εικονικό βοηθό του Δήμου Ηρακλείου, αλλά η αναζήτηση δεν βρήκε την υπηρεσία που ζητά.
 Ξαναγράψε το αίτημά του σε ΜΙΑ απλή, σωστή ελληνική πρόταση, όπως θα το έγραφε η σελίδα του Δήμου. Διόρθωσε ορθογραφία και greeklish, και μετάφρασε αν είναι σε άλλη γλώσσα.
 Μην προσθέτεις κάτι που δεν είπε ο πολίτης και μην απαντάς στο αίτημα."""
 
 SCHEMA_REFORM = {"type": "object", "required": ["text"], "properties": {"text": {"type": "string"}}}
-
-
-def reform(text: str, settings: Settings) -> tuple:
-    """(νέα διατύπωση ή None, γραμμή ίχνους)."""
-    model = settings.model("reform")
-    try:
-        # 300 tokens: με 120 το JSON κοβόταν στη μέση στα φλύαρα μηνύματα (8 φορές στη μέτρηση 13/11).
-        out, secs = llm.chat_json(settings.url("reform"), model, SYSTEM_REFORM, text, SCHEMA_REFORM,
-                                  settings.timeout, num_predict=300)
-    except llm.ModelError as exc:
-        return None, Step("welcome", "reform", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model)
-    new = re.sub(r"\s+", " ", str(out.get("text", ""))).strip()
-    words = _tokens(new)
-    # Ελληνική πρόταση, χωρίς αριθμούς και χωρίς να είναι το ίδιο το αίτημα.
-    greek = sum("α" <= c <= "ω" for c in C.normalize(new)) >= 0.6 * max(1, sum(c.isalpha() for c in new))
-    if not (2 <= len(words) <= 30) or not greek or re.search(r"\d{3,}", new) or words == _tokens(text):
-        return None, Step("welcome", "reform", f"απορρίφθηκε: {new}"[:160], secs, model)
-    return new, Step("welcome", "reform", new, secs, model)
 
 
 # ── σύνθεση ───────────────────────────────────────────────────
@@ -192,3 +149,86 @@ def compose(segments: list, lang: str) -> tuple:
             body = t["for"].format(text=_short(s.text)) + "\n" + body
         blocks.append(body)
     return "\n\n".join(blocks), options
+
+
+class Welcome:
+    """Ο Welcome agent: παραλαβή, χωρισμός σε αιτήματα, αναδιατύπωση, σύνθεση της απάντησης."""
+
+    def __init__(self, *, split_model: llm.OllamaModel | None = None,
+                 reform_model: llm.OllamaModel | None = None, split: bool = True,
+                 split_langs: str = "all", reform: bool = True):
+        choice("welcome.split_langs", split_langs, ("el", "all"))
+        if split and split_model is None:
+            raise ValueError("welcome.split_model: χρειάζεται μοντέλο όταν split: true")
+        if reform and reform_model is None:
+            raise ValueError("welcome.reform_model: χρειάζεται μοντέλο όταν reform: true")
+        self.split_model, self.reform_model = split_model, reform_model
+        self.split_on, self.split_langs, self.reform_on = bool(split), split_langs, bool(reform)
+
+    @classmethod
+    def from_settings(cls, s: Settings) -> Welcome:
+        """Από τις παλιές ρυθμίσεις (config.py, μεταβλητές MA_*)."""
+        return cls(split_model=llm.OllamaModel(name=s.model("split"), url=s.url("split"), timeout=s.timeout),
+                   reform_model=llm.OllamaModel(name=s.model("reform"), url=s.url("reform"), timeout=s.timeout),
+                   split=s.split, split_langs=s.split_langs, reform=s.reform)
+
+    def params(self) -> dict:
+        return {"split_model": self.split_model.params() if self.split_model else None,
+                "reform_model": self.reform_model.params() if self.reform_model else None,
+                "split": self.split_on, "split_langs": self.split_langs, "reform": self.reform_on}
+
+    # Χωρίς μοντέλο: ίδια σε κάθε ρύθμιση
+    language_of = staticmethod(language_of)
+    smalltalk = staticmethod(smalltalk)
+    compose = staticmethod(compose)
+
+    def split(self, text: str) -> tuple:
+        """(αιτήματα, απόσπασμα, γραμμή ίχνους ή None).
+
+        Με δύο ή περισσότερα αιτήματα επιστρέφει τα κομμάτια. Με ένα, επιστρέφει
+        ολόκληρο το μήνυμα και, αν το μοντέλο απομόνωσε το αίτημα μέσα από φλύαρο
+        κείμενο, το απόσπασμα ως δεύτερη ευκαιρία για τον ταξινομητή.
+        """
+        if not self.split_on or not may_be_composite(text, self.split_langs == "all"):
+            return [text], "", None
+        model = self.split_model
+        try:
+            out, secs = model.chat_json(SYSTEM_SPLIT, text, SCHEMA_SPLIT)
+        except llm.ModelError as exc:
+            return [text], "", Step("welcome", "split", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model.name)
+        parts = [str(p).strip() for p in out.get("requests", []) if str(p).strip()]
+        if not parts or not all(verbatim(p, text) for p in parts):
+            return [text], "", Step("welcome", "split", "απορρίφθηκε: άλλαξε τις λέξεις του πολίτη", secs, model.name)
+        parts = [p for p in parts if len(_tokens(p)) >= 2 and not chitchat.detect(p)]
+        parts = list(dict.fromkeys(parts))
+        if len(parts) >= 2:
+            return parts, "", Step("welcome", "split", f"{len(parts)} αιτήματα: " + " | ".join(parts), secs,
+                                   model.name)
+        if len(parts) == 1 and len(_tokens(parts[0])) <= 0.7 * len(_tokens(text)):
+            return [text], parts[0], Step("welcome", "split", f"1 αίτημα, απόσπασμα: {parts[0]}", secs, model.name)
+        return [text], "", Step("welcome", "split", "1 αίτημα", secs, model.name)
+
+    def reform(self, text: str) -> tuple:
+        """Case 1: (νέα διατύπωση ή None, γραμμή ίχνους)."""
+        model = self.reform_model
+        try:
+            # 300 tokens: με 120 το JSON κοβόταν στη μέση στα φλύαρα μηνύματα (8 φορές στη μέτρηση 13/11).
+            out, secs = model.chat_json(SYSTEM_REFORM, text, SCHEMA_REFORM, num_predict=300)
+        except llm.ModelError as exc:
+            return None, Step("welcome", "reform", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model.name)
+        new = re.sub(r"\s+", " ", str(out.get("text", ""))).strip()
+        words = _tokens(new)
+        # Ελληνική πρόταση, χωρίς αριθμούς και χωρίς να είναι το ίδιο το αίτημα.
+        greek = sum("α" <= c <= "ω" for c in C.normalize(new)) >= 0.6 * max(1, sum(c.isalpha() for c in new))
+        if not (2 <= len(words) <= 30) or not greek or re.search(r"\d{3,}", new) or words == _tokens(text):
+            return None, Step("welcome", "reform", f"απορρίφθηκε: {new}"[:160], secs, model.name)
+        return new, Step("welcome", "reform", new, secs, model.name)
+
+
+# Ο παλιός τρόπος (μεταβλητές MA_*): οι ίδιες μέθοδοι, με ρυθμίσεις από το config.py.
+def split(text: str, settings: Settings) -> tuple:
+    return Welcome.from_settings(settings).split(text)
+
+
+def reform(text: str, settings: Settings) -> tuple:
+    return Welcome.from_settings(settings).reform(text)

@@ -1,0 +1,10 @@
+# Validator: μετά το BERT διαλέγει την υπηρεσία· πριν φύγει η απάντηση, ελέγχει ότι απαντά στο αίτημα.
+_target_: multiagent.validator.Validator
+mode: choose          # fits: κρίνει τους υποψήφιους του bot · choose: διαλέγει στις 5 πρώτες του BERT
+text: plain           # plain: τίτλος και αρχή της περιγραφής · clean: χωρίς τυποποιημένες φράσεις, θέματα για τα τμήματα
+hint: false           # μαθαίνει ποια επιλογή θεωρεί πρώτη το BERT και με τι βεβαιότητα
+threshold: 0.5        # πιθανότητα από την οποία εγκρίνει
+final: true           # τελικός έλεγχος της απάντησης
+lang: ${decision_lang}
+model: ???            # από το configs/model/
+final_model: ???
