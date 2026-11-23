@@ -167,6 +167,7 @@ Form filling / Security / Summary: όχι ακόμα.
   - 16 έλεγχοι χωρίς Ollama: `venv/bin/python -m unittest discover -s tests -v`.
   - Στο δείγμα των 30 ερωτήσεων οι απαντήσεις έμειναν ίδιες. Τα γραφήματα (wandb) θα τα δει ο Νικόλας.
 - ✅ **Prompts όλων των agents σε .yaml και βελτίωση κάθε agent χωριστά** (23/11): `configs/security/prompts/`, `configs/welcome/prompts/`, `configs/validator/prompts/`· μια νέα εκδοχή γράφει μόνο ό,τι αλλάζει. `python -m multiagent.tune tune.agent=security|validator|split|reform` μετρά έναν agent μόνο του (`reports/tune_<agent>.csv`), και με `-m +sweep=…` συγκρίνει prompts, μοντέλα και ρυθμίσεις. 20 έλεγχοι χωρίς Ollama.
+- ✅ **Σετ της ομάδας για κάθε agent** (23/11): κάθε μέλος γράφει δικές του προτάσεις στο `multiagent/sets/<agent>/<όνομα>_dev.csv` και `_test.csv` (πρότυπα: `_template.csv`), τις ελέγχει με `scripts/check_set.py` και βελτιώνει τον agent με το `multiagent.tune`. Οδηγός: **`multiagent/sets/README.md`**. Όλα τα αρχεία του `multiagent/sets/` μένουν αυτόματα έξω από την εκπαίδευση.
 - **Bot: 8 «proposed» αντιστοιχίσεις δίνουν λάθος σελίδα** (`mappings/intent_to_service.csv`, 6η μέτρηση της `reports/multiagent.md`). Θέλει έλεγχο από άνθρωπο και διόρθωση.
 - **Multi-agent, επόμενα βήματα (περιμένουν απόφαση):**
   1. **Η σίγουρη απάντηση του BERT να μένει,** και ο Validator να διαλέγει μόνο όταν το BERT είναι αβέβαιο, με τις καθαρές περιγραφές. Υπολογισμός από τα ίδια δεδομένα (όχι μέτρηση): 270 σωστές στις 373, έναντι 205 του bot, αλλά 35 σίγουρα λάθη έναντι 23. Θέλει νέο σετ.

@@ -59,8 +59,21 @@ EXPECTED_LABEL = {"jailbreak": "manipulation", "out_of_scope": "out_of_scope", "
                   "emergency": "emergency", "request": "request"}
 
 
+def set_path(name: str):
+    """Το αρχείο ενός σετ: όνομα του SETS, αρχείο του multiagent/sets/ χωρίς το .csv
+    (π.χ. security/maria_dev, τα σετ της ομάδας για κάθε agent), ή διαδρομή αρχείου .csv."""
+    if name in SETS:
+        return SETS[name]
+    for path in (ROOT / "multiagent" / "sets" / f"{name}.csv", ROOT / name):
+        if path.suffix == ".csv" and path.exists():
+            return path
+    raise SystemExit(f"Άγνωστο σετ «{name}». Υπάρχουν τα {', '.join(SETS)} και τα αρχεία του "
+                     "multiagent/sets/, π.χ. security/<όνομα>_dev")
+
+
 def questions(name: str) -> list:
-    return list(csv.DictReader(open(SETS[name], encoding="utf-8")))
+    with open(set_path(name), encoding="utf-8") as f:
+        return list(csv.DictReader(f))
 
 
 class Sheet:
@@ -399,6 +412,10 @@ def _service(rows: list) -> list:
 def write_metrics(names: list) -> str:
     """Απλό αρχείο κειμένου: το bot δίπλα σε μία ή περισσότερες ρυθμίσεις του multi-agent."""
     data = {n: _scored(n) for n in names}
+    # Σύγκριση μόνο στις ερωτήσεις που απάντησαν όλες οι ρυθμίσεις (π.χ. μια νέα, μόνο σε δύο σετ)
+    common = set.intersection(*({(r["set"], r["id"]) for r in rows} for rows in data.values()))
+    narrowed = any(len(rows) != len(common) for rows in data.values())
+    data = {n: [r for r in rows if (r["set"], r["id"]) in common] for n, rows in data.items()}
     cols = ["bot"] + names
     w = max(14, max(len(n) for n in names) + 2)
 
@@ -416,7 +433,10 @@ def write_metrics(names: list) -> str:
              "Σωστή:          η απάντηση δίνει τη σωστή υπηρεσία (σύνδεσμο ή τηλέφωνο τμήματος).",
              "Σίγουρα λάθος:  δίνει υπηρεσία, αλλά λάθος, χωρίς να ρωτήσει.",
              "Σωστή ή κουμπί: η σωστή υπηρεσία είναι στο κείμενο ή στα κουμπιά «Μήπως εννοείτε;».",
-             "Διαφορές 1-3 ερωτήσεων μπορεί να είναι θόρυβος.", ""]
+             "Διαφορές 1-3 ερωτήσεων μπορεί να είναι θόρυβος."]
+    if narrowed:
+        lines.append("Μόνο οι ερωτήσεις που απάντησαν όλες οι ρυθμίσεις (οι υπόλοιπες δεν μετρούν).")
+    lines.append("")
 
     for title, key_bot, key in (("1. ΣΩΣΤΕΣ ΑΠΑΝΤΗΣΕΙΣ (ερωτήσεις υπηρεσίας)", "fc", "c"),
                                 ("2. ΣΙΓΟΥΡΑ ΛΑΘΟΣ ΑΠΑΝΤΗΣΕΙΣ (όσο λιγότερες τόσο καλύτερα)", "fw", "w"),

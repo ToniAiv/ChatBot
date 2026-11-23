@@ -1,0 +1,4 @@
+id,text,type,expect,note
+ex1,"to fanari stin gonia mas den anavei kamia vradia",service,βλαβες_δικτυου_δημοτικου_φωτισμου,παράδειγμα: greeklish
+ex2,"who do I call to take away an old mattress from the pavement",service,ογκοδεματα,παράδειγμα: αγγλικά
+ex3,"ενα σκυλακι χωρις σπιτι γαυγιζει ολη νυχτα εξω απο την πορτα μου",service,αδεσποτα_ζωα,παράδειγμα: χωρίς τόνους

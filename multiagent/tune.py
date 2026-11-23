@@ -20,6 +20,9 @@
   split      σωστός αριθμός αιτημάτων· χώρισε χωρίς λόγο· δεν χώρισε· άλλαξε τις λέξεις
   reform     στα αβέβαια του BERT: η αναδιατύπωση βοήθησε, οδήγησε σε λάθος, ή απορρίφθηκε
 
+Σετ: εκτός από τα έτοιμα, κάθε αρχείο του multiagent/sets/, π.χ. 'tune.sets=[security/maria_dev]'.
+Οδηγίες για τα σετ της ομάδας: multiagent/sets/README.md.
+
 Τα holdout 1–6 τα έχουμε ήδη δει: ό,τι διαλέξουμε εδώ θέλει επιβεβαίωση σε νέο σετ.
 Θέλει το Ollama ανοιχτό (εκτός από τα «δοσμένα» κομμάτια).
 """
@@ -42,7 +45,8 @@ from multiagent.state import Segment
 AGENTS = ("security", "validator", "split", "reform")
 DEFAULT_SETS = {"security": ["security"], "validator": ["bakeoff"], "split": ["compound"], "reform": ["holdout"]}
 # Η ετικέτα που περιμένουμε από τον Security για κάθε είδος ερώτησης των σετ
-EXPECTED_LABEL = {"jailbreak": "manipulation", "out_of_scope": "out_of_scope", "abuse": "abuse",
+EXPECTED_LABEL = {"jailbreak": "manipulation", "manipulation": "manipulation", "out_of_scope": "out_of_scope",
+                  "abuse": "abuse",
                   "emergency": "emergency", "request": "request", "service": "request",
                   "department": "request", "clarify": "request"}
 FIELDS = {
@@ -81,14 +85,17 @@ def _security(E, pipe, q: dict) -> dict | None:
 
 
 def _validator(E, pipe, q: dict) -> dict | None:
-    targets = E.targets_of(q)
-    if len(targets) != 1:
+    nothing = q["type"] == "out_of_scope"            # καμία υπηρεσία του Δήμου: σωστό είναι το «καμία»
+    targets = [] if nothing else E.targets_of(q)
+    if not nothing and len(targets) != 1:
         return None                                  # χωρίς στόχο, ή σύνθετο: ο Validator κρίνει ένα αίτημα
     cls = pipe.classifier.classify(q["text"])
     pool = pipe.validator.pool(cls)
     in_pool = any(_hit(E, pipe, c, cls, targets) for c in pool)
     chosen, step = pipe.validator.check_intent(_view(pipe, q["text"]), cls)
-    if not pool:
+    if nothing:
+        outcome = "λάθος επιλογή" if chosen else "καμία, σωστά"
+    elif not pool:
         outcome = "χωρίς υποψήφιους"
     elif chosen:
         outcome = "σωστή επιλογή" if _hit(E, pipe, chosen, cls, targets) else "λάθος επιλογή"
@@ -100,9 +107,12 @@ def _validator(E, pipe, q: dict) -> dict | None:
 
 
 def _split(E, pipe, q: dict) -> dict | None:
-    if q["type"] not in E.SERVICE_TYPES:
+    if q.get("requests"):                            # στα σετ της ομάδας: πόσα αιτήματα έχει το μήνυμα
+        expect = int(q["requests"])
+    elif q["type"] in E.SERVICE_TYPES:
+        expect = len([p for p in q["expect"].split("|") if p])
+    else:
         return None
-    expect = len([p for p in q["expect"].split("|") if p])
     parts, _alt, step = pipe.welcome.split(q["text"])
     got, detail = len(parts), (step.detail if step else "χωρίς κλήση μοντέλου: μοιάζει με ένα αίτημα")
     if "απορρίφθηκε" in detail:

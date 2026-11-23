@@ -193,6 +193,9 @@ venv/bin/python -m multiagent.measure -m +sweep=validator_threshold
 
 ### Ένας agent μόνος του: βελτίωση με το `multiagent.tune`
 
+Οδηγός για την ομάδα, βήμα βήμα, για σετ γραμμένα με το χέρι για κάθε agent:
+[`multiagent/sets/README.md`](sets/README.md).
+
 Μετρά έναν agent μόνο του, χωρίς όλο το pipeline. Έτσι συγκρίνουμε prompts, μοντέλα και
 ρυθμίσεις για τον καθένα χωριστά:
 

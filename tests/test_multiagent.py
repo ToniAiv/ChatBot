@@ -10,12 +10,15 @@
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 import types
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 
 from multiagent import build, config, security, tune, welcome      # noqa: E402
 from multiagent.pipeline import Pipeline                            # noqa: E402
@@ -150,6 +153,28 @@ class Tune(unittest.TestCase):
         sets = types.SimpleNamespace(SERVICE_TYPES=("service",))
         row = tune._split(sets, pipe, {"type": "service", "expect": "a|b", "text": CLEAR})
         self.assertEqual((row["expect"], row["got"], row["outcome"]), (2, 1, "δεν χώρισε"))
+
+
+class TeamSets(unittest.TestCase):
+    """Τα σετ της ομάδας για κάθε agent (multiagent/sets/<agent>/, οδηγός: multiagent/sets/README.md)."""
+
+    def test_templates_pass_the_checker(self):
+        import check_set                                    # scripts/check_set.py
+        for agent in ("security", "validator", "split", "reform"):
+            with self.subTest(agent=agent), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(check_set.check(ROOT / "multiagent" / "sets" / agent / "_template.csv", agent), 0)
+
+    def test_a_team_set_is_found_by_its_name(self):
+        from multiagent import evaluate
+        self.assertEqual(evaluate.set_path("security/_template"),
+                         ROOT / "multiagent" / "sets" / "security" / "_template.csv")
+
+    def test_tune_reads_a_team_set(self):
+        from multiagent import evaluate
+        pipe = build.pipeline(overrides=["security=fixed", "security.label=request"])
+        rows = [tune._security(evaluate, pipe, q) for q in evaluate.questions("security/_template")]
+        self.assertEqual([r["expect"] for r in rows], ["request", "manipulation", "out_of_scope", "emergency"])
+        self.assertEqual([r["right"] for r in rows], [True, False, False, False])
 
 
 if __name__ == "__main__":
