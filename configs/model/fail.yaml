@@ -1,0 +1,6 @@
+# Μοντέλο που αποτυγχάνει πάντα: τι κάνει το pipeline όταν ένας agent δεν παίρνει απάντηση;
+#   ./run.sh agents model@security.model=fail
+#   ./run.sh agents model@validator.model=fail
+_target_: multiagent.llm.FailingModel
+name: fail
+decision: true        # false: ο agent ακολουθεί τον δρόμο του LLM (chat_json)

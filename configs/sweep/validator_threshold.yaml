@@ -1,0 +1,16 @@
+# @package _global_
+# Σάρωση, όπως τα sweeps του Feathers: κάθε συνδυασμός των τιμών τρέχει αυτόματα,
+# ο ένας μετά τον άλλο, και γράφεται στο reports/multiagent_answers.csv.
+#   venv/bin/python -m multiagent.measure -m +sweep=validator_threshold
+# Εδώ: δύο ρυθμίσεις × δύο κατώφλια του Validator = 4 εκτελέσεις στο holdout6 (~40 λεπτά).
+# Πίνακας μετά: venv/bin/python -m multiagent.evaluate metrics --configs "<όνομα>,<όνομα>"
+#
+# Τα holdout 1–6 τα έχουμε ήδη δει: είναι πια το σετ για σαρώσεις. Η τιμή που θα
+# διαλέξουμε θέλει επιβεβαίωση σε νέο σετ, γραμμένο πριν τρέξει μοντέλο.
+hydra:
+  sweeper:
+    params:
+      experiment: tev1-en-choose-gr,tev1-en-clean
+      validator.threshold: 0.5,0.7
+measure:
+  sets: [holdout6]

@@ -1,0 +1,9 @@
+# Validator με απάντηση που δίνουμε εμείς, για να δούμε τι κάνει μετά το υπόλοιπο pipeline.
+#   ./run.sh agents validator=fixed validator.pick=none     ποτέ έγκριση: αναδιατύπωση ή ερώτηση στον πολίτη
+#   ./run.sh agents validator=fixed validator.pick=first    πάντα η πρώτη υποψήφια υπηρεσία
+#   ./run.sh agents validator=fixed validator.pick=bert     η σίγουρη απάντηση του BERT, όπως το bot
+_target_: multiagent.validator.FixedValidator
+pick: ???             # bert · first · none
+mode: choose          # ποιες υποψήφιες (fits: του bot · choose: οι 5 πρώτες του BERT) και ποια κουμπιά
+final: false          # true: τελικός έλεγχος με δοσμένη απάντηση (final_ok)
+final_ok: true

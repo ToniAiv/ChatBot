@@ -68,10 +68,11 @@ def _dept_topics(intent: str, n: int = 6) -> str:
     if not _DEPT_TOPICS:
         import csv
         from multiagent import ROOT
-        for r in csv.DictReader(open(ROOT / "mappings" / "intent_to_service.csv", encoding="utf-8")):
-            if r.get("department") and not r.get("url"):
-                _DEPT_TOPICS.setdefault("by_intent", {})[r["intent"]] = r["department"]
-                _DEPT_TOPICS.setdefault(r["department"], []).append(r["intent"])
+        with open(ROOT / "mappings" / "intent_to_service.csv", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                if r.get("department") and not r.get("url"):
+                    _DEPT_TOPICS.setdefault("by_intent", {})[r["intent"]] = r["department"]
+                    _DEPT_TOPICS.setdefault(r["department"], []).append(r["intent"])
     code = _DEPT_TOPICS.get("by_intent", {}).get(intent)
     others = [i for i in _DEPT_TOPICS.get(code, []) if i != intent] if code else []
     return ", ".join(_readable(i) for i in [intent] + others[:n - 1])
@@ -222,3 +223,24 @@ class Classifier:
 
     def params(self) -> dict:
         return {}
+
+
+class FixedClassifier(Classifier):
+    """Ταξινομητής με απάντηση που ορίζουμε εμείς: κάθε μήνυμα παίρνει το ίδιο intent με την ίδια
+    βεβαιότητα, για να δούμε τι κάνει μετά το υπόλοιπο pipeline (configs/classifier/fixed.yaml).
+    Οι υποψήφιοι και τα κείμενα έρχονται από τους πίνακες του bot, όπως πάντα."""
+
+    def __init__(self, *, intent: str, confidence: float = 0.95):
+        self.intent, self.confidence = intent, float(confidence)
+
+    def params(self) -> dict:
+        return {"intent": self.intent, "confidence": self.confidence}
+
+    def classify(self, text: str, pending: dict | None = None) -> Classification:
+        load()
+        lang = "en" if C.ENGLISH_SUPPORT and C.detect_language(text) == "en" and not greeklish.to_greek(text) else "el"
+        c = _candidate(self.intent, self.confidence)
+        if c is None:
+            raise ValueError(f"classifier.intent: «{self.intent}» δεν είναι intent με σελίδα ή τμήμα")
+        return Classification(text, lang, intents=[(self.intent, self.confidence)], confidence=self.confidence,
+                              confident=self.confidence >= C.MIN_BERT_CONFIDENCE, candidates=[c], top=[c])

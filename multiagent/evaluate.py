@@ -201,47 +201,56 @@ def grade(q: dict, text: str) -> tuple:
 
 
 def run_pipeline(names: list, sets: list) -> None:
+    for name in names:
+        run_pipeline_on(build.pipeline(name), name, sets)
+
+
+_FLOORS: dict = {}      # οι απαντήσεις του σημερινού bot, μία φορά ανά ερώτηση
+
+
+def run_pipeline_on(pipe, name: str, sets: list, sheet: str = "multiagent_answers.csv",
+                    limit: int | None = None) -> None:
+    """Ένα pipeline σε σετ ερωτήσεων, δίπλα στο σημερινό bot· η στήλη config γράφει το name.
+    Το καλεί και το multiagent.measure (Hydra, σαρώσεις). limit: μόνο οι πρώτες ερωτήσεις."""
     fields = ["config", "set", "id", "type", "floor_correct", "floor_partial", "floor_answered", "correct",
               "partial", "answered", "floor_opt", "opt", "labels", "how", "segments", "clarify", "final_fail",
               "llm_calls", "seconds", "s_welcome", "s_security", "s_validator", "expect", "text", "floor_text",
               "reply", "trace"]
-    sheet = Sheet("multiagent_answers.csv", fields, ("config", "set", "id"))
-    floors: dict = {}
-    for name in names:
-        pipe = build.pipeline(name)
-        for sname in sets:
-            for q in questions(sname):
-                if sheet.has(name, sname, q["id"]):
-                    continue
-                if (sname, q["id"]) not in floors:
-                    floors[(sname, q["id"])] = gui.Api().chat(q["text"])
-                floor = floors[(sname, q["id"])]["text"]
-                reply = pipe.run(q["text"], Session())
-                fc, fp, fa = grade(q, floor)
-                c, p, a = grade(q, reply.text)
-                by = collections.defaultdict(float)
-                for s in reply.trace:
-                    by[s.agent] += s.seconds
-                segs = reply.segments
-                sheet.add({
-                    "config": name, "set": sname, "id": q["id"], "type": q["type"],
-                    "floor_correct": fc, "floor_partial": fp, "floor_answered": fa,
-                    "correct": c, "partial": p, "answered": a,
-                    # η σωστή υπηρεσία στα κουμπιά («Μήπως εννοείτε;»), όχι στο κείμενο
-                    "floor_opt": option_hit(q, floors[(sname, q["id"])].get("options", [])),
-                    "opt": option_hit(q, reply.options),
-                    "labels": "|".join(s.label for s in segs) or "smalltalk",
-                    "how": "|".join(s.how or s.status for s in segs),
-                    "segments": len(segs), "clarify": sum(s.status == "clarify" for s in segs),
-                    "final_fail": sum(s.final_ok is False for s in segs),
-                    "llm_calls": sum(bool(s.model) for s in reply.trace), "seconds": reply.seconds,
-                    "s_welcome": round(by["welcome"], 2), "s_security": round(by["security"], 2),
-                    "s_validator": round(by["validator"], 2), "expect": q["expect"], "text": q["text"],
-                    "floor_text": flat(floor), "reply": flat(reply.text),
-                    "trace": " ‖ ".join(f"{s.agent}.{s.action}: {s.detail}" for s in reply.trace)})
-                mark = "=" if c == fc else ("+" if c else "−")
-                print(f"  {name:7} {sname:8} {q['id']} {q['type']:12} bot {'✓' if fc else '✗'} "
-                      f"agents {'✓' if c else '✗'} {mark} {reply.seconds:5.1f}s", flush=True)
+    table = Sheet(sheet, fields, ("config", "set", "id"))
+    for sname in sets:
+        for q in questions(sname)[:limit]:
+            if table.has(name, sname, q["id"]):
+                continue
+            if (sname, q["id"]) not in _FLOORS:
+                _FLOORS[(sname, q["id"])] = gui.Api().chat(q["text"])
+            floors = _FLOORS
+            floor = floors[(sname, q["id"])]["text"]
+            reply = pipe.run(q["text"], Session())
+            fc, fp, fa = grade(q, floor)
+            c, p, a = grade(q, reply.text)
+            by = collections.defaultdict(float)
+            for s in reply.trace:
+                by[s.agent] += s.seconds
+            segs = reply.segments
+            table.add({
+                "config": name, "set": sname, "id": q["id"], "type": q["type"],
+                "floor_correct": fc, "floor_partial": fp, "floor_answered": fa,
+                "correct": c, "partial": p, "answered": a,
+                # η σωστή υπηρεσία στα κουμπιά («Μήπως εννοείτε;»), όχι στο κείμενο
+                "floor_opt": option_hit(q, floors[(sname, q["id"])].get("options", [])),
+                "opt": option_hit(q, reply.options),
+                "labels": "|".join(s.label for s in segs) or "smalltalk",
+                "how": "|".join(s.how or s.status for s in segs),
+                "segments": len(segs), "clarify": sum(s.status == "clarify" for s in segs),
+                "final_fail": sum(s.final_ok is False for s in segs),
+                "llm_calls": sum(bool(s.model) for s in reply.trace), "seconds": reply.seconds,
+                "s_welcome": round(by["welcome"], 2), "s_security": round(by["security"], 2),
+                "s_validator": round(by["validator"], 2), "expect": q["expect"], "text": q["text"],
+                "floor_text": flat(floor), "reply": flat(reply.text),
+                "trace": " ‖ ".join(f"{s.agent}.{s.action}: {s.detail}" for s in reply.trace)})
+            mark = "=" if c == fc else ("+" if c else "−")
+            print(f"  {name:7} {sname:8} {q['id']} {q['type']:12} bot {'✓' if fc else '✗'} "
+                  f"agents {'✓' if c else '✗'} {mark} {reply.seconds:5.1f}s", flush=True)
 
 
 # ── 4. Πίνακες ────────────────────────────────────────────────

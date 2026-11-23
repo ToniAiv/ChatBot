@@ -96,3 +96,25 @@ class OllamaModel:
 
     def __repr__(self) -> str:
         return f"OllamaModel({self.name} @ {self.url})"
+
+
+class FailingModel(OllamaModel):
+    """Μοντέλο που αποτυγχάνει πάντα, για να δούμε τι κάνει το pipeline όταν ένας agent
+    μένει χωρίς απάντηση (configs/model/fail.yaml). decision: ποιον δρόμο ακολουθεί ο agent
+    (decision model ή LLM)· αποτυγχάνουν και οι δύο."""
+
+    def __init__(self, *, name: str = "fail", decision: bool = True, url: str = "", timeout: int = 0):
+        self.name, self.url, self.timeout, self._decision = name, url, int(timeout), bool(decision)
+
+    @property
+    def decision(self) -> bool:
+        return self._decision
+
+    def chat_json(self, system: str, user: str, schema: dict, num_predict: int = 400) -> tuple:
+        raise ModelError(f"{self.name}: δοκιμή αποτυχίας")
+
+    def decide(self, state, questions: dict) -> tuple:
+        raise ModelError(f"{self.name}: δοκιμή αποτυχίας")
+
+    def params(self) -> dict:
+        return {"name": self.name, "decision": self._decision}

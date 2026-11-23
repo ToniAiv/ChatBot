@@ -1,0 +1,7 @@
+# Χωρίς Validator: εγκρίνεται η σίγουρη απάντηση του BERT, όπως στο σημερινό bot, και δεν
+# γίνεται τελικός έλεγχος. Κανένα μοντέλο.
+#   ./run.sh agents validator=off
+_target_: multiagent.validator.FixedValidator
+pick: bert
+mode: fits
+final: false

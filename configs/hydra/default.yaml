@@ -1,6 +1,15 @@
-# Κάθε εκτέλεση γράφει σε δικό της φάκελο, μαζί με το πλήρες config της (.hydra/)
+# Κάθε εκτέλεση γράφει σε δικό της φάκελο, μαζί με το πλήρες config της (.hydra/):
+# outputs/chat/…, outputs/component/…, outputs/measure/… (το όνομα του script)
 run:
-  dir: outputs/${task_name}/${now:%Y-%m-%d_%H-%M-%S}
+  dir: outputs/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
 sweep:
-  dir: outputs/${task_name}/multirun/${now:%Y-%m-%d_%H-%M-%S}
+  dir: outputs/${hydra.job.name}/multirun/${now:%Y-%m-%d_%H-%M-%S}
   subdir: ${hydra.job.num}
+job:
+  config:
+    # Το όνομα μιας μέτρησης (στήλη config) είναι οι αλλαγές της εκτέλεσης,
+    # π.χ. «experiment=tev1-en-clean validator.threshold=0.7», χωρίς αυτές:
+    override_dirname:
+      kv_sep: "="
+      item_sep: " "
+      exclude_keys: [sweep, measure.sets, measure.name, measure.limit, measure.out, once, print_config, component]

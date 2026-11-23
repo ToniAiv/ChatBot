@@ -1,0 +1,8 @@
+# Security με ετικέτα που δίνουμε εμείς, για να δούμε τι κάνει μετά το υπόλοιπο pipeline.
+#   ./run.sh agents security=fixed security.label=emergency
+#   ./run.sh agents security=fixed security.label=out_of_scope security.scope=before
+_target_: multiagent.security.FixedSecurity
+label: ???            # request · out_of_scope · manipulation · abuse · emergency
+rules: false          # true: και οι κανόνες του κώδικα πριν από την ετικέτα
+scope: after          # όπως στο configs/security/default.yaml
+emergency: answer

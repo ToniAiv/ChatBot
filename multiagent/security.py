@@ -166,6 +166,28 @@ class Security:
         return Step("security", "model", " · ".join(notes), round(total, 2), model.name)
 
 
+class FixedSecurity(Security):
+    """Security χωρίς μοντέλο, με ετικέτα που ορίζουμε εμείς, για να δούμε τι κάνει το υπόλοιπο
+    pipeline (configs/security/fixed.yaml). Με label: request και rules: false είναι «χωρίς
+    Security» (configs/security/off.yaml). Δεν χρησιμοποιεί το model που του δίνεται."""
+
+    def __init__(self, *, label: str = "request", rules: bool = False, scope: str = "after",
+                 emergency: str = "answer", model=None):
+        choice("security.label", label, LABELS)
+        choice("security.scope", scope, ("before", "after"))
+        choice("security.emergency", emergency, ("block", "answer"))
+        self.model, self.label, self.rules_on = None, label, bool(rules)
+        self.scope, self.emergency, self.lang = scope, emergency, "en"
+
+    def params(self) -> dict:
+        return {"label": self.label, "rules": self.rules_on, "scope": self.scope, "emergency": self.emergency}
+
+    def check(self, segments: list) -> Step:
+        for seg in segments:
+            seg.label = self.label
+        return Step("security", "fixed", f"δοσμένη ετικέτα: {self.label}")
+
+
 # Ο παλιός τρόπος (μεταβλητές MA_*): οι ίδιες μέθοδοι, με ρυθμίσεις από το config.py.
 def blocks(label: str, settings: Settings) -> bool:
     return Security.from_settings(settings).blocks(label)

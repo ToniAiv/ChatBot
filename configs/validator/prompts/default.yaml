@@ -1,0 +1,51 @@
+# Οι ερωτήσεις (prompts) του Validator. Ο κώδικας τις συμπληρώνει την ώρα της κλήσης:
+# τις επιλογές (a, b, …) από τις υποψήφιες υπηρεσίες, τη βεβαιότητα του BERT στο {conf},
+# και το κείμενο του πολίτη. Για άλλη εκδοχή: ένα νέο αρχείο σε αυτόν τον φάκελο και
+#   validator/prompts=<όνομα>
+#
+#   en, el   ερωτήσεις προς το decision model (tev1:4b), στη γλώσσα του decision_lang
+#            fit      μία υποψήφια υπηρεσία: ταιριάζει; (criteria: πότε ναι, πότε όχι)
+#            pick     πολλές υποψήφιες: ποια; (none, none_strict: «καμία»· hint: η πρώτη του BERT)
+#            answers  τελικός έλεγχος: απαντά το κείμενο στο αίτημα;
+#   llm      system prompts όταν ο Validator είναι LLM (π.χ. qwen3:4b), μετά το BERT και στο τέλος
+en:
+  fit:
+    question: Does the municipal service in `service` handle what the citizen asks for in `citizen_message`?
+    criteria:
+      'true': The service is about exactly the matter the citizen asks for.
+      'false': The citizen asks for something different, for something that is not a municipal service, or the message is not enough to tell.
+  pick:
+    question: Which service of the Municipality of Heraklion is the citizen asking for?
+    none: None of the above, or the message is not enough to single one out.
+    none_strict: 'None: every option is clearly about a different matter than what the citizen asks.'
+    hint: ' The options are in the order of a search engine; option a is its first choice, with confidence {conf}. Choose another option only if it clearly fits better.'
+  answers:
+    question: Does the text in `reply` answer what the citizen asks for in `citizen_message`?
+    criteria:
+      'true': The text gives the service, the required documents or the contact details for exactly what the citizen asks.
+      'false': The text is about another matter or does not give what the citizen asked for.
+el:
+  fit:
+    question: Εξυπηρετεί η υπηρεσία του πεδίου `service` αυτό που ζητά ο πολίτης στο `citizen_message`;
+    criteria:
+      'true': Η υπηρεσία αφορά ακριβώς το θέμα που ζητά ο πολίτης.
+      'false': Ο πολίτης ζητά κάτι διαφορετικό, κάτι που δεν είναι υπηρεσία του Δήμου, ή το μήνυμα δεν αρκεί για να κριθεί.
+  pick:
+    question: Ποια υπηρεσία του Δήμου Ηρακλείου ζητά ο πολίτης;
+    none: Καμία από τις παραπάνω, ή το μήνυμα δεν αρκεί για να ξεχωρίσει μία.
+    none_strict: 'Καμία: κάθε επιλογή αφορά σαφώς άλλο θέμα από αυτό που ζητά ο πολίτης.'
+    hint: ' Οι επιλογές είναι με τη σειρά της αναζήτησης· η a είναι η πρώτη της επιλογή, με βεβαιότητα {conf}. Διάλεξε άλλη μόνο αν ταιριάζει σαφώς καλύτερα.'
+  answers:
+    question: Απαντά το κείμενο του πεδίου `reply` σε αυτό που ζητά ο πολίτης στο `citizen_message`;
+    criteria:
+      'true': Το κείμενο δίνει την υπηρεσία, τα δικαιολογητικά ή τα στοιχεία επικοινωνίας για αυτό ακριβώς που ζητά ο πολίτης.
+      'false': Το κείμενο αφορά άλλο θέμα ή δεν δίνει αυτό που ζήτησε ο πολίτης.
+llm:
+  intent: |-
+    Είσαι ο ελεγκτής του εικονικού βοηθού του Δήμου Ηρακλείου. Ο πολίτης έγραψε ένα μήνυμα και η αναζήτηση πρότεινε υπηρεσίες του Δήμου.
+    Διάλεξε τον αριθμό της υπηρεσίας που εξυπηρετεί ΑΚΡΙΒΩΣ αυτό που ζητά ο πολίτης. Απάντησε 0 αν καμία δεν ταιριάζει, αν το θέμα δεν είναι υπηρεσία του Δήμου, ή αν το μήνυμα δεν αρκεί για να ξεχωρίσεις.
+    Στο "evidence" αντέγραψε 1 έως 4 λέξεις του μηνύματος που δείχνουν ποια υπηρεσία εννοεί ο πολίτης.
+  final: |-
+    Είσαι ο τελικός ελεγκτής του εικονικού βοηθού του Δήμου Ηρακλείου. Θα δεις το αίτημα ενός πολίτη και την απάντηση που ετοιμάστηκε.
+    Κρίνε αν η απάντηση αφορά αυτό ακριβώς που ζήτησε ο πολίτης. Μια απάντηση που δίνει τη σωστή υπηρεσία με τον σύνδεσμο ή το τηλέφωνό της είναι σωστή, ακόμα κι αν είναι σύντομη.
+    Στο "reason" γράψε μία σύντομη πρόταση.

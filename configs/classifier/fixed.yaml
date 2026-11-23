@@ -1,0 +1,6 @@
+# BERT με απάντηση που δίνουμε εμείς: κάθε μήνυμα παίρνει αυτό το intent με αυτή τη βεβαιότητα,
+# για να δούμε τι κάνει μετά το υπόλοιπο pipeline. Τα ελληνικά θέλουν εισαγωγικά:
+#   ./run.sh agents classifier=fixed 'classifier.intent="βεβαιωση_κατοικιας"' classifier.confidence=0.6
+_target_: multiagent.classifier.FixedClassifier
+intent: ???           # όνομα intent του μοντέλου (models/…/labels.json)
+confidence: 0.95      # από 0,80 και πάνω το BERT θεωρείται σίγουρο

@@ -55,14 +55,16 @@ reply.text, reply.options, reply.trace
 ```text
 configs/
   multiagent.yaml          ποια κομμάτια φτιάχνονται (λίστα defaults) και κοινές τιμές
-  hydra/default.yaml       φάκελος ανά εκτέλεση: outputs/chat/<ημερομηνία_ώρα>/
-  model/                   ένα αρχείο ανά μοντέλο: tev1_4b, qwen3_4b, qwen3_14b
+  hydra/default.yaml       φάκελος ανά εκτέλεση: outputs/<script>/<ημερομηνία_ώρα>/
+  model/                   ένα αρχείο ανά μοντέλο: tev1_4b, qwen3_4b, qwen3_14b, και fail (αποτυγχάνει πάντα)
   welcome/default.yaml     Welcome
-  security/default.yaml    Security
-  classifier/bert.yaml     το BERT του bot
-  validator/default.yaml   Validator
+  security/                Security: default · off (χωρίς) · fixed (ετικέτα που δίνουμε εμείς)
+  classifier/              το BERT του bot: bert · fixed (intent που δίνουμε εμείς)
+  validator/               Validator: default · off (χωρίς) · fixed (απάντηση που δίνουμε εμείς)
+  validator/prompts/       οι ερωτήσεις (prompts) του Validator
   pipeline/default.yaml    η σειρά των βημάτων
   experiment/              μία ρύθμιση ανά μέτρηση (tev1 … tev1-en-clean-hint)
+  sweep/                   σαρώσεις: ποιες ρυθμίσεις και ποιες τιμές τρέχουν αυτόματα
 ```
 
 Κάθε αρχείο έχει `_target_`, την κλάση που φτιάχνει. Το Hydra φτιάχνει πρώτα
@@ -93,6 +95,37 @@ configs/
 - Στο holdout5 (κυρίως greeklish), με τη μεταγραφή των greeklish, βρήκε 26 στις 58, έναντι 32 του bot.
 - Θέλει 6–12 s ανά μήνυμα.
 
+### Χωρίς ένα κομμάτι, ή με απάντηση που δίνουμε εμείς
+
+Για να δούμε τι κάνει το υπόλοιπο pipeline όταν ένα κομμάτι λείπει, αποτυγχάνει ή
+βγάζει κάτι συγκεκριμένο. Μπαίνουν σε οποιαδήποτε εντολή (`./run.sh agents`, `multiagent.measure`).
+
+| Αλλαγή | Τι κάνει |
+|---|---|
+| `security=off` | χωρίς Security: ούτε κανόνες ούτε μοντέλο· όλα περνούν ως αίτημα |
+| `security=fixed security.label=emergency` | ο Security «λέει» πάντα αυτή την ετικέτα (request, out_of_scope, manipulation, abuse, emergency) |
+| `validator=off` | χωρίς Validator: η σίγουρη απάντηση του BERT, όπως στο σημερινό bot |
+| `validator=fixed validator.pick=none` | ο Validator δεν εγκρίνει ποτέ (`first`: πάντα την πρώτη υποψήφια· `bert`: όπως το bot) |
+| `classifier=fixed 'classifier.intent="βεβαιωση_κατοικιας"' classifier.confidence=0.6` | το BERT «λέει» πάντα αυτό το intent, με αυτή τη βεβαιότητα |
+| `welcome.split=false` · `welcome.reform=false` | χωρίς χωρισμό σε αιτήματα · χωρίς αναδιατύπωση |
+| `model@security.model=fail` | το μοντέλο ενός agent αποτυγχάνει (εδώ του Security): τι κάνει ο agent χωρίς απάντηση |
+
+Ένα κομμάτι μόνο του, σε ένα μήνυμα, με όσα βγάζει πριν από το υπόλοιπο pipeline:
+
+```bash
+venv/bin/python -m multiagent.component component=security 'once="πήρε φωτιά το διπλανό σπίτι"'
+venv/bin/python -m multiagent.component component=classifier 'once="θέλω βεβαίωση κατοικίας"'
+venv/bin/python -m multiagent.component component=validator 'once="…"'    # πρώτα το BERT, μετά ο Validator
+venv/bin/python -m multiagent.component component=welcome 'once="…"'      # χωρισμός σε αιτήματα
+```
+
+### Οι ερωτήσεις (prompts) του Validator
+
+Δεν είναι στον κώδικα: είναι στο `configs/validator/prompts/default.yaml`, ανά γλώσσα, και
+ο Validator τις συμπληρώνει την ώρα της κλήσης (τις υποψήφιες υπηρεσίες, τη βεβαιότητα
+του BERT στο `{conf}`). Για να δοκιμάσουμε άλλη διατύπωση, γράφουμε ένα νέο αρχείο στον
+ίδιο φάκελο και τρέχουμε με `validator/prompts=<όνομα>`, χωρίς αλλαγή στον κώδικα.
+
 ### Ο παλιός τρόπος: μεταβλητές `MA_*`
 
 Το `python -m multiagent.cli` και το `pipeline.run(...)` διαβάζουν ακόμα τις
@@ -119,6 +152,36 @@ commit μαζί με τις προβλέψεις, πριν τρέξει μοντ
 
 Τα σετ του `sets/` γράφτηκαν πριν τρέξει μοντέλο και εξαιρούνται από την
 εκπαίδευση (`scripts/prepare_dataset.py`).
+
+### Μέτρηση και σαρώσεις με Hydra
+
+Το `multiagent.measure` μετρά μία ρύθμιση, με οποιεσδήποτε αλλαγές, στα σετ του
+`measure.sets`. Με `-m` και ένα αρχείο του `configs/sweep/` τρέχουν αυτόματα όλοι οι
+συνδυασμοί, ο ένας μετά τον άλλο, όπως τα sweeps του Feathers:
+
+```bash
+venv/bin/python -m multiagent.measure experiment=tev1-en-clean 'measure.sets=[holdout,holdout2]'
+venv/bin/python -m multiagent.measure -m +sweep=validator_threshold
+```
+
+Οι απαντήσεις γράφονται στο `reports/multiagent_answers.csv`. Η στήλη `config` είναι οι
+αλλαγές της εκτέλεσης (π.χ. `experiment=tev1-en-clean validator.threshold=0.7`) ή το
+`measure.name`. Ο πίνακας βγαίνει με
+`venv/bin/python -m multiagent.evaluate metrics --configs "<όνομα>,<όνομα>"`.
+
+Τα holdout 1–6 τα έχουμε πια δει, άρα είναι το σετ για σαρώσεις. Ό,τι διαλέξουμε από
+μια σάρωση θέλει επιβεβαίωση σε νέο σετ, γραμμένο πριν τρέξει μοντέλο.
+
+### Έλεγχοι χωρίς Ollama
+
+```bash
+venv/bin/python -m unittest discover -s tests -v
+```
+
+Ελέγχουν ότι κάθε ρύθμιση στήνεται και ότι κάθε δρόμος του pipeline κάνει αυτό που
+περιμένουμε (χειραγώγηση, επείγον, «εκτός αρμοδιότητας», ερώτηση με κουμπιά, μοντέλο
+που αποτυγχάνει), με τα κομμάτια «δοσμένα». Τρέχουν σε λίγα δευτερόλεπτα. Δεν
+μετρούν πόσο καλά απαντούν τα μοντέλα· αυτό το κάνουν τα σετ ερωτήσεων.
 
 ## Τι δεν έχει γίνει ακόμα
 

@@ -6,6 +6,16 @@
 #   python -m multiagent.chat model@security.model=qwen3_4b    άλλο μοντέλο για έναν agent
 #   python -m multiagent.chat print_config=true                τύπωσε όλο το config στην αρχή
 #
+# Κάθε κομμάτι μπορεί να λείπει ή να δίνει απάντηση που ορίζουμε εμείς:
+#   python -m multiagent.chat security=off                     χωρίς Security
+#   python -m multiagent.chat security=fixed security.label=emergency    ο Security «λέει» επείγον
+#   python -m multiagent.chat validator=fixed validator.pick=none        ο Validator δεν εγκρίνει ποτέ
+#   python -m multiagent.chat model@validator.model=fail       το μοντέλο του Validator αποτυγχάνει
+#
+#   python -m multiagent.component component=security 'once="…"'   ένα κομμάτι μόνο του
+#   python -m multiagent.measure experiment=tev1-en-clean            μέτρηση σε σετ ερωτήσεων
+#   python -m multiagent.measure -m +sweep=validator_threshold       σάρωση: όλοι οι συνδυασμοί αυτόματα
+#
 # Κάθε κομμάτι είναι μια κλάση (_target_) και φτιάχνεται χωριστά: πρώτα τα
 # μοντέλα (configs/model/), μετά οι agents που τα παίρνουν, και τέλος το
 # pipeline που παίρνει έτοιμους τους agents (configs/pipeline/default.yaml).
@@ -27,11 +37,18 @@ defaults:
   # Μια ρύθμιση που έχουμε μετρήσει (configs/experiment/), π.χ. experiment=tev1-en-clean
   - experiment: null
 
-task_name: chat
 ollama_url: ${oc.env:MA_OLLAMA_URL,'http://localhost:11434'}
 timeout: 120          # δευτερόλεπτα ανά κλήση μοντέλου
 decision_lang: en     # γλώσσα των ερωτήσεων προς το decision model (Security, Validator)
 
-# Μόνο για τη συζήτηση (python -m multiagent.chat)
+# Συζήτηση (multiagent.chat) και ένα κομμάτι μόνο του (multiagent.component)
 once: null            # ένα μήνυμα και τέλος: 'once="θέλω βεβαίωση κατοικίας"'
 print_config: false
+component: pipeline   # multiagent.component: welcome · security · classifier · validator · pipeline
+
+# Μέτρηση σε σετ ερωτήσεων (multiagent.measure)
+measure:
+  sets: [holdout6]    # ονόματα από το SETS του multiagent/evaluate.py, π.χ. '[holdout,holdout2]'
+  name: null          # η στήλη config στο αρχείο αποτελεσμάτων· αν λείπει, οι αλλαγές της εκτέλεσης
+  limit: null         # μόνο οι πρώτες N ερωτήσεις κάθε σετ (για δοκιμή)
+  out: multiagent_answers.csv   # αρχείο στο reports/

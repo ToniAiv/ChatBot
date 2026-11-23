@@ -1,4 +1,9 @@
 # Validator: μετά το BERT διαλέγει την υπηρεσία· πριν φύγει η απάντηση, ελέγχει ότι απαντά στο αίτημα.
+# Άλλες εκδοχές: validator=off (χωρίς Validator) · validator=fixed (απάντηση που δίνουμε εμείς).
+defaults:
+  - prompts: default  # οι ερωτήσεις του (configs/validator/prompts/) · άλλη εκδοχή: validator/prompts=<όνομα>
+  - _self_
+
 _target_: multiagent.validator.Validator
 mode: choose          # fits: κρίνει τους υποψήφιους του bot · choose: διαλέγει στις 5 πρώτες του BERT
 text: plain           # plain: τίτλος και αρχή της περιγραφής · clean: χωρίς τυποποιημένες φράσεις, θέματα για τα τμήματα

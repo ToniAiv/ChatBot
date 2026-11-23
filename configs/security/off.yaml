@@ -1,0 +1,5 @@
+# Χωρίς Security: ούτε κανόνες ούτε μοντέλο· κάθε αίτημα περνά ως «αίτημα».
+#   ./run.sh agents security=off
+_target_: multiagent.security.FixedSecurity
+label: request
+rules: false
