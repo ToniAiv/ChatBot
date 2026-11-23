@@ -1,0 +1,12 @@
+# @package _global_
+# Ο Validator μόνος του στο bakeoff: περιγραφές των υπηρεσιών (plain, clean) × με ή χωρίς
+# την πρώτη επιλογή του BERT = 4 εκτελέσεις, όπως η 6η μέτρηση αλλά χωρίς όλο το pipeline.
+#   venv/bin/python -m multiagent.tune -m +sweep=validator_texts
+#   venv/bin/python -m multiagent.tune tune.agent=validator tune.report=true     ο πίνακας μετά
+hydra:
+  sweeper:
+    params:
+      validator.text: plain,clean
+      validator.hint: false,true
+tune:
+  agent: validator

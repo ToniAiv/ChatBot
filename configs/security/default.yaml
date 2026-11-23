@@ -1,5 +1,10 @@
 # Security: κανόνες στον κώδικα σε όλο το μήνυμα, μετά ετικέτα ανά αίτημα από το μοντέλο
 # (αίτημα, εκτός αρμοδιότητας, χειραγώγηση, προσβολή, επείγον).
+# Άλλες εκδοχές: security=off (χωρίς Security) · security=fixed (ετικέτα που δίνουμε εμείς).
+defaults:
+  - prompts: default  # οι ερωτήσεις του (configs/security/prompts/) · άλλη εκδοχή: security/prompts=<όνομα>
+  - _self_
+
 _target_: multiagent.security.Security
 rules: true           # κανόνες στον κώδικα πριν από το μοντέλο
 scope: after          # «εκτός αρμοδιότητας» · before: κόβει πριν από το BERT · after: μετρά μόνο αν δεν βρεθεί υπηρεσία

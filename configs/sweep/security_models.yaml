@@ -1,0 +1,15 @@
+# @package _global_
+# Ο Security μόνος του στο σετ ασφαλείας (52 ερωτήσεις), με δύο μοντέλα: κάθε συνδυασμός
+# τρέχει αυτόματα και γράφεται στο reports/tune_security.csv.
+#   venv/bin/python -m multiagent.tune -m +sweep=security_models
+#   venv/bin/python -m multiagent.tune tune.agent=security tune.report=true      ο πίνακας μετά
+#
+# Για να συγκρίνεις εκδοχές των prompts: γράψε π.χ. configs/security/prompts/v2.yaml
+# (με «defaults: [default, _self_]» και μόνο ό,τι αλλάζει) και πρόσθεσε εδώ
+#   security/prompts: default,v2
+hydra:
+  sweeper:
+    params:
+      model@security.model: tev1_4b,qwen3_4b
+tune:
+  agent: security

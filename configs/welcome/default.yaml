@@ -1,5 +1,9 @@
 # Welcome: κουβέντα, χωρισμός σε αιτήματα, αναδιατύπωση (case 1), σύνθεση της απάντησης.
 # Τα κείμενα των απαντήσεων έρχονται πάντα από τους πίνακες του bot.
+defaults:
+  - prompts: default  # τα system prompts του (configs/welcome/prompts/) · άλλη εκδοχή: welcome/prompts=<όνομα>
+  - _self_
+
 _target_: multiagent.welcome.Welcome
 split: true           # χωρισμός του μηνύματος σε αιτήματα
 split_langs: all      # el: χωρισμός μόνο στα ελληνικά · all: και σε αγγλικά και greeklish

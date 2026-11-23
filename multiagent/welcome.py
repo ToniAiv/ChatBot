@@ -10,7 +10,8 @@ Welcome agent: παραλαμβάνει το μήνυμα και δίνει τη
 στοιχεία επικοινωνίας έρχονται από τους πίνακες του bot. Το μοντέλο του
 χρησιμοποιείται μόνο για να κόψει και να αναδιατυπώσει.
 
-Ο agent είναι η κλάση Welcome· ρυθμίσεις στο configs/welcome/default.yaml.
+Ο agent είναι η κλάση Welcome· ρυθμίσεις στο configs/welcome/default.yaml. Τα system prompts
+του (χωρισμός, αναδιατύπωση) έρχονται από το configs/welcome/prompts/.
 """
 from __future__ import annotations
 
@@ -21,7 +22,7 @@ import greeklish
 import smalltalk as chitchat
 
 from multiagent import classifier, llm
-from multiagent.config import Settings, choice
+from multiagent.config import Settings, choice, plain, prompts_of
 from multiagent.state import Step
 
 TEXT = {
@@ -71,13 +72,6 @@ def smalltalk(text: str) -> dict | None:
 
 
 # ── χωρισμός ──────────────────────────────────────────────────
-SYSTEM_SPLIT = """Είσαι ο βοηθός υποδοχής του Δήμου Ηρακλείου. Ο πολίτης έγραψε ένα μήνυμα. Βρες τα ξεχωριστά αιτήματα που περιέχει.
-Κανόνες:
-- Γράψε κάθε αίτημα ΜΕ ΤΙΣ ΙΔΙΕΣ ΛΕΞΕΙΣ του πολίτη, αντιγραμμένες από το μήνυμα. Μην αλλάζεις, μην διορθώνεις και μην προσθέτεις λέξεις.
-- Χώρισε ΜΟΝΟ αν ο πολίτης ζητά δύο ή περισσότερα διαφορετικά πράγματα. Ερωτήσεις για το ίδιο θέμα, π.χ. τα δικαιολογητικά και το τηλέφωνο της ίδιας υπηρεσίας, είναι ΕΝΑ αίτημα.
-- Χαιρετισμοί και προτάσεις που μόνο περιγράφουν την κατάσταση δεν είναι ξεχωριστά αιτήματα. Κράτα μαζί με το αίτημα μόνο όσες λέξεις χρειάζονται για να γίνει κατανοητό.
-- Αν το μήνυμα έχει ένα αίτημα, δώσε ένα."""
-
 SCHEMA_SPLIT = {"type": "object", "required": ["requests"], "properties": {"requests": {
     "type": "array", "minItems": 1, "maxItems": 3, "items": {"type": "string"}}}}
 
@@ -106,10 +100,6 @@ def verbatim(part: str, message: str) -> bool:
 
 
 # ── case 1: αναδιατύπωση ─────────────────────────────────────
-SYSTEM_REFORM = """Ο πολίτης έγραψε στον εικονικό βοηθό του Δήμου Ηρακλείου, αλλά η αναζήτηση δεν βρήκε την υπηρεσία που ζητά.
-Ξαναγράψε το αίτημά του σε ΜΙΑ απλή, σωστή ελληνική πρόταση, όπως θα το έγραφε η σελίδα του Δήμου. Διόρθωσε ορθογραφία και greeklish, και μετάφρασε αν είναι σε άλλη γλώσσα.
-Μην προσθέτεις κάτι που δεν είπε ο πολίτης και μην απαντάς στο αίτημα."""
-
 SCHEMA_REFORM = {"type": "object", "required": ["text"], "properties": {"text": {"type": "string"}}}
 
 
@@ -156,7 +146,7 @@ class Welcome:
 
     def __init__(self, *, split_model: llm.OllamaModel | None = None,
                  reform_model: llm.OllamaModel | None = None, split: bool = True,
-                 split_langs: str = "all", reform: bool = True):
+                 split_langs: str = "all", reform: bool = True, prompts: dict | None = None):
         choice("welcome.split_langs", split_langs, ("el", "all"))
         if split and split_model is None:
             raise ValueError("welcome.split_model: χρειάζεται μοντέλο όταν split: true")
@@ -164,18 +154,22 @@ class Welcome:
             raise ValueError("welcome.reform_model: χρειάζεται μοντέλο όταν reform: true")
         self.split_model, self.reform_model = split_model, reform_model
         self.split_on, self.split_langs, self.reform_on = bool(split), split_langs, bool(reform)
+        self.prompts = plain(prompts) if prompts is not None else prompts_of("welcome")
+        if not {"split", "reform"} <= set(self.prompts):
+            raise ValueError("welcome.prompts: χρειάζονται τα split και reform")
 
     @classmethod
     def from_settings(cls, s: Settings) -> Welcome:
         """Από τις παλιές ρυθμίσεις (config.py, μεταβλητές MA_*)."""
         return cls(split_model=llm.OllamaModel(name=s.model("split"), url=s.url("split"), timeout=s.timeout),
                    reform_model=llm.OllamaModel(name=s.model("reform"), url=s.url("reform"), timeout=s.timeout),
-                   split=s.split, split_langs=s.split_langs, reform=s.reform)
+                   split=s.split, split_langs=s.split_langs, reform=s.reform, prompts=prompts_of("welcome"))
 
     def params(self) -> dict:
         return {"split_model": self.split_model.params() if self.split_model else None,
                 "reform_model": self.reform_model.params() if self.reform_model else None,
-                "split": self.split_on, "split_langs": self.split_langs, "reform": self.reform_on}
+                "split": self.split_on, "split_langs": self.split_langs, "reform": self.reform_on,
+                "prompts": self.prompts}
 
     # Χωρίς μοντέλο: ίδια σε κάθε ρύθμιση
     language_of = staticmethod(language_of)
@@ -193,7 +187,7 @@ class Welcome:
             return [text], "", None
         model = self.split_model
         try:
-            out, secs = model.chat_json(SYSTEM_SPLIT, text, SCHEMA_SPLIT)
+            out, secs = model.chat_json(self.prompts["split"], text, SCHEMA_SPLIT)
         except llm.ModelError as exc:
             return [text], "", Step("welcome", "split", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model.name)
         parts = [str(p).strip() for p in out.get("requests", []) if str(p).strip()]
@@ -213,7 +207,7 @@ class Welcome:
         model = self.reform_model
         try:
             # 300 tokens: με 120 το JSON κοβόταν στη μέση στα φλύαρα μηνύματα (8 φορές στη μέτρηση 13/11).
-            out, secs = model.chat_json(SYSTEM_REFORM, text, SCHEMA_REFORM, num_predict=300)
+            out, secs = model.chat_json(self.prompts["reform"], text, SCHEMA_REFORM, num_predict=300)
         except llm.ModelError as exc:
             return None, Step("welcome", "reform", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model.name)
         new = re.sub(r"\s+", " ", str(out.get("text", ""))).strip()

@@ -11,13 +11,14 @@
 from __future__ import annotations
 
 import sys
+import types
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from multiagent import build, config, welcome          # noqa: E402
-from multiagent.pipeline import Pipeline                # noqa: E402
+from multiagent import build, config, security, tune, welcome      # noqa: E402
+from multiagent.pipeline import Pipeline                            # noqa: E402
 
 # Χωρίς Ollama: κάθε μοντέλο αποτυγχάνει, εκτός αν το κομμάτι του είναι «δοσμένο»
 NO_OLLAMA = ["model@welcome.split_model=fail", "model@welcome.reform_model=fail",
@@ -112,6 +113,43 @@ class Paths(unittest.TestCase):
         r = run("οτιδήποτε", "security=off", "validator=off", "classifier=fixed",
                 'classifier.intent="βεβαιωση_κατοικιας"', "classifier.confidence=0.5")
         self.assertEqual(r.segments[0].status, "clarify")
+
+
+class Prompts(unittest.TestCase):
+    """Τα prompts κάθε agent έρχονται από το δικό του .yaml (configs/<agent>/prompts/)."""
+
+    def test_every_agent_reads_its_prompts_from_yaml(self):
+        p = build.pipeline()
+        self.assertEqual(list(p.security.prompts["el"]["criteria"]), list(security.LABELS))
+        for label in security.LABELS:
+            self.assertIn(f'- "{label}":', p.security.system())
+        self.assertTrue(p.welcome.prompts["split"] and p.welcome.prompts["reform"])
+        self.assertIn("{conf}", p.validator.prompts["en"]["pick"]["hint"])
+
+    def test_one_prompt_can_change_from_the_command_line(self):
+        before = build.pipeline().security.prompts
+        after = build.pipeline(overrides=['security.prompts.en.question="Τι μήνυμα έστειλε ο πολίτης;"']).security.prompts
+        self.assertEqual(after["en"]["question"], "Τι μήνυμα έστειλε ο πολίτης;")
+        self.assertEqual(after["el"], before["el"])
+        self.assertEqual(after["en"]["criteria"], before["en"]["criteria"])
+
+
+class Tune(unittest.TestCase):
+    """Η μέτρηση ενός agent μόνου του (multiagent.tune), με «δοσμένα» κομμάτια."""
+
+    def test_security_row_and_summary(self):
+        pipe = build.pipeline(overrides=["security=fixed", "security.label=manipulation"])
+        row = tune._security(None, pipe, {"id": "x", "type": "request", "text": CLEAR})
+        self.assertEqual((row["got"], row["right"], row["blocked"]), ("manipulation", False, True))
+        lines = dict(tune.summary("security", [row]))
+        self.assertEqual(lines["σωστή ετικέτα"], "0/1")
+        self.assertEqual(lines["αιτήματα που κόπηκαν (όσο λιγότερα τόσο καλύτερα)"], "1/1")
+
+    def test_split_counts_requests(self):
+        pipe = build.pipeline(overrides=NO_OLLAMA + ["welcome.split=false"])
+        sets = types.SimpleNamespace(SERVICE_TYPES=("service",))
+        row = tune._split(sets, pipe, {"type": "service", "expect": "a|b", "text": CLEAR})
+        self.assertEqual((row["expect"], row["got"], row["outcome"]), (2, 1, "δεν χώρισε"))
 
 
 if __name__ == "__main__":

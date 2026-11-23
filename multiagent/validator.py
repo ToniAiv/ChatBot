@@ -25,21 +25,10 @@ import re
 
 import connector as C
 import greeklish
-import yaml
-from omegaconf import DictConfig, OmegaConf
 
-from multiagent import ROOT, llm
-from multiagent.config import Settings, choice
+from multiagent import llm
+from multiagent.config import Settings, choice, plain, prompts_of
 from multiagent.state import Candidate, Classification, Step
-
-# ── οι ερωτήσεις (prompts) ───────────────────────────────────
-PROMPTS_FILE = ROOT / "configs" / "validator" / "prompts" / "default.yaml"
-
-
-def default_prompts() -> dict:
-    """Οι ερωτήσεις του configs/validator/prompts/default.yaml, για τον παλιό τρόπο (χωρίς Hydra)."""
-    return yaml.safe_load(PROMPTS_FILE.read_text(encoding="utf-8"))
-
 
 # Η μορφή της απάντησης όταν ο Validator είναι LLM (κομμάτι του κώδικα, όχι του prompt)
 SCHEMA_INTENT = {"type": "object", "required": ["choice", "evidence"], "properties": {
@@ -76,9 +65,7 @@ class Validator:
         self.model, self.final_model = model, final_model
         self.mode, self.text, self.hint = mode, text, bool(hint)
         self.threshold, self.final_on, self.lang = float(threshold), bool(final), lang
-        if isinstance(prompts, DictConfig):
-            prompts = OmegaConf.to_container(prompts, resolve=True)
-        self.prompts = prompts if prompts is not None else default_prompts()
+        self.prompts = plain(prompts) if prompts is not None else prompts_of("validator")
         if lang not in self.prompts or "llm" not in self.prompts:
             raise ValueError(f"validator.prompts: χρειάζονται τα «{lang}» και «llm»")
 
@@ -88,7 +75,7 @@ class Validator:
         return cls(model=llm.OllamaModel(name=s.model("validator"), url=s.url("validator"), timeout=s.timeout),
                    final_model=llm.OllamaModel(name=s.model("final"), url=s.url("final"), timeout=s.timeout),
                    mode=s.validator_mode, text=s.validator_text, hint=s.validator_hint,
-                   threshold=s.threshold, final=s.final, lang=s.decision_lang, prompts=default_prompts())
+                   threshold=s.threshold, final=s.final, lang=s.decision_lang, prompts=prompts_of("validator"))
 
     def params(self) -> dict:
         return {"model": self.model.params(),

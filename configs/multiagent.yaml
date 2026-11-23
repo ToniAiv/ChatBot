@@ -15,6 +15,8 @@
 #   python -m multiagent.component component=security 'once="…"'   ένα κομμάτι μόνο του
 #   python -m multiagent.measure experiment=tev1-en-clean            μέτρηση σε σετ ερωτήσεων
 #   python -m multiagent.measure -m +sweep=validator_threshold       σάρωση: όλοι οι συνδυασμοί αυτόματα
+#   python -m multiagent.tune tune.agent=security                    ένας agent μόνος του, για βελτίωση
+#   python -m multiagent.tune -m +sweep=security_models              σάρωση για έναν agent
 #
 # Κάθε κομμάτι είναι μια κλάση (_target_) και φτιάχνεται χωριστά: πρώτα τα
 # μοντέλα (configs/model/), μετά οι agents που τα παίρνουν, και τέλος το
@@ -52,3 +54,12 @@ measure:
   name: null          # η στήλη config στο αρχείο αποτελεσμάτων· αν λείπει, οι αλλαγές της εκτέλεσης
   limit: null         # μόνο οι πρώτες N ερωτήσεις κάθε σετ (για δοκιμή)
   out: multiagent_answers.csv   # αρχείο στο reports/
+
+# Ένας agent μόνος του σε σετ ερωτήσεων, για να τον βελτιώσουμε (multiagent.tune)
+tune:
+  agent: security     # security · validator · split · reform
+  sets: null          # αν λείπει: security → [security] · validator → [bakeoff] · split → [compound] · reform → [holdout]
+  limit: null         # μόνο οι πρώτες N ερωτήσεις κάθε σετ (για δοκιμή)
+  name: null          # η στήλη config· αν λείπει, οι αλλαγές της εκτέλεσης
+  out: null           # αρχείο στο reports/· αν λείπει, tune_<agent>.csv
+  report: false       # μόνο ο πίνακας με όλες τις ρυθμίσεις που έχουν μετρηθεί για τον agent

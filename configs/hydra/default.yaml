@@ -12,4 +12,5 @@ job:
     override_dirname:
       kv_sep: "="
       item_sep: " "
-      exclude_keys: [sweep, measure.sets, measure.name, measure.limit, measure.out, once, print_config, component]
+      exclude_keys: [sweep, measure.sets, measure.name, measure.limit, measure.out, once, print_config, component,
+                     tune.agent, tune.sets, tune.limit, tune.name, tune.out, tune.report]

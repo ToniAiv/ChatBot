@@ -56,6 +56,23 @@ def is_decision_model(model: str) -> bool:
     return model.split("/")[-1].split(":")[0].startswith(DECISION_FAMILIES)
 
 
+def prompts_of(agent: str, name: str = "default") -> dict:
+    """Οι ερωτήσεις (prompts) ενός agent από το configs/<agent>/prompts/<name>.yaml, για τον
+    παλιό τρόπο χωρίς Hydra. Διαβάζει μόνο το ίδιο το αρχείο, όχι τη λίστα defaults του."""
+    import yaml
+
+    from multiagent import ROOT
+    data = yaml.safe_load((ROOT / "configs" / agent / "prompts" / f"{name}.yaml").read_text(encoding="utf-8"))
+    data.pop("defaults", None)
+    return data
+
+
+def plain(value):
+    """Ένα config του Hydra (DictConfig) ως απλό dict, για να σταλεί σε μοντέλο ως JSON."""
+    from omegaconf import DictConfig, ListConfig, OmegaConf
+    return OmegaConf.to_container(value, resolve=True) if isinstance(value, (DictConfig, ListConfig)) else value
+
+
 def choice(name: str, value, allowed: tuple) -> None:
     """Σφάλμα με τις επιτρεπτές τιμές, αν μια ρύθμιση έχει άλλη."""
     if value not in allowed:

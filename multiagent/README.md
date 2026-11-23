@@ -58,10 +58,12 @@ configs/
   hydra/default.yaml       φάκελος ανά εκτέλεση: outputs/<script>/<ημερομηνία_ώρα>/
   model/                   ένα αρχείο ανά μοντέλο: tev1_4b, qwen3_4b, qwen3_14b, και fail (αποτυγχάνει πάντα)
   welcome/default.yaml     Welcome
+  welcome/prompts/         τα prompts του Welcome (χωρισμός, αναδιατύπωση)
   security/                Security: default · off (χωρίς) · fixed (ετικέτα που δίνουμε εμείς)
+  security/prompts/        τα prompts του Security
   classifier/              το BERT του bot: bert · fixed (intent που δίνουμε εμείς)
   validator/               Validator: default · off (χωρίς) · fixed (απάντηση που δίνουμε εμείς)
-  validator/prompts/       οι ερωτήσεις (prompts) του Validator
+  validator/prompts/       τα prompts του Validator
   pipeline/default.yaml    η σειρά των βημάτων
   experiment/              μία ρύθμιση ανά μέτρηση (tev1 … tev1-en-clean-hint)
   sweep/                   σαρώσεις: ποιες ρυθμίσεις και ποιες τιμές τρέχουν αυτόματα
@@ -119,12 +121,29 @@ venv/bin/python -m multiagent.component component=validator 'once="…"'    # π
 venv/bin/python -m multiagent.component component=welcome 'once="…"'      # χωρισμός σε αιτήματα
 ```
 
-### Οι ερωτήσεις (prompts) του Validator
+### Τα prompts κάθε agent
 
-Δεν είναι στον κώδικα: είναι στο `configs/validator/prompts/default.yaml`, ανά γλώσσα, και
-ο Validator τις συμπληρώνει την ώρα της κλήσης (τις υποψήφιες υπηρεσίες, τη βεβαιότητα
-του BERT στο `{conf}`). Για να δοκιμάσουμε άλλη διατύπωση, γράφουμε ένα νέο αρχείο στον
-ίδιο φάκελο και τρέχουμε με `validator/prompts=<όνομα>`, χωρίς αλλαγή στον κώδικα.
+Κανένα prompt δεν είναι στον κώδικα. Κάθε agent έχει τον φάκελό του, και ο κώδικας
+συμπληρώνει τα prompts την ώρα της κλήσης:
+
+| Αρχείο | Τι έχει |
+|---|---|
+| `configs/security/prompts/default.yaml` | η ερώτηση και τα κριτήρια κάθε ετικέτας (el, en) για το decision model· το system prompt για LLM, με τα κριτήρια στο `{criteria}` |
+| `configs/welcome/prompts/default.yaml` | τα system prompts για τον χωρισμό σε αιτήματα (`split`) και την αναδιατύπωση (`reform`) |
+| `configs/validator/prompts/default.yaml` | οι ερωτήσεις μετά το BERT (`fit`, `pick`, με τη βεβαιότητα του BERT στο `{conf}`) και του τελικού ελέγχου (`answers`)· τα system prompts για LLM |
+
+Μια νέα εκδοχή γράφει μόνο ό,τι αλλάζει. Για παράδειγμα, το `configs/security/prompts/v2.yaml`:
+
+```yaml
+defaults:
+  - default
+  - _self_
+en:
+  question: "Which kind of message did the citizen send?"
+```
+
+Τρέχει με `security/prompts=v2`, χωρίς αλλαγή στον κώδικα. Για μια γρήγορη δοκιμή, ένα
+μόνο κείμενο αλλάζει και από τη γραμμή εντολών: `'security.prompts.en.question="…"'`.
 
 ### Ο παλιός τρόπος: μεταβλητές `MA_*`
 
@@ -171,6 +190,33 @@ venv/bin/python -m multiagent.measure -m +sweep=validator_threshold
 
 Τα holdout 1–6 τα έχουμε πια δει, άρα είναι το σετ για σαρώσεις. Ό,τι διαλέξουμε από
 μια σάρωση θέλει επιβεβαίωση σε νέο σετ, γραμμένο πριν τρέξει μοντέλο.
+
+### Ένας agent μόνος του: βελτίωση με το `multiagent.tune`
+
+Μετρά έναν agent μόνο του, χωρίς όλο το pipeline. Έτσι συγκρίνουμε prompts, μοντέλα και
+ρυθμίσεις για τον καθένα χωριστά:
+
+```bash
+venv/bin/python -m multiagent.tune tune.agent=security        # στο σετ ασφαλείας (52)
+venv/bin/python -m multiagent.tune tune.agent=validator       # στο bakeoff
+venv/bin/python -m multiagent.tune tune.agent=split           # στα σύνθετα (16)
+venv/bin/python -m multiagent.tune tune.agent=reform          # στο holdout, όπου το BERT είναι αβέβαιο
+venv/bin/python -m multiagent.tune tune.agent=security security/prompts=v2 'tune.sets=[security,holdout5]'
+venv/bin/python -m multiagent.tune -m +sweep=security_models  # σάρωση: όλοι οι συνδυασμοί
+venv/bin/python -m multiagent.tune tune.agent=security tune.report=true   # όλες οι ρυθμίσεις που μετρήθηκαν
+```
+
+| Agent | Τι μετρά |
+|---|---|
+| `security` | σωστή ετικέτα· αιτήματα που κόπηκαν· χειραγώγηση που πέρασε· επείγοντα και «εκτός αρμοδιότητας» που αναγνωρίστηκαν |
+| `validator` | σωστή επιλογή· λάθος επιλογή (σίγουρα λάθη)· «καμία» ενώ η σωστή ήταν στις υποψήφιες· πόσες φορές η σωστή ήταν στις υποψήφιες (το καλύτερο δυνατό) |
+| `split` | σωστός αριθμός αιτημάτων· χώρισε χωρίς λόγο· δεν χώρισε· άλλαξε τις λέξεις του πολίτη |
+| `reform` | όπου το BERT είναι αβέβαιο: η αναδιατύπωση βοήθησε, οδήγησε σε λάθος, ή απορρίφθηκε |
+
+Κάθε απάντηση γράφεται στο `reports/tune_<agent>.csv`, με στήλη `config` τις αλλαγές της
+εκτέλεσης. Παραδείγματα σαρώσεων: `configs/sweep/security_models.yaml` (δύο μοντέλα) και
+`configs/sweep/validator_texts.yaml` (περιγραφές × πρώτη επιλογή του BERT). Ό,τι διαλέξουμε
+εδώ θέλει επιβεβαίωση σε νέο σετ και σε όλη τη ροή (`multiagent.measure`).
 
 ### Έλεγχοι χωρίς Ollama
 
