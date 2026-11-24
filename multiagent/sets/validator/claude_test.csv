@@ -1,0 +1,51 @@
+id,text,type,expect,lang,note
+vt01,"Θέλω να πάρω χαρτί από τον δήμο που να λέει ποιοι είναι οι πιο κοντινοί συγγενείς του πατέρα μου που πέθανε",service,πλησιεστεροι_συγγενεις,el,
+vt02,"Πού κάνω αίτηση για να μου δώσουν θέση πάρκινγκ για αναπηρικό αμαξίδιο έξω από το σπίτι;",service,αιτηση_παραχωρησης_αποκλειστικης_θεσης_σταθμευσης_αμεα,el,
+vt03,"Γέμισε κάμπιες το πεύκο στην παιδική χαρά της γειτονιάς, μπορεί να έρθει κάποιος να το ψεκάσει;",service,καταπολεμηση_πιτυοκαμπησ,el,
+vt04,"Μου έβαλαν κλήση επειδή παρκάρισα σε θέση φόρτωσης, θέλω να την προσβάλω",service,ενσταση_παρανομης_σταθμευσης,el,
+vt05,"Ένα αυτοκίνητο είναι παρατημένο εδώ και μήνες στο πεζοδρόμιο με σκισμένα λάστιχα",service,απομακρυνση_εγκαταλελειμμενων_οχηματων,el,
+vt06,"Η πινακίδα STOP στη διασταύρωση έχει γείρει και δεν φαίνεται",service,τοποθετηση_πινακιδων_σημανσης_και_καθρεπτων,el,
+vt07,"Πώς ζητάω να βγάλουν τα μυρμήγκια και τις κατσαρίδες από το πάρκο της πλατείας;",service,απεντομωση_κοινοχρηστων,el,
+vt08,"Θα ήθελα να καταθέσω αίτηση για να μου κάνουν φυσιοθεραπεία στο σπίτι γιατί δεν μπορώ να μετακινηθώ",service,αιτηση_φυσικοθεραπειας_κατ_οικον,el,
+vt09,"Μπορώ να ζητήσω από τον δήμο να μου στείλει ένα αντίγραφο της ληξιαρχικής πράξης θανάτου της γιαγιάς μου;",service,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_θανατου,el,
+vt10,"Έχω μαζέψει αρκετά απλήρωτα τέλη στον δήμο, γίνεται να τα ξεπληρώνω λίγα λίγα κάθε μήνα;",service,διακανονισμος_οφειλης_φυσικου_προσωπου,el,
+vt11,"Το παγκάκι στη στάση του λεωφορείου έσπασε και λείπει μια σανίδα",service,παγκακια,el,
+vt12,"Θέλουμε να κάνουμε πολιτικό γάμο στο δημαρχείο, τι χρειάζεται για την άδεια; Είμαστε και οι δύο Έλληνες",service,αδεια_πολιτικου_γαμου_ελληνες,el,
+vt13,"Πώς αλλάζω τη διεύθυνση κατοικίας μου στα στοιχεία του δήμου μετά τη μετακόμιση;",service,αλλαγη_διευθυνσησ,el,
+vt14,"Χρειάζομαι βεβαίωση ότι δεν χρωστάω τέλη καθαριότητας για το διαμέρισμα που πουλάω",service,μη_οφειλη_ταπ_ακινητα,el,
+vt15,"Οι κάδοι ανακύκλωσης στη γωνία είναι σπασμένοι και τα καπάκια δεν κλείνουν",service,επισκευη_αντικατασταση_καδων_απορριμματων,el,
+vt16,"Ποια μέρα έχει λαϊκή στη Μασταμπά και μέχρι τι ώρα κρατάει;",service,πληροφοριες_λαικων_αγορων,el,
+vt17,"Ένα μεγάλο κλαδί έπεσε από τον ευκάλυπτο στο πάρκο μετά τον αέρα",service,σπασμενα_κλαδια_δεντρου,el,
+vt18,"Πώς δηλώνω τη γέννηση του μωρού μας στο ληξιαρχείο;",service,δηλωση_γεννησης,el,
+vt19,"thelw pistopoiitiko gennisis gia to paidi mou gia to sxoleio",service,πιστοποιητικο_γεννησης,greeklish,
+vt20,"pos kanw aitisi gia na kladepsoun ta dentra stin platia",service,κλαδεμα_κοινοχρηστων,greeklish,
+vt21,"exei kopei to nero sti geitonia mas apo to prwi, ti ginetai?",service,διακοπη_παροχης_υδατος,greeklish,
+vt22,"mporw na eksoflisw me karta to xreos tis DEYAH apo to kinito?",service,ηλεκτρονικη_εξοφληση_λογαριασμου_δευαη,greeklish,
+vt23,"pou dilwnw oti to fanari tou dromou anavosvinei",service,βλαβες_δικτυου_δημοτικου_φωτισμου,greeklish,
+vt24,"mou zitane apo to panepistimio xarti oti menw monima sto irakleio",service,βεβαιωση_κατοικιας,greeklish,
+vt25,"mporei na erthei kapoios na mazepsei ena palio kanape apo to spiti",service,ογκοδεματα,greeklish,
+vt26,"pws ginetai i metadimotefsi otan pantreutika kapoion apo to irakleio",service,μεταδημοτευση_συζυγου,greeklish,
+vt27,"ena skilo xwris louri trigyrnaei stin paralia kai fobizei ta paidia",service,αδεσποτα_ζωα,greeklish,
+vt28,"thelw na kanw enstasi gia to prostimo pou mou evalan gia ta skoupidia",service,ενσταση_προστιμου_καθαριοτητας,greeklish,
+vt29,"ti xartia thelei gia na paroume to epidoma",service,επιδοματα,greeklish,
+vt30,"i asfaltos sto dromo mas exei anoiksei megali trypa",service,αιτηση_βλαβης_οδοστρωματος/επισκευη_οδοστρωματος,greeklish,δύο intents για την ίδια σελίδα
+vt31,"How can I get a copy of my marriage certificate from the registry office?",service,χορηγηση_αντιγραφου_ληξιαρχικης_πραξης_γαμου,en,
+vt32,"The traffic light on our corner has been stuck on red all morning",service,βλαβη_φωτεινων_σηματοδοτων,en,
+vt33,"Where do I apply for a resident parking permit for my street?",service,σημα_σταθμευσης_κατοικου,en,
+vt34,"I want to report someone who is building an illegal extension on their roof",service,καταγγελια_αυθαιρετησ_κατασκευησ,en,
+vt35,"Can the municipality send someone to clean the dirty square near the school?",service,καθαριοτητα_κοινοχρηστου_χωρου/γενικο_αιτημα_καθαριοτητας,en,
+vt36,"I need a certificate showing my family status for a visa application",service,πιστοποιητικο_οικογενειακης_καταστασης,en,
+vt37,"Rats keep coming out of the drain in the park, who handles pest control?",service,μυοκτονια_κοινοχρηστων,en,
+vt38,"How do I ask for a new streetlight on a dark road near my house?",service,τοποθετηση_φωτιστικων_σωματων/τοποθετηση_δημοτικου_φωτισμου,en,δύο intents για την ίδια σελίδα
+vt39,"I want to return my car's licence plates because I'm taking it off the road",service,επιστροφη_πινακιδων,en,
+vt40,"Is there a way to get a discount on municipal fees because of a disability?",service,μειωση_τελων_λογω_αναπηριας,en,
+vt41,"δώστε μου το τηλέφωνο του ληξιαρχείου",department,LIXIARXEIO,el,
+vt42,"dwste mou to tilefwno kai to email tis DEYAH",department,DEYAH,greeklish,
+vt43,"what is the phone number of the cemeteries office?",department,KOIMITIRIA,en,
+vt44,"Με ποιον μιλάω στις αδειοδοτήσεις του δήμου; Δώστε μου ένα τηλέφωνο",department,ADEIODOTISEIS,el,
+vt45,"Πού βγάζω καινούρια αστυνομική ταυτότητα;",out_of_scope,,el,αστυνομία
+vt46,"Πόσο κοστίζει το εισιτήριο του πλοίου για Σαντορίνη;",out_of_scope,,el,ακτοπλοΐα
+vt47,"posa xrimata kostizei mia aksoniki tomografia sto PAGNI?",out_of_scope,,greeklish,νοσοκομείο
+vt48,"How do I file my income tax return this year?",out_of_scope,,en,εφορία
+vt49,"Η ΔΕΗ μου έστειλε υπερβολικό λογαριασμό ρεύματος, πού κάνω παράπονο;",out_of_scope,,el,εταιρεία ρεύματος
+vt50,"Ποια φαρμακεία εφημερεύουν απόψε στο Ηράκλειο;",out_of_scope,,el,φαρμακεία
