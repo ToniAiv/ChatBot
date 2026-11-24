@@ -66,6 +66,18 @@ def _hit(E, pipe, c, cls, targets: list) -> bool:
     return any(E.B.hit(pipe.classifier.answer(c, cls), t) for t in targets)
 
 
+# Σε μια σάρωση όλες οι εκτελέσεις τρέχουν στην ίδια διεργασία: η ταξινόμηση του BERT
+# και ο έλεγχος «είναι σωστή αυτή η υποψήφια;» γίνονται μία φορά ανά ερώτηση.
+_SEEN: dict = {}
+
+
+def _classified(pipe, q: dict) -> tuple:
+    key = (q["text"], repr(sorted(pipe.classifier.params().items())))
+    if key not in _SEEN:
+        _SEEN[key] = (pipe.classifier.classify(q["text"]), {})
+    return _SEEN[key]
+
+
 # ── μία ερώτηση ανά agent ─────────────────────────────────────
 def _security(E, pipe, q: dict) -> dict | None:
     if q["type"] not in EXPECTED_LABEL:
@@ -89,16 +101,23 @@ def _validator(E, pipe, q: dict) -> dict | None:
     targets = [] if nothing else E.targets_of(q)
     if not nothing and len(targets) != 1:
         return None                                  # χωρίς στόχο, ή σύνθετο: ο Validator κρίνει ένα αίτημα
-    cls = pipe.classifier.classify(q["text"])
+    cls, memo = _classified(pipe, q)
+
+    def right(c) -> bool:
+        key = (c.intent, c.kind, c.url)
+        if key not in memo:
+            memo[key] = _hit(E, pipe, c, cls, targets)
+        return memo[key]
+
     pool = pipe.validator.pool(cls)
-    in_pool = any(_hit(E, pipe, c, cls, targets) for c in pool)
+    in_pool = any(right(c) for c in pool)
     chosen, step = pipe.validator.check_intent(_view(pipe, q["text"]), cls)
     if nothing:
         outcome = "λάθος επιλογή" if chosen else "καμία, σωστά"
     elif not pool:
         outcome = "χωρίς υποψήφιους"
     elif chosen:
-        outcome = "σωστή επιλογή" if _hit(E, pipe, chosen, cls, targets) else "λάθος επιλογή"
+        outcome = "σωστή επιλογή" if right(chosen) else "λάθος επιλογή"
     else:
         outcome = "καμία, ενώ υπήρχε σωστή" if in_pool else "καμία, σωστά"
     return {"type": q["type"], "bert": _describe(cls), "confident": cls.confident, "in_pool": in_pool,

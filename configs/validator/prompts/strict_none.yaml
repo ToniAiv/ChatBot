@@ -1,0 +1,14 @@
+# Εκδοχή του prompt του Validator: «καμία» μόνο όταν κάθε επιλογή αφορά σαφώς άλλο θέμα.
+# Στο default το «καμία» ισχύει και «όταν το μήνυμα δεν αρκεί για να ξεχωρίσει μία», και
+# στη μέτρηση βάσης (23/11) ο Validator είπε «καμία» 100 φορές ενώ η σωστή ήταν στις
+# υποψήφιες. Οι περιγραφές των υπηρεσιών μένουν ίδιες (validator.text=plain).
+#   venv/bin/python -m multiagent.tune tune.agent=validator validator/prompts=strict_none
+defaults:
+  - default
+  - _self_
+en:
+  pick:
+    none: "None: every option is clearly about a different matter than what the citizen asks."
+el:
+  pick:
+    none: "Καμία: κάθε επιλογή αφορά σαφώς άλλο θέμα από αυτό που ζητά ο πολίτης."
