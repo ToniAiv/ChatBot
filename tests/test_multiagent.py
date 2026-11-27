@@ -20,8 +20,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from multiagent import build, config, security, tune, welcome      # noqa: E402
-from multiagent.pipeline import Pipeline                            # noqa: E402
+from multiagent import build, config, llm, security, tune, validator, welcome      # noqa: E402
+from multiagent.pipeline import Pipeline                                           # noqa: E402
+from multiagent.state import Candidate, Classification                             # noqa: E402
 
 # Χωρίς Ollama: κάθε μοντέλο αποτυγχάνει, εκτός αν το κομμάτι του είναι «δοσμένο»
 NO_OLLAMA = ["model@welcome.split_model=fail", "model@welcome.reform_model=fail",
@@ -153,6 +154,51 @@ class Tune(unittest.TestCase):
         sets = types.SimpleNamespace(SERVICE_TYPES=("service",))
         row = tune._split(sets, pipe, {"type": "service", "expect": "a|b", "text": CLEAR})
         self.assertEqual((row["expect"], row["got"], row["outcome"]), (2, 1, "δεν χώρισε"))
+
+
+class ScriptedModel(llm.OllamaModel):
+    """Decision model χωρίς Ollama: δίνει πάντα την ίδια απάντηση."""
+
+    def __init__(self, answer: dict):
+        self.name, self.url, self.timeout, self.answer = "scripted", "", 0, answer
+
+    @property
+    def decision(self) -> bool:
+        return True
+
+    def decide(self, state, questions: dict) -> tuple:
+        return self.answer, 0.0
+
+
+class ValidatorRules(unittest.TestCase):
+    """Οι δύο κανόνες για σίγουρο BERT: switch_min και none_fallback (8η μέτρηση)."""
+    PICK_B = {"pick": {"choice": "b", "probabilities": {"b": 0.6}}}
+    NONE = {"pick": {"choice": "none", "probabilities": {"none": 0.9}}}
+
+    @staticmethod
+    def bert(confident: bool = True) -> Classification:
+        a, b, c = (Candidate(f"i{n}", 0.9, "link", f"Υπηρεσία {n}", url=f"https://x/{n}") for n in "abc")
+        return Classification("κείμενο", "el", confidence=0.9 if confident else 0.5, confident=confident,
+                              candidates=[a], top=[a, b, c])
+
+    @staticmethod
+    def pick(answer: dict, cls: Classification, **rules):
+        chosen, _step = validator.Validator(model=ScriptedModel(answer), final=False, **rules).check_intent("x", cls)
+        return chosen.title if chosen else None
+
+    def test_leaving_a_sure_bert_needs_enough_probability(self):
+        self.assertEqual(self.pick(self.PICK_B, self.bert()), "Υπηρεσία b")
+        self.assertEqual(self.pick(self.PICK_B, self.bert(), switch_min=0.8), "Υπηρεσία a")
+        sure_b = {"pick": {"choice": "b", "probabilities": {"b": 0.85}}}
+        self.assertEqual(self.pick(sure_b, self.bert(), switch_min=0.8), "Υπηρεσία b")
+
+    def test_none_falls_back_to_a_sure_bert(self):
+        self.assertIsNone(self.pick(self.NONE, self.bert()))
+        self.assertEqual(self.pick(self.NONE, self.bert(), none_fallback=True), "Υπηρεσία a")
+
+    def test_rules_do_nothing_when_bert_is_unsure(self):
+        self.assertIsNone(self.pick(self.NONE, self.bert(False), none_fallback=True))
+        self.assertEqual(self.pick(self.PICK_B, self.bert(False), switch_min=0.8), "Υπηρεσία b")
 
 
 class TeamSets(unittest.TestCase):

@@ -10,6 +10,8 @@ text: plain           # plain: τίτλος και αρχή της περιγρ�
 hint: false           # μαθαίνει ποια επιλογή θεωρεί πρώτη το BERT και με τι βεβαιότητα
 threshold: 0.5        # πιθανότητα από την οποία εγκρίνει
 final: true           # τελικός έλεγχος της απάντησης
+switch_min: null      # σίγουρο BERT: διαλέγει άλλη από την πρώτη του μόνο με πιθανότητα από αυτή και πάνω (π.χ. 0.8)
+none_fallback: false  # σίγουρο BERT και «καμία»: μένει η πρώτη του BERT
 lang: ${decision_lang}
 model: ???            # από το configs/model/
 final_model: ???

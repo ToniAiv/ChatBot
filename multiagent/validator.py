@@ -27,6 +27,7 @@ import connector as C
 import greeklish
 
 from multiagent import llm
+from multiagent.classifier import same_place
 from multiagent.config import Settings, choice, plain, prompts_of
 from multiagent.state import Candidate, Classification, Step
 
@@ -56,7 +57,8 @@ class Validator:
 
     def __init__(self, *, model: llm.OllamaModel, final_model: llm.OllamaModel | None = None,
                  mode: str = "choose", text: str = "plain", hint: bool = False, threshold: float = 0.5,
-                 final: bool = True, lang: str = "en", prompts: dict | None = None):
+                 final: bool = True, lang: str = "en", prompts: dict | None = None,
+                 switch_min: float | None = None, none_fallback: bool = False):
         choice("validator.mode", mode, ("fits", "choose"))
         choice("validator.text", text, ("plain", "clean"))
         choice("validator.lang", lang, ("el", "en"))
@@ -65,6 +67,9 @@ class Validator:
         self.model, self.final_model = model, final_model
         self.mode, self.text, self.hint = mode, text, bool(hint)
         self.threshold, self.final_on, self.lang = float(threshold), bool(final), lang
+        # Δύο κανόνες για σίγουρο BERT (ανενεργοί στην προεπιλογή· 8η μέτρηση):
+        self.switch_min = None if switch_min is None else float(switch_min)
+        self.none_fallback = bool(none_fallback)
         self.prompts = plain(prompts) if prompts is not None else prompts_of("validator")
         if lang not in self.prompts or "llm" not in self.prompts:
             raise ValueError(f"validator.prompts: χρειάζονται τα «{lang}» και «llm»")
@@ -81,7 +86,8 @@ class Validator:
         return {"model": self.model.params(),
                 "final_model": self.final_model.params() if self.final_model else None,
                 "mode": self.mode, "text": self.text, "hint": self.hint, "threshold": self.threshold,
-                "final": self.final_on, "lang": self.lang, "prompts": self.prompts}
+                "final": self.final_on, "lang": self.lang, "prompts": self.prompts,
+                "switch_min": self.switch_min, "none_fallback": self.none_fallback}
 
     def pool(self, cls: Classification) -> list:
         """Οι υποψήφιοι που κρίνει: του bot (fits), ή οι 5 πρώτες του BERT (choose).
@@ -96,6 +102,7 @@ class Validator:
         model, cands = self.model, self.pool(cls)
         if not cands:
             return None, Step("validator", "intent", "κανένας υποψήφιος προορισμός")
+        prob = None                 # η πιθανότητα της απάντησης του decision model
         try:
             if model.decision:
                 p, clean = self.prompts[self.lang], self.text == "clean"
@@ -108,6 +115,7 @@ class Validator:
                     p = float(ans["fits"]["noul"])
                     chosen = cands[0] if p >= self.threshold else None
                     note = f"«{cands[0].title}» ταιριάζει με πιθανότητα {p:.2f}"
+                    prob = p
                 else:
                     keys = "abcdefgh"[:len(cands)]
                     criteria = {k: _line(c, clean) for k, c in zip(keys, cands)}
@@ -122,6 +130,7 @@ class Validator:
                     chosen = cands[keys.index(key)] if key in keys and p >= self.threshold else None
                     note = (f"διάλεξε «{cands[keys.index(key)].title}» ({p:.2f})" if key in keys
                             else f"καμία από τις {len(cands)} ({p:.2f})")
+                    prob = p
             else:
                 user = (f"Μήνυμα: {message}\nΥπηρεσίες:\n"
                         + "\n".join(f"{i}. {_line(c, self.text == 'clean')}" for i, c in enumerate(cands, 1)))
@@ -135,7 +144,21 @@ class Validator:
         except (llm.ModelError, KeyError, TypeError, ValueError) as exc:
             chosen = cls.candidates[0] if cls.confident and cls.candidates else None    # όπως το σημερινό bot
             return chosen, Step("validator", "intent", f"το μοντέλο δεν απάντησε ({exc})"[:160], 0.0, model.name)
+        chosen, note = self._rules(cls, chosen, prob, note)
         return chosen, Step("validator", "intent", note, secs, model.name)
+
+    def _rules(self, cls: Classification, chosen, prob: float | None, note: str) -> tuple:
+        """Όταν το BERT είναι σίγουρο: switch_min, από την πρώτη του φεύγει μόνο με τόση
+        πιθανότητα· none_fallback, στο «καμία» μένει η πρώτη του."""
+        first = cls.candidates[0] if cls.confident and cls.candidates else None
+        if first is None:
+            return chosen, note
+        if (chosen is not None and self.switch_min is not None and prob is not None
+                and not same_place(chosen, first) and prob < self.switch_min):
+            return first, note + f" → μένει η 1η του BERT (κάτω από {self.switch_min:.2f})"
+        if chosen is None and self.none_fallback:
+            return first, note + " → μένει η 1η του BERT (σίγουρο BERT, «καμία»)"
+        return chosen, note
 
     def check_final(self, message: str, reply: str) -> tuple:
         """(True αν η απάντηση καλύπτει το αίτημα, γραμμή ίχνους)."""
