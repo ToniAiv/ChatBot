@@ -37,7 +37,7 @@ from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from multiagent import ROOT
+from multiagent import ROOT, llm
 from multiagent.config import choice
 from multiagent.pipeline import _describe
 from multiagent.state import Segment
@@ -245,6 +245,9 @@ def main(cfg: DictConfig) -> None:
         return
     name = t.name or HydraConfig.get().job.override_dirname or "default"
     pipe = instantiate(cfg.pipeline)
+    models = {"security": [pipe.security.model], "validator": [pipe.validator.model],
+              "split": [pipe.welcome.split_model], "reform": [pipe.welcome.reform_model]}[t.agent]
+    llm.require([m for m in models if m is not None])
     pipe.classifier.load()
     print(f"\n{t.agent} · «{name}»\n{pipe.describe()}\n")
     table = E.Sheet(path, FIELDS[t.agent], ("config", "set", "id"))
@@ -255,6 +258,9 @@ def main(cfg: DictConfig) -> None:
             row = RUN[t.agent](E, pipe, q)
             if row is None:
                 continue
+            if "το μοντέλο δεν απάντησε" in str(row.get("detail", "")) and type(models[0]) is llm.OllamaModel:
+                raise SystemExit(f"Το μοντέλο δεν απάντησε στο {sname} {q['id']} ({row['detail'][:120]}). "
+                                 "Η μέτρηση σταματά χωρίς να γραφτεί αυτή η γραμμή· ξανατρέξτε για να συνεχίσει.")
             table.add({"config": name, "set": sname, "id": q["id"], "text": q["text"], **row})
             print(f"   {sname:9} {q['id']:5} {row['outcome']}", flush=True)
     show(t.agent, name, [r for r in table.rows if r["config"] == name])

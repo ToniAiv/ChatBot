@@ -74,6 +74,22 @@ def decide(url: str, model: str, state, questions: dict, timeout: int = 120) -> 
     return out, round(time.monotonic() - t0, 2)
 
 
+def reachable(url: str, timeout: float = 3) -> bool:
+    """Απαντά ο server του Ollama;"""
+    try:
+        return requests.get(f"{url}/api/tags", timeout=timeout).ok
+    except requests.RequestException:
+        return False
+
+
+def require(models) -> None:
+    """Σταματά με μήνυμα αν δεν απαντά ο server κάποιου μοντέλου (εκτός από τα FailingModel).
+    Για τις μετρήσεις: χωρίς αυτό, ένα κλειστό Ollama γράφει απαντήσεις «χωρίς μοντέλο»."""
+    for url in sorted({m.url for m in models if type(m) is OllamaModel}):
+        if not reachable(url):
+            raise SystemExit(f"Το Ollama δεν απαντά στο {url}. Ανοίξτε το (π.χ. ollama serve) και ξανατρέξτε.")
+
+
 class OllamaModel:
     """Ένα μοντέλο του Ollama για έναν agent. Ο agent δεν ξέρει πού τρέχει το μοντέλο."""
 

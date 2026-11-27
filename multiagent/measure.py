@@ -22,7 +22,7 @@ from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from multiagent import ROOT
+from multiagent import ROOT, llm
 
 
 @hydra.main(config_path=str(ROOT / "configs"), config_name="multiagent", version_base="1.3")
@@ -31,6 +31,8 @@ def main(cfg: DictConfig) -> None:
 
     name = cfg.measure.name or HydraConfig.get().job.override_dirname or "default"
     pipe = instantiate(cfg.pipeline)
+    llm.require([m for m in (pipe.welcome.split_model, pipe.welcome.reform_model, pipe.security.model,
+                             pipe.validator.model, pipe.validator.final_model) if m is not None])
     pipe.classifier.load()
     print(f"\n«{name}»\n{pipe.describe()}\n")
     evaluate.run_pipeline_on(pipe, name, list(cfg.measure.sets), sheet=cfg.measure.out, limit=cfg.measure.limit)
