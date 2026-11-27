@@ -1,0 +1,16 @@
+# @package _global_
+# Η προεπιλογή από 27/11/2026: όπως το tev1-en-choose-gr, και ο Validator μαθαίνει την πρώτη
+# επιλογή του BERT (7η και 8η μέτρηση).
+# Γράφει όλους τους διακόπτες που μετρήσαμε, ώστε να μένει ίδια κι αν αλλάξουν οι προεπιλογές.
+decision_lang: en
+security:
+  scope: after
+  emergency: answer
+welcome:
+  split_langs: all
+validator:
+  mode: choose
+  text: plain
+  hint: true
+pipeline:
+  greeklish: greek

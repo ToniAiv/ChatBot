@@ -89,13 +89,14 @@ configs/
 | `validator.mode` | `MA_VALIDATOR_MODE` | `choose` (προεπιλογή): διαλέγει στις 5 πρώτες του BERT· `fits`: κρίνει μόνο τους υποψήφιους του bot |
 | `pipeline.greeklish` | `MA_GREEKLISH` | `greek` (προεπιλογή): Security και Validator βλέπουν τα greeklish σε ελληνικά· `raw`: όπως γράφτηκαν |
 | `validator.text` | `MA_VALIDATOR_TEXT` | `plain`: τίτλος και αρχή της περιγραφής· `clean`: χωρίς τυποποιημένες φράσεις, θέματα για τα τμήματα |
-| `validator.hint` | `MA_VALIDATOR_HINT` | ο Validator μαθαίνει την πρώτη επιλογή του BERT και τη βεβαιότητά της |
+| `validator.hint` | `MA_VALIDATOR_HINT` | `true` (προεπιλογή από 27/11): ο Validator μαθαίνει την πρώτη επιλογή του BERT και τη βεβαιότητά της |
 | `validator.threshold` | — | πιθανότητα από την οποία ο Validator εγκρίνει (0,5) |
 
 Οι προεπιλογές βγήκαν από τους κανόνες απόφασης των μετρήσεων (`reports/multiagent.md`).
 - Στο holdout4 (κυρίως ελληνικά και αγγλικά) το multi-agent βρήκε 35 σωστές στις 66, έναντι 30 του bot, με 6 σίγουρα λάθη έναντι 8.
 - Στο holdout5 (κυρίως greeklish), με τη μεταγραφή των greeklish, βρήκε 26 στις 58, έναντι 32 του bot.
 - Θέλει 6–12 s ανά μήνυμα.
+- Το `validator.hint` έγινε προεπιλογή στις 27/11: σε 150 νέες ερωτήσεις ο Validator μόνος του βρήκε 106 σωστές έναντι 94, με ίδια λάθη (7η και 8η μέτρηση). Η ρύθμιση με το όνομά της: `experiment=tev1-en-choose-gr-hint`.
 
 ### Χωρίς ένα κομμάτι, ή με απάντηση που δίνουμε εμείς
 
